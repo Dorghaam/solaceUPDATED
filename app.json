@@ -3,6 +3,7 @@
     "name": "solace-ui-demo",
     "slug": "solace-ui-demo",
     "version": "1.0.0",
+    "scheme": "solaceapp",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
