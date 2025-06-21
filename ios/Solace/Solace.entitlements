@@ -2,9 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
+    <!-- For Apple Sign In -->
     <key>com.apple.developer.applesignin</key>
     <array>
       <string>Default</string>
+    </array>
+    <!-- For Widgets (Good to have it now) -->
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <!-- This MUST match your updated bundleIdentifier -->
+        <string>group.com.dorghaamhaidar.solace.iphone.widget</string>
     </array>
   </dict>
 </plist>

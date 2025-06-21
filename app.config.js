@@ -7,7 +7,7 @@ export default ({ config }) => ({
   expo: {
     ...config.expo,
     name: "Solace",
-    slug: "solace-ui-demo",
+    slug: "solace",
     version: "1.0.0",
     scheme: "solaceapp",
     orientation: "portrait",
@@ -22,7 +22,7 @@ export default ({ config }) => ({
     ios: {
       ...config.expo?.ios,
       supportsTablet: true,
-      bundleIdentifier: "com.ritchi1.solaceuidemo",
+      bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
       buildNumber: "1",
       googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
       storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
@@ -33,7 +33,7 @@ export default ({ config }) => ({
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#FFFFFF"
       },
-      package: "com.ritchi1.solaceuidemo.android"
+      package: "com.dorghaamhaidar.solace"
     },
     plugins: [
       "expo-router",
