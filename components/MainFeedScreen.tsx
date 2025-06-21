@@ -246,37 +246,41 @@ export const MainFeedScreen = () => {
         </View>
 
         {/* Bottom Navigation - Static - Hide when categories or settings modal is open */}
-        {!showCategories && !showSettings && (
-          <View style={styles.bottomNav}>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.bottomButton,
-                { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-              ]} 
-              onPress={() => handleButtonPress('Grid')}
-            >
-              <Ionicons name="grid-outline" size={24} color="#333" />
-            </Pressable>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.bottomButton,
-                { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-              ]} 
-              onPress={() => handleButtonPress('Brush')}
-            >
-              <Ionicons name="brush-outline" size={24} color="#333" />
-            </Pressable>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.bottomButton,
-                { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-              ]} 
-              onPress={() => handleButtonPress('Person')}
-            >
-              <Ionicons name="person-outline" size={24} color="#333" />
-            </Pressable>
-          </View>
-        )}
+        <View style={[
+          styles.bottomNav,
+          { opacity: (showCategories || showSettings) ? 0 : 1 }
+        ]}>
+          <Pressable 
+            style={({ pressed }) => [
+              styles.bottomButton,
+              { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+            ]} 
+            onPress={() => handleButtonPress('Grid')}
+            disabled={showCategories || showSettings}
+          >
+            <Ionicons name="grid-outline" size={24} color="#333" />
+          </Pressable>
+          <Pressable 
+            style={({ pressed }) => [
+              styles.bottomButton,
+              { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+            ]} 
+            onPress={() => handleButtonPress('Brush')}
+            disabled={showCategories || showSettings}
+          >
+            <Ionicons name="brush-outline" size={24} color="#333" />
+          </Pressable>
+          <Pressable 
+            style={({ pressed }) => [
+              styles.bottomButton,
+              { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+            ]} 
+            onPress={() => handleButtonPress('Person')}
+            disabled={showCategories || showSettings}
+          >
+            <Ionicons name="person-outline" size={24} color="#333" />
+          </Pressable>
+        </View>
       </LinearGradient>
 
       {/* Categories Modal */}
