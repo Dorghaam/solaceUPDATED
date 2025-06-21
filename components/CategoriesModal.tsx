@@ -212,13 +212,14 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
             {/* Drag handle */}
             <View style={styles.dragHandle} />
             
-            {/* Header */}
-            <View style={styles.header}>
+                      {/* Header */}
+          <View style={styles.header}>
             <Pressable style={styles.cancelButton} onPress={handleClose}>
-              <Ionicons name="close" size={24} color={theme.colors.text} />
+              <Text style={styles.cancelText}>Cancel</Text>
             </Pressable>
-            <Text style={styles.headerTitle}>Categories</Text>
-            <View style={styles.placeholder} />
+            <View style={styles.titleContainer}>
+              <Text style={styles.headerTitle}>Categories</Text>
+            </View>
           </View>
 
           {/* Search bar */}
@@ -264,19 +265,6 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
               </View>
             ))}
           </ScrollView>
-
-          {/* Bottom navigation */}
-          <View style={styles.bottomNav}>
-            <Pressable style={styles.navButton}>
-              <Ionicons name="grid" size={24} color={theme.colors.primary} />
-            </Pressable>
-            <Pressable style={styles.navButton}>
-              <Ionicons name="brush-outline" size={24} color={theme.colors.textSecondary} />
-            </Pressable>
-            <Pressable style={styles.navButton}>
-              <Ionicons name="person-outline" size={24} color={theme.colors.textSecondary} />
-            </Pressable>
-          </View>
                   </LinearGradient>
         </Animated.View>
       </PanGestureHandler>
@@ -306,7 +294,7 @@ const styles = StyleSheet.create({
   },
   modal: {
     position: 'absolute',
-    top: 0,
+    top: 50, // Show some of the main screen at the top
     left: 0,
     right: 0,
     bottom: 0,
@@ -331,16 +319,29 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.m,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: theme.spacing.m,
+    position: 'relative',
   },
   cancelButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    position: 'absolute',
+    top: -10,
+    left: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  cancelText: {
+    fontSize: theme.typography.fontSizes.m,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.text,
+  },
+  titleContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.m,
-    paddingBottom: 100,
+    paddingBottom: theme.spacing.xl,
   },
   section: {
     marginBottom: theme.spacing.l,
@@ -417,18 +418,5 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
     textAlign: 'left',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.l,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.3)',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  navButton: {
-    padding: theme.spacing.s,
   },
 }); 

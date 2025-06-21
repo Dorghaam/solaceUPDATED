@@ -201,34 +201,34 @@ export const MainFeedScreen = () => {
               ]}
             >
               <Text style={styles.quoteText}>{QUOTES[currentQuoteIndex]}</Text>
+              
+              {/* Action Buttons - Move with the quote */}
+              <View style={styles.actionButtons}>
+                <Pressable 
+                  style={({ pressed }) => [
+                    styles.actionButton,
+                    { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+                  ]} 
+                  onPress={() => handleButtonPress('Share')}
+                >
+                  <Ionicons name="share-outline" size={32} color="#333" />
+                </Pressable>
+                <Pressable 
+                  style={({ pressed }) => [
+                    styles.actionButton,
+                    { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+                  ]} 
+                  onPress={handleLike}
+                >
+                  <Ionicons 
+                    name={isLiked ? "heart" : "heart-outline"} 
+                    size={32} 
+                    color={isLiked ? "#FF6B6B" : "#333"} 
+                  />
+                </Pressable>
+              </View>
             </Animated.View>
           </PanGestureHandler>
-          
-          {/* Action Buttons - Fixed layer on top */}
-          <View style={styles.actionButtons}>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.actionButton,
-                { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-              ]} 
-              onPress={() => handleButtonPress('Share')}
-            >
-              <Ionicons name="share-outline" size={32} color="#333" />
-            </Pressable>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.actionButton,
-                { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-              ]} 
-              onPress={handleLike}
-            >
-              <Ionicons 
-                name={isLiked ? "heart" : "heart-outline"} 
-                size={32} 
-                color={isLiked ? "#FF6B6B" : "#333"} 
-              />
-            </Pressable>
-          </View>
         </View>
 
         {/* Bottom Navigation - Static - Hide when categories modal is open */}
@@ -337,15 +337,11 @@ const styles = StyleSheet.create({
     marginBottom: 60,
   },
   actionButtons: {
-    position: 'absolute',
-    bottom: 120,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 60,
-    zIndex: 10,
+    marginTop: 40,
   },
   actionButton: {
     padding: 16,
