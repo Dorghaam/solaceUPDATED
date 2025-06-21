@@ -5,18 +5,34 @@ export const theme = {
     background: '#FDF8F6', // The soft, warm off-white from the design
     text: '#4B423F',        // A dark, earthy brown for primary text
     textSecondary: '#9E9390', // A lighter, muted brown for secondary text
-    primary: '#806A61',       // A muted, elegant primary color for active states
+    primary: '#806A61',       // The new primary color for active states
     accent: '#D4A392',         // A soft pink/peach accent for "liked" states
     white: '#FFFFFF',
     black: '#000000',
-    // New lighter pink gradient colors
+
+    // Full Primary Palette (from old theme for compatibility)
+    primaryPalette: {
+      50: '#FFE3EC',
+      100: '#FFC1D7',
+      200: '#FFA0C2',
+      300: '#FF7EAD',
+      400: '#FA5C98',
+      500: '#F06B93', // Original Solace Pink
+      600: '#D95A80',
+      700: '#C24F70',
+      800: '#AA4460',
+      900: '#933950',
+    },
+
+    // Gradient colors from new design
     lightPink: {
       lightest: '#FFF5F7',
       light: '#FFE8ED',
       medium: '#FFD1DC',
       dark: '#FFC0CB',
     },
-    // Category card backgrounds
+    
+    // Category card backgrounds from new design
     categoryColors: {
       purple: '#E8D5F0',
       teal: '#B8E6E1',
