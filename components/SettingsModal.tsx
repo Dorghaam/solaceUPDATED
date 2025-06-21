@@ -7,11 +7,14 @@ import {
   Dimensions,
   Animated,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { router } from 'expo-router';
 import { theme } from '../constants/theme';
+import { signOut } from '../services/authService';
 import * as Haptics from 'expo-haptics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -145,6 +148,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Alert.alert(
+        'Sign Out',
+        'Are you sure you want to sign out?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Sign Out',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                // First close the modal
+                handleClose();
+                // Then sign out and redirect
+                await signOut();
+                console.log('SettingsModal: Sign out successful, redirecting to onboarding');
+                router.replace('/(onboarding)');
+              } catch (error: any) {
+                console.error('SettingsModal: Sign out error:', error);
+                Alert.alert('Error', 'Failed to sign out. Please try again.');
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('SettingsModal: Error showing sign out alert:', error);
+    }
+  };
+
   if (!visible) {
     return null;
   }
@@ -264,6 +302,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </Pressable>
                 ))}
               </View>
+
+                {/* Sign Out Button */}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.signOutButton,
+                    { opacity: pressed ? 0.8 : 1 },
+                    { transform: [{ scale: pressed ? 0.98 : 1 }] }
+                  ]}
+                  onPress={handleSignOut}
+                >
+                  <View style={styles.menuItemLeft}>
+                    <View style={styles.signOutIconContainer}>
+                      <Ionicons 
+                        name="log-out-outline" 
+                        size={20} 
+                        color="#FF6B6B" 
+                      />
+                    </View>
+                    <Text style={styles.signOutText}>
+                      Sign Out
+                    </Text>
+                  </View>
+                </Pressable>
             </ScrollView>
           </LinearGradient>
         </Animated.View>
@@ -451,5 +512,29 @@ const styles = StyleSheet.create({
   premiumText: {
     color: '#fff',
     fontFamily: theme.typography.fontFamily.semiBold,
+  },
+
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: theme.radii.m,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.m,
+    marginTop: theme.spacing.s,
+  },
+  signOutIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signOutText: {
+    fontSize: theme.typography.fontSizes.m,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: '#FF6B6B',
   },
 }); 
