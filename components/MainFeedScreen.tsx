@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,38 +7,74 @@ import {
   Dimensions,
   StatusBar,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { PanGestureHandler, GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
 import { CategoriesModal } from './CategoriesModal';
 import { SettingsModal } from './SettingsModal';
 import { theme } from '../constants/theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// Array of motivational quotes
-const QUOTES = [
-  "Keep going.\nYou're getting there.",
-  "The sun will rise and\nwe will try again.",
-  "Trust the timing\nof your life.",
-  "Every day is a\nnew beginning.",
-  "You are stronger\nthan you think.",
-  "Progress, not\nperfection.",
-  "Believe in yourself\nand all that you are.",
-  "Your potential is\nendless.",
-  "Great things take time.\nBe patient.",
-  "You've got this.\nKeep pushing forward."
-];
+// Define the shape of a single quote
+interface Quote {
+  id: string;
+  text: string;
+  category?: string;
+}
 
-export const MainFeedScreen = () => {
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-  const [likeCount, setLikeCount] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
-  const [showCategories, setShowCategories] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  
+// Define the props this component expects to receive
+interface MainFeedScreenProps {
+  quotes: Quote[];
+  isLoading: boolean;
+  isFavorite: (id: string) => boolean;
+  onToggleFavorite: (quote: Quote) => void;
+  onShare: (quote: Quote) => void;
+  onNextQuote: () => void;
+  onPreviousQuote: () => void;
+  onGoToFavorites: () => void;
+  onGoToSettings: () => void;
+  likeCount: number;
+  currentQuoteIndex: number;
+  // Modal state props
+  showCategories: boolean;
+  showSettings: boolean;
+  onShowCategories: () => void;
+  onShowSettings: () => void;
+  onCloseCategories: () => void;
+  onCloseSettings: () => void;
+  onCategorySelect: (category: any) => void;
+  onSettingSelect: (setting: any) => void;
+  // Additional button handlers
+  onPremiumPress: () => void;
+  onBrushPress: () => void;
+}
+
+export const MainFeedScreen = ({
+  quotes,
+  isLoading,
+  isFavorite,
+  onToggleFavorite,
+  onShare,
+  onNextQuote,
+  onPreviousQuote,
+  onGoToFavorites,
+  onGoToSettings,
+  likeCount,
+  currentQuoteIndex,
+  showCategories,
+  showSettings,
+  onShowCategories,
+  onShowSettings,
+  onCloseCategories,
+  onCloseSettings,
+  onCategorySelect,
+  onSettingSelect,
+  onPremiumPress,
+  onBrushPress,
+}: MainFeedScreenProps) => {
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
 
@@ -47,7 +83,7 @@ export const MainFeedScreen = () => {
     { useNativeDriver: true }
   );
 
-  const handleGestureStateChange = (event) => {
+  const handleGestureStateChange = (event: any) => {
     if (event.nativeEvent.state === State.END) {
       const { translationY, velocityY } = event.nativeEvent;
       
@@ -60,10 +96,10 @@ export const MainFeedScreen = () => {
       if (shouldChangeQuote) {
         if (translationY < 0) {
           // Swipe up - next quote
-          nextQuote();
+          handleNextQuote();
         } else {
           // Swipe down - previous quote
-          previousQuote();
+          handlePreviousQuote();
         }
       } else {
         // Return to original position
@@ -75,11 +111,9 @@ export const MainFeedScreen = () => {
     }
   };
 
-  const nextQuote = () => {
+  const handleNextQuote = () => {
     if (isAnimating.current) return;
     isAnimating.current = true;
-    
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     // Animate current quote up and out
     Animated.timing(translateY, {
@@ -87,9 +121,7 @@ export const MainFeedScreen = () => {
       duration: 150,
       useNativeDriver: true,
     }).start(() => {
-      // Update quote index
-      setCurrentQuoteIndex((prevIndex) => (prevIndex + 1) % QUOTES.length);
-      setIsLiked(false);
+      onNextQuote();
       
       // Reset position to bottom and animate in
       translateY.setValue(screenHeight);
@@ -103,11 +135,9 @@ export const MainFeedScreen = () => {
     });
   };
 
-  const previousQuote = () => {
+  const handlePreviousQuote = () => {
     if (isAnimating.current) return;
     isAnimating.current = true;
-    
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     // Animate current quote down and out
     Animated.timing(translateY, {
@@ -115,9 +145,7 @@ export const MainFeedScreen = () => {
       duration: 150,
       useNativeDriver: true,
     }).start(() => {
-      // Update quote index
-      setCurrentQuoteIndex((prevIndex) => (prevIndex - 1 + QUOTES.length) % QUOTES.length);
-      setIsLiked(false);
+      onPreviousQuote();
       
       // Reset position to top and animate in
       translateY.setValue(-screenHeight);
@@ -131,54 +159,54 @@ export const MainFeedScreen = () => {
     });
   };
 
-  const handleLike = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (isLiked) {
-      setLikeCount(Math.max(0, likeCount - 1));
-    } else {
-      setLikeCount(likeCount + 1);
-    }
-    setIsLiked(!isLiked);
-  };
+  // Loading state
+  if (isLoading && quotes.length === 0) {
+    return (
+      <GestureHandlerRootView style={styles.fullScreenContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <LinearGradient
+          colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light, theme.colors.lightPink.medium, theme.colors.lightPink.dark]}
+          style={styles.fullScreenBackground}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        >
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#333" />
+            <Text style={styles.loadingText}>Loading quotes...</Text>
+          </View>
+        </LinearGradient>
+      </GestureHandlerRootView>
+    );
+  }
 
-  const handleButtonPress = (buttonName) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (buttonName === 'Grid') {
-      setShowCategories(true);
-    } else if (buttonName === 'Person') {
-      setShowSettings(true);
-    } else {
-      console.log(`${buttonName} pressed`);
-    }
-  };
+  // No quotes state
+  if (quotes.length === 0) {
+    return (
+      <GestureHandlerRootView style={styles.fullScreenContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <LinearGradient
+          colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light, theme.colors.lightPink.medium, theme.colors.lightPink.dark]}
+          style={styles.fullScreenBackground}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        >
+          <View style={styles.centerContainer}>
+            <Text style={styles.quoteText}>No quotes found.</Text>
+          </View>
+        </LinearGradient>
+      </GestureHandlerRootView>
+    );
+  }
 
-  const handleCategorySelect = (category) => {
-    console.log('Selected category:', category.title);
-    setShowCategories(false);
-    // Handle category selection logic here
-  };
-
-  const handleCloseCategories = () => {
-    setShowCategories(false);
-  };
-
-  const handleSettingSelect = (setting) => {
-    console.log('Selected setting:', setting.title);
-    setShowSettings(false);
-    // Handle setting selection logic here
-  };
-
-  const handleCloseSettings = () => {
-    setShowSettings(false);
-  };
+  const currentQuote = quotes[currentQuoteIndex] || quotes[0];
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <StatusBar hidden />
+    <GestureHandlerRootView style={styles.fullScreenContainer}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       
       <LinearGradient
         colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light, theme.colors.lightPink.medium, theme.colors.lightPink.dark]}
-        style={styles.background}
+        style={styles.fullScreenBackground}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
       >
@@ -195,7 +223,7 @@ export const MainFeedScreen = () => {
                 styles.topButton,
                 { opacity: pressed ? 0.7 : 1 }
               ]} 
-              onPress={() => handleButtonPress('Crown')}
+              onPress={onPremiumPress}
             >
               <Ionicons name="diamond-outline" size={20} color="#333" />
             </Pressable>
@@ -214,7 +242,7 @@ export const MainFeedScreen = () => {
                 { transform: [{ translateY }] }
               ]}
             >
-              <Text style={styles.quoteText}>{QUOTES[currentQuoteIndex]}</Text>
+              <Text style={styles.quoteText}>{currentQuote.text}</Text>
               
               {/* Action Buttons - Move with the quote */}
               <View style={styles.actionButtons}>
@@ -223,7 +251,7 @@ export const MainFeedScreen = () => {
                     styles.actionButton,
                     { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
                   ]} 
-                  onPress={() => handleButtonPress('Share')}
+                  onPress={() => onShare(currentQuote)}
                 >
                   <Ionicons name="share-outline" size={32} color="#333" />
                 </Pressable>
@@ -232,12 +260,12 @@ export const MainFeedScreen = () => {
                     styles.actionButton,
                     { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
                   ]} 
-                  onPress={handleLike}
+                  onPress={() => onToggleFavorite(currentQuote)}
                 >
                   <Ionicons 
-                    name={isLiked ? "heart" : "heart-outline"} 
+                    name={isFavorite(currentQuote.id) ? "heart" : "heart-outline"} 
                     size={32} 
-                    color={isLiked ? "#FF6B6B" : "#333"} 
+                    color={isFavorite(currentQuote.id) ? "#FF6B6B" : "#333"} 
                   />
                 </Pressable>
               </View>
@@ -255,7 +283,7 @@ export const MainFeedScreen = () => {
               styles.bottomButton,
               { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
             ]} 
-            onPress={() => handleButtonPress('Grid')}
+            onPress={onShowCategories}
             disabled={showCategories || showSettings}
           >
             <Ionicons name="grid-outline" size={24} color="#333" />
@@ -265,7 +293,7 @@ export const MainFeedScreen = () => {
               styles.bottomButton,
               { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
             ]} 
-            onPress={() => handleButtonPress('Brush')}
+            onPress={onBrushPress}
             disabled={showCategories || showSettings}
           >
             <Ionicons name="brush-outline" size={24} color="#333" />
@@ -275,7 +303,7 @@ export const MainFeedScreen = () => {
               styles.bottomButton,
               { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
             ]} 
-            onPress={() => handleButtonPress('Person')}
+            onPress={onShowSettings}
             disabled={showCategories || showSettings}
           >
             <Ionicons name="person-outline" size={24} color="#333" />
@@ -286,21 +314,31 @@ export const MainFeedScreen = () => {
       {/* Categories Modal */}
       <CategoriesModal
         visible={showCategories}
-        onClose={handleCloseCategories}
-        onCategorySelect={handleCategorySelect}
+        onClose={onCloseCategories}
+        onCategorySelect={onCategorySelect}
       />
 
       {/* Settings Modal */}
       <SettingsModal
         visible={showSettings}
-        onClose={handleCloseSettings}
-        onSettingSelect={handleSettingSelect}
+        onClose={onCloseSettings}
+        onSettingSelect={onSettingSelect}
       />
     </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: '#FFF5F7', // Fallback background color
+  },
+  fullScreenBackground: {
+    flex: 1,
+    width: screenWidth,
+    height: screenHeight,
+    paddingTop: StatusBar.currentHeight || 0, // Android padding
+  },
   container: {
     flex: 1,
   },
@@ -308,6 +346,18 @@ const styles = StyleSheet.create({
     flex: 1,
     width: screenWidth,
     height: screenHeight,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#333',
+    marginTop: 16,
+    fontWeight: '500',
   },
   topBar: {
     flexDirection: 'row',

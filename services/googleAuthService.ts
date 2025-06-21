@@ -1,27 +1,19 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import Constants from 'expo-constants';
 
-export const configureGoogleSignIn = () => {
+export function configureGoogleSignIn() {
   try {
-    const webClientId = Constants.expoConfig?.extra?.googleWebClientId as string | undefined;
-    // This is your iOS Client ID from the GoogleService-Info.plist
-    const iosClientId = "791966352436-ds9guvagr07rk1fhr5dua5feob3i16vc.apps.googleusercontent.com"; 
-
-    if (!webClientId || !iosClientId) {
-      console.error(
-        "Google Sign-In configure ERROR: webClientId or iosClientId is missing. " +
-        "Ensure EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID is in your .env and the correct iOS Client ID is in this file."
-      );
+    const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+    if (!webClientId) {
+      console.warn('Google Sign-In: webClientId is missing from environment variables.');
       return;
     }
 
     GoogleSignin.configure({
-      webClientId: webClientId, // For Supabase token verification
-      iosClientId: iosClientId, // For the native iOS module
-      offlineAccess: true,      // Required to get an idToken
+      webClientId,
+      offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
     });
-    console.log("services/googleAuthService.ts: Google Sign-In configured successfully with Web and iOS Client IDs.");
+    console.log('Google Sign-In configured successfully.');
   } catch (error) {
-    console.error("services/googleAuthService.ts: Error configuring Google Sign-In:", error);
+    console.warn(`Google Sign-In configuration failed. This is expected in Expo Go. Error: ${error.message}`);
   }
-}; 
+} 

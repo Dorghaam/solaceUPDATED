@@ -1,44 +1,86 @@
 // app/_layout.tsx
-import React, { useEffect } from 'react';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import { Stack } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import 'react-native-get-random-values';
+import 'react-native-reanimated';
 
-// Keep the splash screen visible while we load resources
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import React, { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useUserStore } from '../store/userStore';
+import { supabase } from '../services/supabaseClient';
+import { configureGoogleSignIn } from '../services/googleAuthService';
+import { initRevenueCat } from '../services/revenueCatService';
+import { fetchAndSetUserProfile } from '../services/profileService';
+import { theme } from '../constants/theme';
+
+// This is a placeholder ThemeProvider until we create our own
+const ThemeProvider = ({ children }) => <>{children}</>; 
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { supabaseUser, hasCompletedOnboarding, setSupabaseUser, resetState } = useUserStore();
+
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('../Inter/static/Inter_18pt-Regular.ttf'),
     'Inter-SemiBold': require('../Inter/static/Inter_18pt-SemiBold.ttf'),
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      // Hide the splash screen after the fonts have loaded
+    if (fontError) throw fontError;
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
 
-  // Prevent rendering until the font assets are loaded
-  if (!fontsLoaded && !fontError) {
+  useEffect(() => {
+    configureGoogleSignIn();
+    initRevenueCat(null); // Initialise anonymously
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSupabaseUser(session?.user ?? null);
+      if (session?.user) {
+        fetchAndSetUserProfile(session.user.id);
+        initRevenueCat(session.user.id); // Re-initialise with user ID if session exists
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSupabaseUser(session?.user ?? null);
+        if (_event === 'SIGNED_IN' && session?.user) {
+          fetchAndSetUserProfile(session.user.id);
+          initRevenueCat(session.user.id);
+        }
+        if (_event === 'SIGNED_OUT') {
+          resetState();
+          initRevenueCat(null);
+        }
+      }
+    );
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, [setSupabaseUser, resetState]);
+
+  if (!fontsLoaded) {
     return null;
   }
 
-  // For this demo, we will start with the onboarding flow.
-  // Later, this will have logic to check if the user is logged in.
-  const isUserAuthenticated = false; // Placeholder
-
   return (
-    <SafeAreaProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        {isUserAuthenticated ? (
-          <Stack.Screen name="(main)" />
-        ) : (
-          <Stack.Screen name="(onboarding)" />
-        )}
-      </Stack>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(onboarding)" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="(main)" />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 } 

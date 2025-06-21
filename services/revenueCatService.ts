@@ -1,9 +1,8 @@
 import { SubscriptionTier, useUserStore } from '@/store/userStore';
-import Constants from 'expo-constants';
 import Purchases, { CustomerInfo } from 'react-native-purchases';
 
-// Ensure your RevenueCat public API key is in .env and app.config.js
-const apiKey = Constants.expoConfig?.extra?.RC_API_KEY as string;
+// Ensure your RevenueCat public API key is in .env
+const apiKey = process.env.EXPO_PUBLIC_RC_API_KEY;
 
 // Background refresh timer (6 hours as recommended)
 let backgroundRefreshTimer: ReturnType<typeof setInterval> | null = null;

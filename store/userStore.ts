@@ -25,6 +25,13 @@ export interface TargetQuote {
   category?: string;
 }
 
+// Define the shape of a quote
+export interface Quote {
+  id: string;
+  text: string;
+  category?: string;
+}
+
 // NEW: Breakup-specific categories with premium flag
 export interface BreakupCategory {
   id: string;
@@ -71,6 +78,10 @@ interface UserState {
   // Authentication
   supabaseUser: any | null; // Consider using Supabase User type if available
 
+  // Quotes
+  quotes: Quote[];
+  isLoading: boolean;
+
   // App Features
   favoriteQuoteIds: string[];
   notificationSettings: NotificationSettings | null;
@@ -95,8 +106,13 @@ interface UserState {
 
   setSupabaseUser: (user: any | null) => void;
 
-  addFavoriteQuoteId: (quoteId: string) => void;
-  removeFavoriteQuoteId: (quoteId: string) => void;
+  // Quote actions
+  fetchQuotes: () => Promise<void>;
+  setQuotes: (quotes: Quote[]) => void;
+  setIsLoading: (loading: boolean) => void;
+
+  addFavorite: (quoteId: string) => void;
+  removeFavorite: (quoteId: string) => void;
   setNotificationSettings: (settings: Partial<NotificationSettings>) => void;
   setPushToken: (token: string | null) => void;
   setDailyMood: (mood: DailyMood) => void;
@@ -122,6 +138,10 @@ const initialState = {
 
   // Auth
   supabaseUser: null,
+
+  // Quotes
+  quotes: [] as Quote[],
+  isLoading: false,
 
   // App Features
   favoriteQuoteIds: [],
@@ -164,13 +184,65 @@ export const useUserStore = create<UserState>()(
 
       setSupabaseUser: (user) => set({ supabaseUser: user }),
 
-      addFavoriteQuoteId: (quoteId) =>
+      // Quote actions
+      fetchQuotes: async () => {
+        const { supabase } = await import('../services/supabaseClient');
+        const state = get();
+        
+        set({ isLoading: true });
+        try {
+          let query = supabase
+            .from('quotes')
+            .select('id, text, category');
+
+          // Filter by active category if set
+          if (state.activeQuoteCategory) {
+            query = query.eq('category', state.activeQuoteCategory);
+          } else if (state.interestCategories.length > 0) {
+            // Filter by user's interest categories
+            query = query.in('category', state.interestCategories);
+          }
+
+          const { data, error } = await query.limit(50);
+
+          if (error) {
+            console.error('Error fetching quotes:', error);
+            // Use fallback quotes if Supabase fails
+            const fallbackQuotes: Quote[] = [
+              { id: '1', text: "Keep going.\nYou're getting there." },
+              { id: '2', text: "The sun will rise and\nwe will try again." },
+              { id: '3', text: "Trust the timing\nof your life." },
+              { id: '4', text: "Every day is a\nnew beginning." },
+              { id: '5', text: "You are stronger\nthan you think." },
+            ];
+            set({ quotes: fallbackQuotes, isLoading: false });
+          } else {
+            // Shuffle the quotes for variety
+            const shuffledQuotes = data ? [...data].sort(() => Math.random() - 0.5) : [];
+            set({ quotes: shuffledQuotes, isLoading: false });
+          }
+        } catch (error) {
+          console.error('Failed to fetch quotes:', error);
+          // Use fallback quotes
+          const fallbackQuotes: Quote[] = [
+            { id: '1', text: "Keep going.\nYou're getting there." },
+            { id: '2', text: "The sun will rise and\nwe will try again." },
+            { id: '3', text: "Trust the timing\nof your life." },
+          ];
+          set({ quotes: fallbackQuotes, isLoading: false });
+        }
+      },
+
+      setQuotes: (quotes) => set({ quotes }),
+      setIsLoading: (loading) => set({ isLoading: loading }),
+
+      addFavorite: (quoteId) =>
         set((state) => ({
           favoriteQuoteIds: state.favoriteQuoteIds.includes(quoteId)
             ? state.favoriteQuoteIds
             : [...state.favoriteQuoteIds, quoteId],
         })),
-      removeFavoriteQuoteId: (quoteId) =>
+      removeFavorite: (quoteId) =>
         set((state) => ({
           favoriteQuoteIds: state.favoriteQuoteIds.filter((id) => id !== quoteId),
         })),
@@ -221,6 +293,7 @@ export const useUserStore = create<UserState>()(
         isWidgetCustomizing: state.isWidgetCustomizing,
         // REMOVED: subscriptionTier - Let RevenueCat be the single source of truth
         // activeQuoteCategory and targetQuote are typically transient
+        // quotes and isLoading are also transient
       }),
       // Custom hydration logic if needed
       onRehydrateStorage: () => async (state) => {
@@ -235,6 +308,10 @@ export const useUserStore = create<UserState>()(
           // ALWAYS start with 'unknown' - RevenueCat will update this
           state.subscriptionTier = 'unknown';
           console.log('UserStore: Subscription tier reset to unknown for RevenueCat to determine');
+          
+          // Reset transient quote state
+          state.quotes = [];
+          state.isLoading = false;
           
           console.log('UserStore: Hydration complete, state:', {
             userName: state.userName,
