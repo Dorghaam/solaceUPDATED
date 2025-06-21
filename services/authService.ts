@@ -23,7 +23,7 @@ export const loginWithGoogle = async () => {
     // Note: The free version doesn't support nonce in the original GoogleSignin API
     const signInResponse = await GoogleSignin.signIn();
 
-    const idToken = signInResponse.data?.idToken;
+    const idToken = signInResponse.idToken;
     if (!idToken) {
       throw new Error('Google Sign-In Error: No ID token received.');
     }
