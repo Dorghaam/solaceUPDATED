@@ -9,7 +9,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>solace-ui-demo</string>
+    <string>Solace</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -36,7 +36,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>com.googleusercontent.apps.YOUR_IOS_REVERSED_CLIENT_ID</string>
+          <string>com.googleusercontent.apps.791966352436-ds9guvagr07rk1fhr5dua5feob3i16vc</string>
         </array>
       </dict>
     </array>

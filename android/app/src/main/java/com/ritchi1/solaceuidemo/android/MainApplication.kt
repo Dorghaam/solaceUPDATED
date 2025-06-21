@@ -1,4 +1,4 @@
-package com.ritchi1.solaceuidemo
+package com.ritchi1.solaceuidemo.android
 
 import android.app.Application
 import android.content.res.Configuration

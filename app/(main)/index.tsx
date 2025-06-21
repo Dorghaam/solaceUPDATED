@@ -5,10 +5,14 @@ import { useUserStore } from '../../store/userStore';
 import { hapticService } from '../../services/hapticService';
 import { reviewService } from '../../services/reviewService';
 import { MainFeedScreen } from '../../components/MainFeedScreen';
+import { useAuthGuard } from '../../utils';
 
 // This screen now acts as a simple wrapper that renders our main UI component.
 // All the UI logic is contained within MainFeedScreen.
 export default function FeedPage() {
+  // Authentication guard - redirects to onboarding if not authenticated
+  const { shouldRender } = useAuthGuard();
+
   // Connect to the Zustand store to get state and actions
   const {
     quotes,
@@ -17,7 +21,14 @@ export default function FeedPage() {
     fetchQuotes,
     addFavorite,
     removeFavorite,
+    supabaseUser,
+    hasCompletedOnboarding,
   } = useUserStore();
+
+  // If user is not authenticated, don't render anything (useAuthGuard handles redirect)
+  if (!shouldRender) {
+    return null;
+  }
 
   // Local state for UI interactions
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);

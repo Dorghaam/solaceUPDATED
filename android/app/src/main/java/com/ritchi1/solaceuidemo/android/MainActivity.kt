@@ -1,4 +1,4 @@
-package com.ritchi1.solaceuidemo
+package com.ritchi1.solaceuidemo.android
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

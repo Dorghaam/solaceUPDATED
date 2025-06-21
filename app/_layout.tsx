@@ -70,7 +70,10 @@ export default function RootLayout() {
     return null;
   }
 
-  // No longer a hard-coded placeholder. This now uses your real app state.
+  // Authentication Flow Logic:
+  // 1. If user hasn't completed onboarding, show onboarding (regardless of auth status)
+  // 2. If user completed onboarding but isn't authenticated, redirect back to onboarding
+  // 3. Only show main app if both authenticated AND completed onboarding
   const showMainApp = supabaseUser && hasCompletedOnboarding;
 
   return (

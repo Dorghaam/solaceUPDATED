@@ -125,6 +125,10 @@ interface UserState {
   setSubscriptionTier: (tier: SubscriptionTier) => void; // Added action for subscription tier
 
   resetState: () => void;
+  
+  // Authentication helpers
+  isAuthenticated: () => boolean;
+  isFullyOnboarded: () => boolean;
 }
 
 // --- Store ---
@@ -274,6 +278,10 @@ export const useUserStore = create<UserState>()(
         console.log('UserStore: Resetting state to initial values.');
         set(initialState);
       },
+
+      // Authentication helpers
+      isAuthenticated: () => !!get().supabaseUser && get().hasCompletedOnboarding,
+      isFullyOnboarded: () => get().hasCompletedOnboarding,
     }),
     {
       name: 'solace-user-storage',

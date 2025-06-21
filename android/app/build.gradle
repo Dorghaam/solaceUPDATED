@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.ritchi1.solaceuidemo'
+    namespace 'com.ritchi1.solaceuidemo.android'
     defaultConfig {
-        applicationId 'com.ritchi1.solaceuidemo'
+        applicationId 'com.ritchi1.solaceuidemo.android'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -1,19 +1,34 @@
 import { useUserStore } from '@/store/userStore';
 import { router } from 'expo-router';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
 import RevenueCatUI from 'react-native-purchases-ui';
 import Purchases, { PurchasesEntitlementInfo, CustomerInfo } from 'react-native-purchases';
 
 function PaywallContent() {
-  const setHasCompletedOnboarding = useUserStore((s) => s.setHasCompletedOnboarding);
-  const setSubscriptionTier = useUserStore((s) => s.setSubscriptionTier);
+  const { setHasCompletedOnboarding, setSubscriptionTier, supabaseUser } = useUserStore();
+
+  // Authentication guard - only authenticated users can access paywall
+  useEffect(() => {
+    if (!supabaseUser) {
+      console.log('[Paywall] User not authenticated, redirecting to login...');
+      router.replace('/(onboarding)/login');
+      return;
+    }
+  }, [supabaseUser]);
 
   const completeOnboardingAndNavigate = useCallback(() => {
+    // Double check authentication before completing onboarding
+    if (!supabaseUser) {
+      console.log('[Paywall] User not authenticated during onboarding completion, redirecting to login...');
+      router.replace('/(onboarding)/login');
+      return;
+    }
+    
     console.log('[Paywall] Completing onboarding and navigating to main app...');
     setHasCompletedOnboarding(true);
     router.replace('/(main)');
-  }, [setHasCompletedOnboarding]);
+  }, [setHasCompletedOnboarding, supabaseUser]);
 
   const handleSuccess = useCallback(async (customerInfo: CustomerInfo) => {
     console.log('[Paywall] Purchase/Restore success:', customerInfo.entitlements.active);
@@ -27,6 +42,11 @@ function PaywallContent() {
     setSubscriptionTier('free');
     completeOnboardingAndNavigate();
   }, [setSubscriptionTier, completeOnboardingAndNavigate]);
+
+  // If user is not authenticated, don't render the paywall
+  if (!supabaseUser) {
+    return null;
+  }
 
   return (
     <RevenueCatUI.Paywall
