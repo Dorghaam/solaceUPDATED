@@ -66,18 +66,24 @@ export default function RootLayout() {
     };
   }, [setSupabaseUser, resetState]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return null;
   }
+
+  // No longer a hard-coded placeholder. This now uses your real app state.
+  const showMainApp = supabaseUser && hasCompletedOnboarding;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
           <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(onboarding)" options={{ gestureEnabled: false }} />
-            <Stack.Screen name="(main)" />
-            <Stack.Screen name="+not-found" />
+            {showMainApp ? (
+              <Stack.Screen name="(main)" />
+            ) : (
+              <Stack.Screen name="(onboarding)" />
+            )}
+            <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
           </Stack>
         </ThemeProvider>
       </SafeAreaProvider>

@@ -1,0 +1,56 @@
+{
+  "identifier" : "D4B92B5F",
+  "name" : "Solace Products",
+  "products" : [
+    {
+      "displayPrice" : "19.99",
+      "family" : "auto_renewable",
+      "internalID" : "F5724147",
+      "localizations" : [
+        {
+          "description" : "Unlock all premium features",
+          "displayName" : "Solace Premium",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "solace.yearly.premium.ritchi",
+      "referenceName" : "Solace Yearly Premium",
+      "type" : "auto_renewable"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21401394",
+      "name" : "Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "freeTrial" : "3d",
+          "id" : "2C279E45",
+          "introductoryOffer" : null,
+          "promotionalOffers" : [
+
+          ],
+          "subscriptionGroup" : {
+            "id" : "21401394",
+            "name" : "Premium",
+            "referenceName" : "Premium"
+          },
+          "subscriptionPeriod" : "P1Y"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+} 
