@@ -1,25 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { theme } from '../../constants/theme';
+import { MainFeedScreen } from '../../components/MainFeedScreen';
 
-export default function MainFeedScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Main Feed Screen</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
-  },
-  text: {
-    fontSize: theme.typography.fontSizes.l,
-    fontFamily: theme.typography.fontFamily.semiBold,
-    color: theme.colors.text,
-  },
-}); 
+// This screen now acts as a simple wrapper that renders our main UI component.
+// All the UI logic is contained within MainFeedScreen.
+export default function FeedPage() {
+  return <MainFeedScreen />;
+} 
