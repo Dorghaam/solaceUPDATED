@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { CategoriesModal } from './CategoriesModal';
+import { SettingsModal } from './SettingsModal';
 import { theme } from '../constants/theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -36,6 +37,7 @@ export const MainFeedScreen = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
@@ -143,6 +145,8 @@ export const MainFeedScreen = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (buttonName === 'Grid') {
       setShowCategories(true);
+    } else if (buttonName === 'Person') {
+      setShowSettings(true);
     } else {
       console.log(`${buttonName} pressed`);
     }
@@ -156,6 +160,16 @@ export const MainFeedScreen = () => {
 
   const handleCloseCategories = () => {
     setShowCategories(false);
+  };
+
+  const handleSettingSelect = (setting) => {
+    console.log('Selected setting:', setting.title);
+    setShowSettings(false);
+    // Handle setting selection logic here
+  };
+
+  const handleCloseSettings = () => {
+    setShowSettings(false);
   };
 
   return (
@@ -231,8 +245,8 @@ export const MainFeedScreen = () => {
           </PanGestureHandler>
         </View>
 
-        {/* Bottom Navigation - Static - Hide when categories modal is open */}
-        {!showCategories && (
+        {/* Bottom Navigation - Static - Hide when categories or settings modal is open */}
+        {!showCategories && !showSettings && (
           <View style={styles.bottomNav}>
             <Pressable 
               style={({ pressed }) => [
@@ -270,6 +284,13 @@ export const MainFeedScreen = () => {
         visible={showCategories}
         onClose={handleCloseCategories}
         onCategorySelect={handleCategorySelect}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={showSettings}
+        onClose={handleCloseSettings}
+        onSettingSelect={handleSettingSelect}
       />
     </GestureHandlerRootView>
   );
