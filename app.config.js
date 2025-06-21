@@ -36,6 +36,7 @@ export default ({ config }) => ({
       package: "com.dorghaamhaidar.solace"
     },
     plugins: [
+      "expo-dev-client",
       "expo-router",
       "expo-font",
       [

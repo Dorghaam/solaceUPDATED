@@ -30,7 +30,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>solaceapp</string>
-          <string>com.ritchi1.solaceuidemo</string>
+          <string>com.dorghaamhaidar.solace.iphone</string>
         </array>
       </dict>
       <dict>
