@@ -9,6 +9,24 @@ export const theme = {
     accent: '#D4A392',         // A soft pink/peach accent for "liked" states
     white: '#FFFFFF',
     black: '#000000',
+    // New lighter pink gradient colors
+    lightPink: {
+      lightest: '#FFF5F7',
+      light: '#FFE8ED',
+      medium: '#FFD1DC',
+      dark: '#FFC0CB',
+    },
+    // Category card backgrounds
+    categoryColors: {
+      purple: '#E8D5F0',
+      teal: '#B8E6E1',
+      orange: '#FFD4A3',
+      blue: '#B3D9FF',
+      green: '#C8E6C9',
+      pink: '#FFD1DC',
+      coral: '#FFCCCB',
+      lavender: '#E6E6FA',
+    }
   },
   spacing: {
     xs: 4,

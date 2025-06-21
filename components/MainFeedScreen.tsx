@@ -12,6 +12,8 @@ import { PanGestureHandler, GestureHandlerRootView, State } from 'react-native-g
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { CategoriesModal } from './CategoriesModal';
+import { theme } from '../constants/theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -33,6 +35,7 @@ export const MainFeedScreen = () => {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
   
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
@@ -138,7 +141,21 @@ export const MainFeedScreen = () => {
 
   const handleButtonPress = (buttonName) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log(`${buttonName} pressed`);
+    if (buttonName === 'Grid') {
+      setShowCategories(true);
+    } else {
+      console.log(`${buttonName} pressed`);
+    }
+  };
+
+  const handleCategorySelect = (category) => {
+    console.log('Selected category:', category.title);
+    setShowCategories(false);
+    // Handle category selection logic here
+  };
+
+  const handleCloseCategories = () => {
+    setShowCategories(false);
   };
 
   return (
@@ -146,7 +163,7 @@ export const MainFeedScreen = () => {
       <StatusBar hidden />
       
       <LinearGradient
-        colors={['#FFE1E6', '#FFD1DC', '#FFC0CB', '#FFB6C1', '#FFA0B4']}
+        colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light, theme.colors.lightPink.medium, theme.colors.lightPink.dark]}
         style={styles.background}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -214,37 +231,46 @@ export const MainFeedScreen = () => {
           </View>
         </View>
 
-        {/* Bottom Navigation - Static */}
-        <View style={styles.bottomNav}>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.bottomButton,
-              { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-            ]} 
-            onPress={() => handleButtonPress('Grid')}
-          >
-            <Ionicons name="grid-outline" size={24} color="#333" />
-          </Pressable>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.bottomButton,
-              { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-            ]} 
-            onPress={() => handleButtonPress('Brush')}
-          >
-            <Ionicons name="brush-outline" size={24} color="#333" />
-          </Pressable>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.bottomButton,
-              { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-            ]} 
-            onPress={() => handleButtonPress('Person')}
-          >
-            <Ionicons name="person-outline" size={24} color="#333" />
-          </Pressable>
-        </View>
+        {/* Bottom Navigation - Static - Hide when categories modal is open */}
+        {!showCategories && (
+          <View style={styles.bottomNav}>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.bottomButton,
+                { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+              ]} 
+              onPress={() => handleButtonPress('Grid')}
+            >
+              <Ionicons name="grid-outline" size={24} color="#333" />
+            </Pressable>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.bottomButton,
+                { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+              ]} 
+              onPress={() => handleButtonPress('Brush')}
+            >
+              <Ionicons name="brush-outline" size={24} color="#333" />
+            </Pressable>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.bottomButton,
+                { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+              ]} 
+              onPress={() => handleButtonPress('Person')}
+            >
+              <Ionicons name="person-outline" size={24} color="#333" />
+            </Pressable>
+          </View>
+        )}
       </LinearGradient>
+
+      {/* Categories Modal */}
+      <CategoriesModal
+        visible={showCategories}
+        onClose={handleCloseCategories}
+        onCategorySelect={handleCategorySelect}
+      />
     </GestureHandlerRootView>
   );
 };
