@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -18,6 +18,7 @@ import { signOut } from '../services/authService';
 import * as Haptics from 'expo-haptics';
 import { useUserStore } from '@/store/userStore';
 import { forceRefreshSubscriptionStatus } from '@/services/revenueCatService';
+import { RemindersScreen } from './RemindersScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -60,6 +61,10 @@ interface SettingsModalProps {
   onSettingSelect: (setting: SettingsMenuItem) => void;
 }
 
+interface SettingsModalState {
+  showReminders: boolean;
+}
+
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   visible,
   onClose,
@@ -68,6 +73,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const backgroundOpacity = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
+  
+  const [showReminders, setShowReminders] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -104,7 +111,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleSettingPress = (setting: SettingsMenuItem) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onSettingSelect(setting);
+    
+    if (setting.title === 'Reminders') {
+      setShowReminders(true);
+    } else {
+      onSettingSelect(setting);
+    }
   };
 
   const handleClose = () => {
@@ -363,6 +375,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </LinearGradient>
         </Animated.View>
       </PanGestureHandler>
+      
+      {/* Reminders Screen */}
+      <RemindersScreen
+        visible={showReminders}
+        onClose={() => setShowReminders(false)}
+      />
     </View>
   );
 };
