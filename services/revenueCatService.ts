@@ -17,6 +17,9 @@ let didSetInitialTier = false;
 // Track if RevenueCat is currently being configured to prevent double initialization
 let isConfiguring = false;
 
+// Debounce timer for subscription tier updates
+let tierUpdateTimeout: number | null = null;
+
 /**
  * Central function to update the local subscription tier in Zustand.
  */
@@ -32,29 +35,37 @@ const updateLocalSubscriptionTier = (customerInfo: CustomerInfo, source: string)
     premiumWillRenew: customerInfo.entitlements.active['premium']?.willRenew
   });
   
-  // For login sources, always update immediately - don't wait for initial tier logic
-  if (source.includes('login') || source === 'login_refresh') {
-    if (currentTier !== tier) {
-      console.log(`[RevenueCat] IMMEDIATE LOGIN UPDATE: ${currentTier} -> ${tier}`);
-      useUserStore.getState().setSubscriptionTier(tier);
-      didSetInitialTier = true;
-    }
+  // Skip update if tier hasn't changed
+  if (currentTier === tier) {
+    console.log(`[RevenueCat] Tier unchanged (${tier}), skipping update`);
     return;
   }
   
-  // Original logic for other sources
-  if (!didSetInitialTier || tier === 'premium') {
-    if (currentTier !== tier) {
-      console.log(`[RevenueCat] Updating tier: ${currentTier} -> ${tier}`);
+  // For login sources, always update immediately - don't wait for initial tier logic
+  if (source.includes('login') || source === 'login_refresh') {
+    console.log(`[RevenueCat] IMMEDIATE LOGIN UPDATE: ${currentTier} -> ${tier}`);
+    useUserStore.getState().setSubscriptionTier(tier);
+    didSetInitialTier = true;
+    return;
+  }
+  
+  // For other sources, use debouncing to prevent rapid updates
+  if (tierUpdateTimeout) {
+    clearTimeout(tierUpdateTimeout);
+  }
+  
+  tierUpdateTimeout = setTimeout(() => {
+    const latestTier = useUserStore.getState().subscriptionTier;
+    if (latestTier !== tier) {
+      console.log(`[RevenueCat] Debounced tier update: ${latestTier} -> ${tier} (source: ${source})`);
       useUserStore.getState().setSubscriptionTier(tier);
     }
+    
     if (!didSetInitialTier) {
       didSetInitialTier = true;
       console.log('[RevenueCat] Initial tier has been set.');
     }
-  } else {
-    console.log('[RevenueCat] Skipping tier update to prevent flicker (current: free, initial already set).');
-  }
+  }, 200); // 200ms debounce
 };
 
 /**

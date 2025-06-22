@@ -32,7 +32,7 @@ export interface Quote {
   category?: string;
 }
 
-// NEW: Breakup-specific categories with premium flag
+// NEW: Breakup-specific categories with premium flag - UPDATED to match database
 export interface BreakupCategory {
   id: string;
   label: string;
@@ -42,20 +42,26 @@ export interface BreakupCategory {
 export const breakupInterestCategories: BreakupCategory[] = [
   { id: 'general_healing', label: 'General Healing', premium: false }, // Free
   { id: 'moving_on', label: 'Moving On', premium: false }, // Free
+  { id: 'moving_forward', label: 'Moving Forward', premium: false }, // Free - matches DB
+  { id: 'self_love', label: 'Self-Love', premium: false }, // Free - matches DB
   { id: 'self_love_discovery', label: 'Self-Love & Discovery', premium: true },
   { id: 'coping_loneliness', label: 'Coping with Loneliness', premium: true },
+  { id: 'overcoming_loneliness', label: 'Overcoming Loneliness', premium: true }, // matches DB
   { id: 'rebuilding_confidence', label: 'Rebuilding Confidence', premium: true },
   { id: 'managing_anger_resentment', label: 'Managing Anger/Resentment', premium: true },
   { id: 'finding_closure', label: 'Finding Closure', premium: true },
-  { id: 'hope_for_future', label: 'Hope for the Future', premium: true },
+  { id: 'finding_peace', label: 'Finding Peace', premium: true }, // matches DB
+  { id: 'hope_future', label: 'Hope for the Future', premium: true }, // matches DB
   { id: 'healing_from_betrayal', label: 'Healing from Betrayal (Cheating)', premium: true },
   { id: 'loss_of_partner_widow', label: 'Loss of a Partner (Widow/Widower)', premium: true },
   { id: 'navigating_divorce', label: 'Navigating Divorce', premium: true },
   { id: 'heartbreak_recovery', label: 'Heartbreak Recovery', premium: true },
-  // Add more specific TikTok-friendly categories as needed
   { id: 'letting_go_of_ex', label: 'Letting Go of an Ex', premium: true },
+  { id: 'letting_go', label: 'Letting Go', premium: true }, // matches DB
+  { id: 'letting_go_acceptance', label: 'Letting Go & Acceptance', premium: true }, // matches DB
   { id: 'embracing_single_life', label: 'Embracing Single Life', premium: true },
   { id: 'overcoming_codependency', label: 'Overcoming Codependency', premium: true },
+  { id: 'gratitude_reflection', label: 'Gratitude & Reflection', premium: true }, // matches DB
 ];
 
 
@@ -81,6 +87,7 @@ interface UserState {
   // Quotes
   quotes: Quote[];
   isLoading: boolean;
+  fetchQuotesTimeout: number | null; // For debouncing fetchQuotes calls
 
   // App Features
   favoriteQuoteIds: string[];
@@ -146,6 +153,7 @@ const initialState = {
   // Quotes
   quotes: [] as Quote[],
   isLoading: false,
+  fetchQuotesTimeout: null,
 
   // App Features
   favoriteQuoteIds: [],
@@ -226,9 +234,13 @@ export const useUserStore = create<UserState>()(
           // --- END OF NEW LOGIC ---
 
           console.log('[FetchQuotes] Executing Supabase query...');
-          const { data, error } = await query.limit(50); // Fetch up to 50 quotes
+          const { data, error } = await query.limit(50);
 
-          console.log('[FetchQuotes] Supabase response:', { dataCount: data?.length, error: error?.message });
+          const logData: any = { dataCount: data?.length };
+          if (error) {
+            logData.error = error.message;
+          }
+          console.log('[FetchQuotes] Supabase response:', logData);
 
           if (error) {
             console.error('[FetchQuotes] Supabase error:', error);
@@ -299,17 +311,35 @@ export const useUserStore = create<UserState>()(
         set({ subscriptionTier: tier });
         
         // Auto-refetch quotes when subscription tier changes to ensure UI updates
+        // Add debouncing to prevent rapid calls during login
         if (currentTier !== tier && tier !== 'unknown') {
           console.log('[UserStore] Subscription tier changed, refetching quotes...');
-          // Small delay to ensure the store state is updated
-          setTimeout(() => {
+          
+          // Clear any existing timeout
+          const state = get();
+          if (state.fetchQuotesTimeout) {
+            clearTimeout(state.fetchQuotesTimeout);
+          }
+          
+          // Set new timeout with longer delay to allow RevenueCat to settle
+          const timeoutId = setTimeout(() => {
+            console.log('[UserStore] Executing debounced fetchQuotes after tier change');
             get().fetchQuotes();
-          }, 100);
+          }, 500); // Increased from 100ms to 500ms
+          
+          set({ fetchQuotesTimeout: timeoutId });
         }
       },
 
       resetState: () => {
         console.log('UserStore: Resetting state to initial values.');
+        
+        // Clear any pending fetchQuotes timeout
+        const state = get();
+        if (state.fetchQuotesTimeout) {
+          clearTimeout(state.fetchQuotesTimeout);
+        }
+        
         set(initialState);
       },
 
