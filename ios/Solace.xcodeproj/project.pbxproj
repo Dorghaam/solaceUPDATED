@@ -13,6 +13,7 @@
 		5AB084196D5B3432EC5A8A39 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FC92A0D7F2E7FC06BA42429 /* ExpoModulesProvider.swift */; };
 		7FE9B6D35C19C746AD4E7176 /* Pods_Solace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49C862293DA2E2FDE1038EDE /* Pods_Solace.framework */; };
 		84C6AC902E08B9400057C2F8 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C6AC8F2E08B9400057C2F8 /* SharedDataManager.swift */; };
+		84C6AC902E08B9400057C2F9 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C6AC8F2E08B9400057C2F8 /* SharedDataManager.swift */; };
 		84C6AC932E08B9690057C2F8 /* WidgetUpdateModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C6AC922E08B9690057C2F8 /* WidgetUpdateModule.swift */; };
 		84C6AC952E08B9810057C2F8 /* WidgetUpdateModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 84C6AC942E08B9810057C2F8 /* WidgetUpdateModule.m */; };
 		84C6ACA42E08C1230057C2F8 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84C6AC792E08B7FA0057C2F8 /* WidgetKit.framework */; };
@@ -83,7 +84,6 @@
 		84C6ACBB2E08C2360057C2F8 /* Exceptions for "SolaceWidgetExtension" folder in "Solace" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				SharedDataManager.swift,
 				WidgetUpdateModule.m,
 				WidgetUpdateModule.swift,
 			);
@@ -483,6 +483,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				84C6AC902E08B9400057C2F9 /* SharedDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
