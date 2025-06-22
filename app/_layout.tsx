@@ -14,6 +14,7 @@ import { configureGoogleSignIn } from '../services/googleAuthService';
 import { initRevenueCat, identifyUserWithRevenueCat, rcLogOut } from '../services/revenueCatService';
 import { fetchAndSetUserProfile } from '../services/profileService';
 import { theme } from '../constants/theme';
+import { ensurePostLoginSync } from '../services/authService';
 
 // This is a placeholder ThemeProvider until we create our own
 const ThemeProvider = ({ children }) => <>{children}</>; 
@@ -44,8 +45,8 @@ export default function RootLayout() {
       setSupabaseUser(session?.user ?? null);
       if (session?.user) {
         fetchAndSetUserProfile(session.user.id);
-        // Identify user with RevenueCat immediately if session exists
-        identifyUserWithRevenueCat(session.user.id);
+        // Use enhanced sync for existing sessions too
+        ensurePostLoginSync(session.user.id);
       }
     });
 
@@ -60,10 +61,10 @@ export default function RootLayout() {
           console.log('User signed in, fetching profile and identifying with RevenueCat...');
           // Fetch user profile from your database
           fetchAndSetUserProfile(session.user.id);
-          // --- THIS IS THE KEY ---
-          // Tell RevenueCat who the user is to unlock their purchases
-          await identifyUserWithRevenueCat(session.user.id);
-          // --- END OF KEY ---
+          // --- ENHANCED SYNC ---
+          // Ensure RevenueCat identity and force subscription refresh
+          await ensurePostLoginSync(session.user.id);
+          // --- END OF ENHANCED SYNC ---
         }
         
         if (_event === 'SIGNED_OUT') {

@@ -16,6 +16,8 @@ import { router } from 'expo-router';
 import { theme } from '../constants/theme';
 import { signOut } from '../services/authService';
 import * as Haptics from 'expo-haptics';
+import { useUserStore } from '@/store/userStore';
+import { forceRefreshSubscriptionStatus } from '@/services/revenueCatService';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -265,6 +267,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
               {/* Settings Menu Items */}
               <View style={styles.menuSection}>
+                {/* Subscription Status Debug Section (for testing) */}
+                <View style={styles.debugSection}>
+                  <Text style={styles.debugTitle}>Subscription Status</Text>
+                  <View style={styles.debugRow}>
+                    <Text style={styles.debugLabel}>Current Tier:</Text>
+                    <Text style={[styles.debugValue, { 
+                      color: useUserStore.getState().subscriptionTier === 'premium' ? '#4CAF50' : '#FF9800' 
+                    }]}>
+                      {useUserStore.getState().subscriptionTier?.toUpperCase() || 'UNKNOWN'}
+                    </Text>
+                  </View>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.debugButton,
+                      { opacity: pressed ? 0.8 : 1 }
+                    ]}
+                    onPress={async () => {
+                      try {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        console.log('[Settings] Force refreshing subscription status...');
+                        await forceRefreshSubscriptionStatus();
+                        Alert.alert('Success', 'Subscription status refreshed!');
+                      } catch (error) {
+                        console.error('[Settings] Force refresh failed:', error);
+                        Alert.alert('Error', 'Failed to refresh subscription status');
+                      }
+                    }}
+                  >
+                    <Text style={styles.debugButtonText}>🔄 Force Refresh Status</Text>
+                  </Pressable>
+                </View>
+
                 {SETTINGS_ITEMS.map((item) => (
                   <Pressable
                     key={item.id}
@@ -536,5 +570,47 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.regular,
     color: '#FF6B6B',
+  },
+
+  debugSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: theme.radii.m,
+    padding: theme.spacing.m,
+    marginBottom: theme.spacing.m,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  debugTitle: {
+    fontSize: theme.typography.fontSizes.m,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.s,
+  },
+  debugRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.s,
+  },
+  debugLabel: {
+    fontSize: theme.typography.fontSizes.s,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textSecondary,
+  },
+  debugValue: {
+    fontSize: theme.typography.fontSizes.s,
+    fontFamily: theme.typography.fontFamily.semiBold,
+  },
+  debugButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radii.s,
+    paddingVertical: theme.spacing.s,
+    paddingHorizontal: theme.spacing.m,
+    alignItems: 'center',
+  },
+  debugButtonText: {
+    fontSize: theme.typography.fontSizes.s,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: 'white',
   },
 }); 

@@ -73,31 +73,27 @@ const mapBreakupCategoriesToUI = (breakupCategories: BreakupCategory[], subscrip
   }));
 };
 
-// Group categories into sections
+// Group categories into sections with unified design
 const createCategorySections = (categories: Category[]) => {
+  // Show all categories in a unified grid, organized by availability
   const freeCategories = categories.filter(c => !c.locked);
   const premiumCategories = categories.filter(c => c.locked);
   
   const sections = [];
   
+  // Always show free categories first
   if (freeCategories.length > 0) {
-    sections.push({ title: 'Free Categories', categories: freeCategories.slice(0, 3) });
-    if (freeCategories.length > 3) {
-      sections.push({ title: 'More Free', categories: freeCategories.slice(3) });
-    }
+    sections.push({ 
+      title: 'Available Categories', 
+      categories: freeCategories 
+    });
   }
   
+  // Show premium categories if any exist
   if (premiumCategories.length > 0) {
-    const premiumChunks = [];
-    for (let i = 0; i < premiumCategories.length; i += 3) {
-      premiumChunks.push(premiumCategories.slice(i, i + 3));
-    }
-    
-    premiumChunks.forEach((chunk, index) => {
-      sections.push({ 
-        title: index === 0 ? 'Premium Categories' : `More Premium ${index + 1}`, 
-        categories: chunk 
-      });
+    sections.push({ 
+      title: 'Premium Categories', 
+      categories: premiumCategories 
     });
   }
   
@@ -303,8 +299,7 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
                           styles.categoryCard,
                           { backgroundColor: category.color },
                           { opacity: pressed ? 0.8 : 1 },
-                          { transform: [{ scale: pressed ? 0.95 : 1 }] },
-                          category.locked && styles.lockedCard
+                          { transform: [{ scale: pressed ? 0.95 : 1 }] }
                         ]}
                         onPress={() => handleCategoryPress(category)}
                       >
@@ -454,9 +449,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.m,
     padding: theme.spacing.m,
     justifyContent: 'space-between',
-  },
-  lockedCard: {
-    opacity: 0.7,
   },
   categoryContent: {
     flexDirection: 'row',

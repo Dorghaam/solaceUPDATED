@@ -297,6 +297,12 @@ const updateLocalSubscriptionTier = (tier: SubscriptionTier, source: string): vo
   
   // Cache for offline resilience
   cacheSubscriptionTier(tier).catch(console.warn);
+  
+  // Force UI update by triggering any necessary refreshes
+  if (currentTier !== tier && tier !== 'unknown') {
+    console.log(`[RevenueCat] Tier changed from ${currentTier} to ${tier}, triggering UI refresh`);
+    // The setSubscriptionTier action now handles quote refetching automatically
+  }
 };
 
 /**

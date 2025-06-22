@@ -183,15 +183,45 @@ export const checkAuthenticationSync = async () => {
     console.log('[AuthService] Smart sync: Checking RevenueCat identity alignment...');
     
     const { supabaseUser } = useUserStore.getState();
-    const { syncRevenueCat } = await import('./revenueCatService');
+    const { syncRevenueCat, forceRefreshSubscriptionStatus } = await import('./revenueCatService');
     
     // Use the smart sync function that avoids unnecessary logOut calls
     await syncRevenueCat(supabaseUser?.id || null);
+    
+    // Force a refresh of subscription status to ensure it's up to date
+    if (supabaseUser?.id) {
+      console.log('[AuthService] Forcing subscription status refresh after sync...');
+      await forceRefreshSubscriptionStatus();
+    }
     
     console.log('[AuthService] ✅ Smart sync completed successfully');
     
   } catch (error) {
     console.error('[AuthService] Smart sync failed:', error);
+  }
+};
+
+/**
+ * Enhanced post-login sync that ensures premium status is immediately available
+ * Call this after successful authentication to guarantee subscription state is current
+ */
+export const ensurePostLoginSync = async (userId: string) => {
+  try {
+    console.log('[AuthService] Ensuring post-login sync for user:', userId.substring(0, 8) + '...');
+    
+    const { syncRevenueCat, forceRefreshSubscriptionStatus } = await import('./revenueCatService');
+    
+    // 1. Sync RevenueCat identity
+    await syncRevenueCat(userId);
+    
+    // 2. Force refresh to get the latest subscription status
+    await forceRefreshSubscriptionStatus();
+    
+    console.log('[AuthService] ✅ Post-login sync completed');
+    
+  } catch (error) {
+    console.error('[AuthService] Post-login sync failed:', error);
+    // Don't throw - let the app continue with cached/default state
   }
 };
 

@@ -269,7 +269,21 @@ export const useUserStore = create<UserState>()(
         })),
       setIsWidgetCustomizing: (isCustomizing) => set({ isWidgetCustomizing: isCustomizing }),
 
-      setSubscriptionTier: (tier) => set({ subscriptionTier: tier }), // Action to set tier
+      setSubscriptionTier: (tier) => {
+        const currentTier = get().subscriptionTier;
+        console.log(`[UserStore] Subscription tier update: ${currentTier} → ${tier}`);
+        
+        set({ subscriptionTier: tier });
+        
+        // Auto-refetch quotes when subscription tier changes to ensure UI updates
+        if (currentTier !== tier && tier !== 'unknown') {
+          console.log('[UserStore] Subscription tier changed, refetching quotes...');
+          // Small delay to ensure the store state is updated
+          setTimeout(() => {
+            get().fetchQuotes();
+          }, 100);
+        }
+      },
 
       resetState: () => {
         console.log('UserStore: Resetting state to initial values.');

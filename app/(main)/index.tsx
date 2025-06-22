@@ -38,6 +38,14 @@ export default function FeedPage() {
     fetchQuotes();
   }, [fetchQuotes]);
 
+  // Auto-refetch quotes when subscription tier changes to ensure premium content is unlocked
+  useEffect(() => {
+    if (subscriptionTier !== 'unknown') {
+      console.log('[FeedPage] Subscription tier changed:', subscriptionTier);
+      fetchQuotes();
+    }
+  }, [subscriptionTier, fetchQuotes]);
+
   // Update like count when favorites change
   useEffect(() => {
     setLikeCount(favoriteQuoteIds.length);
