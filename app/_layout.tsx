@@ -11,7 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../services/supabaseClient';
 import { configureGoogleSignIn } from '../services/googleAuthService';
-import { initRevenueCat } from '../services/revenueCatService';
+import { initRevenueCat, identifyUserWithRevenueCat, rcLogOut } from '../services/revenueCatService';
 import { fetchAndSetUserProfile } from '../services/profileService';
 import { theme } from '../constants/theme';
 
@@ -36,6 +36,7 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
+    console.log('Setting up auth listener...');
     configureGoogleSignIn();
     initRevenueCat(null); // Initialise anonymously
 
@@ -43,20 +44,32 @@ export default function RootLayout() {
       setSupabaseUser(session?.user ?? null);
       if (session?.user) {
         fetchAndSetUserProfile(session.user.id);
-        initRevenueCat(session.user.id); // Re-initialise with user ID if session exists
+        // Identify user with RevenueCat immediately if session exists
+        identifyUserWithRevenueCat(session.user.id);
       }
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
+        console.log(`Auth event: ${_event}`, session?.user?.id || 'No User');
+        
+        // Always update the user in the store
         setSupabaseUser(session?.user ?? null);
+
         if (_event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in, fetching profile and identifying with RevenueCat...');
+          // Fetch user profile from your database
           fetchAndSetUserProfile(session.user.id);
-          initRevenueCat(session.user.id);
+          // --- THIS IS THE KEY ---
+          // Tell RevenueCat who the user is to unlock their purchases
+          await identifyUserWithRevenueCat(session.user.id);
+          // --- END OF KEY ---
         }
+        
         if (_event === 'SIGNED_OUT') {
+          console.log('User signed out, resetting state and logging out of RevenueCat...');
+          // The signOut function in authService will handle rcLogOut
           resetState();
-          initRevenueCat(null);
         }
       }
     );

@@ -6,6 +6,7 @@ import type { SubscriptionTier } from '../store/userStore';
 import { useUserStore } from '../store/userStore';
 // Removed subscriptionSyncService import - now using simplified RevenueCat-only approach
 import { supabase } from './supabaseClient';
+import { rcLogOut } from './revenueCatService';
 
 export const loginWithGoogle = async () => {
   try {
@@ -62,8 +63,13 @@ export const loginWithGoogle = async () => {
 };
 
 export const signOut = async () => {
-  console.log('authService: Attempting signOut...');
+  console.log('authService: Attempting full sign out...');
   try {
+    // 1. Log out from RevenueCat FIRST to clear subscription cache
+    await rcLogOut();
+    console.log('authService: RevenueCat logOut successful.');
+
+    // 2. Sign out from Supabase
     const { error: supabaseSignOutError } = await supabase.auth.signOut();
     if (supabaseSignOutError) {
       console.error('authService: Supabase signOut error:', supabaseSignOutError);
@@ -71,35 +77,19 @@ export const signOut = async () => {
       console.log('authService: Supabase signOut successful.');
     }
 
-    try {
-      // Log out from RevenueCat first
-      const Purchases = await import('react-native-purchases').then(m => m.default);
-      await Purchases.logOut();
-      console.log('authService: RevenueCat logOut successful.');
-    } catch (rcError: any) {
-      console.warn('authService: Error during RevenueCat logOut:', rcError.message);
-    }
-
+    // 3. Sign out from Google (if applicable)
     try {
       const hasPreviousSignIn = GoogleSignin.hasPreviousSignIn();
       if (hasPreviousSignIn) {
         await GoogleSignin.revokeAccess();
         await GoogleSignin.signOut();
         console.log('authService: Google revokeAccess and signOut successful.');
-      } else {
-        console.log('authService: Google Sign-In: No user was signed in with Google locally.');
       }
     } catch (googleError: any) {
-      console.warn('authService: Error during Google signOut/revokeAccess:', googleError.message);
-      try {
-        await GoogleSignin.signOut();
-        console.log('authService: Google direct signOut successful after previous error.');
-      } catch (directSignOutError: any) {
-        console.warn('authService: Google direct signOut also failed:', directSignOutError.message);
-      }
+      console.warn('authService: Error during Google signOut:', googleError.message);
     }
   } catch (error: any) {
-    console.error('authService: General signOut error:', error.message, error);
+    console.error('authService: General signOut error:', error.message);
     throw new Error(error.message || 'An error occurred during sign out.');
   }
 };

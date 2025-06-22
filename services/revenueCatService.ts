@@ -185,6 +185,36 @@ export const syncRevenueCat = async (userId: string | null): Promise<void> => {
 };
 
 /**
+ * Identifies the user with RevenueCat after they have logged in.
+ * This fetches their subscription status and is the key to unlocking premium content.
+ * @param appUserID The user's unique ID from your authentication provider (Supabase).
+ */
+export const identifyUserWithRevenueCat = async (appUserID: string) => {
+  if (!appUserID) {
+    console.log('[RevenueCat] No user ID provided to identify.');
+    return;
+  }
+  
+  return withRevenueCat(async () => {
+    try {
+      console.log(`[RevenueCat] Identifying user with ID: ${appUserID}`);
+      const { customerInfo, created } = await Purchases.logIn(appUserID);
+      
+      console.log(`[RevenueCat] Login successful. New user created: ${created}`);
+      
+      // Update the local subscription tier based on the logged-in user's info
+      const tier = determineSubscriptionTier(customerInfo);
+      updateLocalSubscriptionTier(tier, 'user_identified');
+
+    } catch (error: any) {
+      console.error('[RevenueCat] Error logging in user:', error.message);
+      // Optional: Alert the user that there was an issue syncing their subscription
+      // Alert.alert("Subscription Sync Error", "Could not verify your subscription status. Please try restoring purchases in settings.");
+    }
+  });
+};
+
+/**
  * Explicit logout for when user signs out of the app
  */
 export const rcLogOut = async (): Promise<void> => {

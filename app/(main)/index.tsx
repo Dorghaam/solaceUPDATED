@@ -24,6 +24,7 @@ export default function FeedPage() {
     setActiveQuoteCategory,
     supabaseUser,
     hasCompletedOnboarding,
+    subscriptionTier,
   } = useUserStore();
 
   // Local state for UI interactions
@@ -137,8 +138,24 @@ export default function FeedPage() {
   const handlePremiumPress = useCallback(() => {
     hapticService.light();
     console.log('Premium button pressed');
-    // Handle premium upgrade logic here
-  }, []);
+    
+    // If user is already premium, do nothing
+    if (subscriptionTier === 'premium') {
+      console.log('User is already premium, no action needed');
+      return;
+    }
+    
+    // If user is free, navigate to paywall
+    if (subscriptionTier === 'free') {
+      console.log('User is free tier, showing paywall...');
+      router.push('/(onboarding)/paywall');
+      return;
+    }
+    
+    // If subscription status is unknown, also show paywall as a fallback
+    console.log('Subscription status unknown, showing paywall...');
+    router.push('/(onboarding)/paywall');
+  }, [subscriptionTier]);
 
   const handleBrushPress = useCallback(() => {
     hapticService.light();
@@ -174,6 +191,7 @@ export default function FeedPage() {
       onSettingSelect={handleSettingSelect}
       onPremiumPress={handlePremiumPress}
       onBrushPress={handleBrushPress}
+      subscriptionTier={subscriptionTier}
     />
   );
 } 

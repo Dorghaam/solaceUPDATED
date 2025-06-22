@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CategoriesModal } from './CategoriesModal';
 import { SettingsModal } from './SettingsModal';
 import { theme } from '../constants/theme';
+import { SubscriptionTier } from '../store/userStore';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -50,6 +51,8 @@ interface MainFeedScreenProps {
   // Additional button handlers
   onPremiumPress: () => void;
   onBrushPress: () => void;
+  // Subscription state
+  subscriptionTier: SubscriptionTier;
 }
 
 export const MainFeedScreen = ({
@@ -74,6 +77,7 @@ export const MainFeedScreen = ({
   onSettingSelect,
   onPremiumPress,
   onBrushPress,
+  subscriptionTier,
 }: MainFeedScreenProps) => {
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
@@ -221,11 +225,16 @@ export const MainFeedScreen = ({
             <Pressable 
               style={({ pressed }) => [
                 styles.topButton,
+                subscriptionTier === 'premium' && styles.premiumButton,
                 { opacity: pressed ? 0.7 : 1 }
               ]} 
               onPress={onPremiumPress}
             >
-              <Ionicons name="diamond-outline" size={20} color="#333" />
+              <Ionicons 
+                name={subscriptionTier === 'premium' ? "diamond" : "diamond-outline"} 
+                size={20} 
+                color={subscriptionTier === 'premium' ? "#FFD700" : "#333"} 
+              />
             </Pressable>
           </View>
         </View>
@@ -392,6 +401,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  premiumButton: {
+    backgroundColor: 'rgba(255, 215, 0, 0.2)', // Light gold background for premium users
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.5)',
   },
   quoteContainer: {
     flex: 1,
