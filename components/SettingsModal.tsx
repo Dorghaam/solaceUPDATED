@@ -19,7 +19,6 @@ import { theme } from '../constants/theme';
 import { signOut } from '../services/authService';
 import * as Haptics from 'expo-haptics';
 import { useUserStore } from '@/store/userStore';
-import { forceRefreshSubscriptionStatus } from '@/services/revenueCatService';
 import { RemindersScreen } from './RemindersScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -317,37 +316,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
               {/* Settings Menu Items */}
               <View style={styles.menuSection}>
-                {/* Subscription Status Debug Section (for testing) */}
-                <View style={styles.debugSection}>
-                  <Text style={styles.debugTitle}>Subscription Status</Text>
-                  <View style={styles.debugRow}>
-                    <Text style={styles.debugLabel}>Current Tier:</Text>
-                    <Text style={[styles.debugValue, { 
-                      color: useUserStore.getState().subscriptionTier === 'premium' ? '#4CAF50' : '#FF9800' 
-                    }]}>
-                      {useUserStore.getState().subscriptionTier?.toUpperCase() || 'UNKNOWN'}
-                    </Text>
-                  </View>
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.debugButton,
-                      { opacity: pressed ? 0.8 : 1 }
-                    ]}
-                    onPress={async () => {
-                      try {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        console.log('[Settings] Force refreshing subscription status...');
-                        await forceRefreshSubscriptionStatus();
-                        Alert.alert('Success', 'Subscription status refreshed!');
-                      } catch (error) {
-                        console.error('[Settings] Force refresh failed:', error);
-                        Alert.alert('Error', 'Failed to refresh subscription status');
-                      }
-                    }}
-                  >
-                    <Text style={styles.debugButtonText}>🔄 Force Refresh Status</Text>
-                  </Pressable>
-                </View>
 
                 {getSettingsItems(subscriptionTier || 'free').map((item) => (
                   <Pressable
