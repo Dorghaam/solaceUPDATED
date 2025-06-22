@@ -2102,6 +2102,30 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNDateTimePicker (8.4.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNGestureHandler (2.24.0):
     - DoubleConversion
     - glog
@@ -2459,6 +2483,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - RNPaywalls (from `../node_modules/react-native-purchases-ui`)
@@ -2674,6 +2699,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNDateTimePicker:
+    :path: "../node_modules/@react-native-community/datetimepicker"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNGoogleSignin:
@@ -2796,6 +2823,7 @@ SPEC CHECKSUMS:
   RevenueCat: 5fa12c42c14b390dd2423897e925f407f474b8fa
   RevenueCatUI: fd24e43324c5e3711e5b5cba18eadd0fe2f023d0
   RNCAsyncStorage: 646c1bf2ebfc78d6632a3b0399f471fba8101e73
+  RNDateTimePicker: 0e6a0255c82d5ab6eb40a33dda0d8886f249ca9f
   RNGestureHandler: 8ff2b1434b0ff8bab28c8242a656fb842990bbc8
   RNGoogleSignin: a25ba57cb7ef11d468e15bdb4e413622bd86422e
   RNPaywalls: a38cc7f061fb7f9cce8ec657967312a3d0c82c28
