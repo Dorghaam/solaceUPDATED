@@ -191,6 +191,7 @@ export const checkAuthenticationSync = async () => {
 
 /**
  * Ensures RevenueCat identity is synced and subscription status is fresh after login.
+ * Also syncs any local favorites to the database.
  */
 export const ensurePostLoginSync = async (userId: string) => {
   try {
@@ -202,6 +203,15 @@ export const ensurePostLoginSync = async (userId: string) => {
     console.log(`[AuthService] Current subscription tier before sync: ${currentTier}`);
     
     await logInRevenueCat(userId);
+    
+    // Sync any local favorites to database (in case user had favorites while offline)
+    try {
+      console.log('[AuthService] Syncing local favorites to database...');
+      const { syncFavoritesToDatabase } = useUserStore.getState();
+      await syncFavoritesToDatabase();
+    } catch (favoriteError) {
+      console.error('[AuthService] Failed to sync favorites, but continuing:', favoriteError);
+    }
     
     // Log subscription state after sync
     const newTier = useUserStore.getState().subscriptionTier;

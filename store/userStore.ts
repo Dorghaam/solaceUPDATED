@@ -120,6 +120,8 @@ interface UserState {
 
   addFavorite: (quoteId: string) => void;
   removeFavorite: (quoteId: string) => void;
+  loadFavoritesFromDatabase: () => Promise<void>;
+  syncFavoritesToDatabase: () => Promise<void>;
   setNotificationSettings: (settings: Partial<NotificationSettings>) => void;
   setPushToken: (token: string | null) => void;
   setDailyMood: (mood: DailyMood) => void;
@@ -272,16 +274,80 @@ export const useUserStore = create<UserState>()(
       setQuotes: (quotes) => set({ quotes }),
       setIsLoading: (loading) => set({ isLoading: loading }),
 
-      addFavorite: (quoteId) =>
+      addFavorite: (quoteId) => {
+        const state = get();
+        if (state.favoriteQuoteIds.includes(quoteId)) {
+          return; // Already favorited
+        }
+        
+        // Update local state immediately
         set((state) => ({
-          favoriteQuoteIds: state.favoriteQuoteIds.includes(quoteId)
-            ? state.favoriteQuoteIds
-            : [...state.favoriteQuoteIds, quoteId],
-        })),
-      removeFavorite: (quoteId) =>
+          favoriteQuoteIds: [...state.favoriteQuoteIds, quoteId],
+        }));
+        
+        // Save to database in background
+        if (state.supabaseUser?.id) {
+          import('../services/favoritesService').then(({ saveFavoriteToDatabase }) => {
+            saveFavoriteToDatabase(state.supabaseUser.id, quoteId).catch(error => {
+              console.error('Failed to save favorite to database:', error);
+              // Could show a toast notification here
+            });
+          });
+        }
+      },
+      
+      removeFavorite: (quoteId) => {
+        const state = get();
+        
+        // Update local state immediately
         set((state) => ({
           favoriteQuoteIds: state.favoriteQuoteIds.filter((id) => id !== quoteId),
-        })),
+        }));
+        
+        // Remove from database in background
+        if (state.supabaseUser?.id) {
+          import('../services/favoritesService').then(({ removeFavoriteFromDatabase }) => {
+            removeFavoriteFromDatabase(state.supabaseUser.id, quoteId).catch(error => {
+              console.error('Failed to remove favorite from database:', error);
+              // Could show a toast notification here
+            });
+          });
+        }
+      },
+
+      loadFavoritesFromDatabase: async () => {
+        const state = get();
+        if (!state.supabaseUser?.id) {
+          console.log('[UserStore] No user ID, skipping favorites load');
+          return;
+        }
+
+        try {
+          const { loadFavoritesFromDatabase } = await import('../services/favoritesService');
+          const favoriteIds = await loadFavoritesFromDatabase(state.supabaseUser.id);
+          
+          console.log(`[UserStore] Loaded ${favoriteIds.length} favorites from database`);
+          set({ favoriteQuoteIds: favoriteIds });
+        } catch (error) {
+          console.error('[UserStore] Failed to load favorites from database:', error);
+        }
+      },
+
+      syncFavoritesToDatabase: async () => {
+        const state = get();
+        if (!state.supabaseUser?.id || state.favoriteQuoteIds.length === 0) {
+          console.log('[UserStore] No user ID or no local favorites, skipping sync');
+          return;
+        }
+
+        try {
+          const { syncLocalFavoritesToDatabase } = await import('../services/favoritesService');
+          await syncLocalFavoritesToDatabase(state.supabaseUser.id, state.favoriteQuoteIds);
+          console.log('[UserStore] Successfully synced favorites to database');
+        } catch (error) {
+          console.error('[UserStore] Failed to sync favorites to database:', error);
+        }
+      },
 
       setNotificationSettings: (settingsUpdate) =>
         set((state) => ({

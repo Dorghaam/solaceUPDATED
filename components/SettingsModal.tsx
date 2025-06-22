@@ -20,6 +20,7 @@ import { signOut } from '../services/authService';
 import * as Haptics from 'expo-haptics';
 import { useUserStore } from '@/store/userStore';
 import { RemindersScreen } from './RemindersScreen';
+import { ProfileScreen } from './ProfileScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -43,7 +44,7 @@ const getSettingsItems = (subscriptionTier: string): SettingsMenuItem[] => [
   { id: '2', title: 'Create My Quotes', icon: 'create' },
   { id: '3', title: 'General', icon: 'document-text' },
   { id: '4', title: 'My Favorites', icon: 'heart' },
-  { id: '5', title: 'Settings', icon: 'settings' },
+  { id: '5', title: 'My Profile', icon: 'person' },
   { id: '6', title: 'Based on Your Mood', icon: 'happy' },
   { id: '7', title: 'Reminders', icon: 'time' },
 ];
@@ -65,6 +66,7 @@ interface SettingsModalProps {
 
 interface SettingsModalState {
   showReminders: boolean;
+  showProfile: boolean;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -77,6 +79,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const panY = useRef(new Animated.Value(0)).current;
   
   const [showReminders, setShowReminders] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   
   // Get subscription tier from store
   const subscriptionTier = useUserStore((state) => state.subscriptionTier);
@@ -149,6 +152,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     
     if (setting.title === 'Reminders') {
       setShowReminders(true);
+    } else if (setting.title === 'My Profile') {
+      setShowProfile(true);
     } else if (setting.id === '1') { // Subscription management item
       handleSubscriptionManagement();
     } else {
@@ -196,41 +201,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           friction: 8,
         }).start();
       }
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      Alert.alert(
-        'Sign Out',
-        'Are you sure you want to sign out?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Sign Out',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                // First close the modal
-                handleClose();
-                // Then sign out and redirect
-                await signOut();
-                console.log('SettingsModal: Sign out successful, redirecting to onboarding');
-                router.replace('/(onboarding)');
-              } catch (error: any) {
-                console.error('SettingsModal: Sign out error:', error);
-                Alert.alert('Error', 'Failed to sign out. Please try again.');
-              }
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('SettingsModal: Error showing sign out alert:', error);
     }
   };
 
@@ -316,7 +286,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
               {/* Settings Menu Items */}
               <View style={styles.menuSection}>
-
                 {getSettingsItems(subscriptionTier || 'free').map((item) => (
                   <Pressable
                     key={item.id}
@@ -355,29 +324,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </Pressable>
                 ))}
               </View>
-
-                {/* Sign Out Button */}
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.signOutButton,
-                    { opacity: pressed ? 0.8 : 1 },
-                    { transform: [{ scale: pressed ? 0.98 : 1 }] }
-                  ]}
-                  onPress={handleSignOut}
-                >
-                  <View style={styles.menuItemLeft}>
-                    <View style={styles.signOutIconContainer}>
-                      <Ionicons 
-                        name="log-out-outline" 
-                        size={20} 
-                        color="#FF6B6B" 
-                      />
-                    </View>
-                    <Text style={styles.signOutText}>
-                      Sign Out
-                    </Text>
-                  </View>
-                </Pressable>
             </ScrollView>
           </LinearGradient>
         </Animated.View>
@@ -387,6 +333,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <RemindersScreen
         visible={showReminders}
         onClose={() => setShowReminders(false)}
+      />
+      
+      {/* Profile Screen */}
+      <ProfileScreen
+        visible={showProfile}
+        onClose={() => setShowProfile(false)}
       />
     </View>
   );
@@ -578,7 +530,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   premiumSubscriptionButton: {
-    backgroundColor: '#C8A5E1', // Deeper, more vibrant purple
+    backgroundColor: '#C8A5E1',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -586,72 +538,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.15,
     shadowRadius: 4,
-    elevation: 3, // For Android shadow
-  },
-
-  signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: theme.radii.m,
-    paddingHorizontal: theme.spacing.m,
-    paddingVertical: theme.spacing.m,
-    marginTop: theme.spacing.s,
-  },
-  signOutIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 107, 107, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  signOutText: {
-    fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: '#FF6B6B',
-  },
-
-  debugSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: theme.radii.m,
-    padding: theme.spacing.m,
-    marginBottom: theme.spacing.m,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  debugTitle: {
-    fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.semiBold,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.s,
-  },
-  debugRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.s,
-  },
-  debugLabel: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.textSecondary,
-  },
-  debugValue: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.semiBold,
-  },
-  debugButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radii.s,
-    paddingVertical: theme.spacing.s,
-    paddingHorizontal: theme.spacing.m,
-    alignItems: 'center',
-  },
-  debugButtonText: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.semiBold,
-    color: 'white',
+    elevation: 3,
   },
 }); 

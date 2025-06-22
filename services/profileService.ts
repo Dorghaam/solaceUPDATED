@@ -35,11 +35,30 @@ export const fetchAndSetUserProfile = async (userId: string) => {
         console.warn('profileService: No profile found for user.');
         // Profile will be created by webhook when subscription events occur
     }
+
+    // Load user's favorites from database after profile is loaded
+    try {
+      console.log('profileService: Loading user favorites from database...');
+      const { loadFavoritesFromDatabase } = useUserStore.getState();
+      await loadFavoritesFromDatabase();
+    } catch (favoriteError) {
+      console.error('profileService: Failed to load favorites, but continuing:', favoriteError);
+    }
+    
   } catch (error: any) {
     console.error('profileService: Error fetching user profile:', error.message);
     
     // Profile fetch failed - subscription tier managed by RevenueCat + webhooks anyway
     console.warn('profileService: Profile fetch failed, but subscription tier is managed independently');
+    
+    // Still try to load favorites even if profile fetch failed
+    try {
+      console.log('profileService: Attempting to load favorites despite profile error...');
+      const { loadFavoritesFromDatabase } = useUserStore.getState();
+      await loadFavoritesFromDatabase();
+    } catch (favoriteError) {
+      console.error('profileService: Failed to load favorites:', favoriteError);
+    }
   }
 };
 
