@@ -7,13 +7,14 @@ import {
   Dimensions,
   Animated,
   ScrollView,
-  Image,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { theme } from '../constants/theme';
 import * as Haptics from 'expo-haptics';
+import { BreakupCategory, breakupInterestCategories, useUserStore } from '@/store/userStore';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -25,57 +26,88 @@ interface Category {
   locked?: boolean;
 }
 
-const CATEGORIES: Category[] = [
-  // Most Popular
-  { id: '1', title: 'Feeling Blessed', icon: '🙏', color: theme.colors.categoryColors.orange },
-  { id: '2', title: 'Improve Self-Talk', icon: '💭', color: theme.colors.categoryColors.teal },
-  { id: '3', title: 'Morning Motivation', icon: '🌅', color: theme.colors.categoryColors.blue },
-  
-  // For You
-  { id: '4', title: 'Calm', icon: '🧘', color: theme.colors.categoryColors.coral },
-  { id: '5', title: 'Best Friend', icon: '👫', color: theme.colors.categoryColors.pink },
-  { id: '6', title: 'Personal Growth', icon: '🌱', color: theme.colors.categoryColors.green },
-  
-  // Personal Growth
-  { id: '7', title: 'Self Love', icon: '💝', color: theme.colors.categoryColors.lavender },
-  { id: '8', title: 'Be Strong', icon: '💪', color: theme.colors.categoryColors.orange },
-  { id: '9', title: 'Positivity', icon: '✨', color: theme.colors.categoryColors.purple },
-  
-  // Relationships
-  { id: '10', title: 'Social Anxiety', icon: '🤗', color: theme.colors.categoryColors.purple },
-  { id: '11', title: 'Marriage', icon: '💕', color: theme.colors.categoryColors.teal },
-  { id: '12', title: 'Unconditional Love', icon: '💖', color: theme.colors.categoryColors.pink },
-  
-  // Hard Times
-  { id: '13', title: 'Death', icon: '🕊️', color: theme.colors.categoryColors.coral, locked: true },
-  { id: '14', title: 'Toxic Relationship', icon: '💔', color: theme.colors.categoryColors.teal },
-  { id: '15', title: 'Depression', icon: '🌙', color: theme.colors.categoryColors.blue },
-  
-  // Work & Productivity
-  { id: '16', title: 'Success', icon: '🎯', color: theme.colors.categoryColors.orange },
-  { id: '17', title: 'Business', icon: '💼', color: theme.colors.categoryColors.blue, locked: true },
-  { id: '18', title: 'Leadership', icon: '👑', color: theme.colors.categoryColors.purple },
-  
-  // Inspiration
-  { id: '19', title: 'Enjoy the Moment', icon: '🎉', color: theme.colors.categoryColors.coral },
-  { id: '20', title: 'Beauty', icon: '🌸', color: theme.colors.categoryColors.pink, locked: true },
-  { id: '21', title: 'Adventure', icon: '🗺️', color: theme.colors.categoryColors.green },
-];
+// Map breakup categories to UI categories with icons and colors
+const mapBreakupCategoriesToUI = (breakupCategories: BreakupCategory[], subscriptionTier: string): Category[] => {
+  const iconMap: { [key: string]: string } = {
+    'general_healing': '🌸',
+    'moving_on': '🚀', 
+    'self_love_discovery': '💝',
+    'coping_loneliness': '🤗',
+    'rebuilding_confidence': '💪',
+    'managing_anger_resentment': '🧘',
+    'finding_closure': '🔒',
+    'hope_for_future': '✨',
+    'healing_from_betrayal': '💔',
+    'loss_of_partner_widow': '🕊️',
+    'navigating_divorce': '📋',
+    'heartbreak_recovery': '💖',
+    'letting_go_of_ex': '🎈',
+    'embracing_single_life': '🌟',
+    'overcoming_codependency': '🔗'
+  };
 
-const CATEGORY_SECTIONS = [
-  { title: 'Most Popular', categories: CATEGORIES.slice(0, 3) },
-  { title: 'For You', categories: CATEGORIES.slice(3, 6) },
-  { title: 'Personal Growth', categories: CATEGORIES.slice(6, 9) },
-  { title: 'Relationships', categories: CATEGORIES.slice(9, 12) },
-  { title: 'Hard Times', categories: CATEGORIES.slice(12, 15) },
-  { title: 'Work & Productivity', categories: CATEGORIES.slice(15, 18) },
-  { title: 'Inspiration', categories: CATEGORIES.slice(18, 21) },
-];
+  const colorMap: { [key: string]: string } = {
+    'general_healing': theme.colors.categoryColors.pink,
+    'moving_on': theme.colors.categoryColors.blue,
+    'self_love_discovery': theme.colors.categoryColors.lavender,
+    'coping_loneliness': theme.colors.categoryColors.coral,
+    'rebuilding_confidence': theme.colors.categoryColors.orange,
+    'managing_anger_resentment': theme.colors.categoryColors.teal,
+    'finding_closure': theme.colors.categoryColors.purple,
+    'hope_for_future': theme.colors.categoryColors.green,
+    'healing_from_betrayal': theme.colors.categoryColors.coral,
+    'loss_of_partner_widow': theme.colors.categoryColors.blue,
+    'navigating_divorce': theme.colors.categoryColors.orange,
+    'heartbreak_recovery': theme.colors.categoryColors.pink,
+    'letting_go_of_ex': theme.colors.categoryColors.lavender,
+    'embracing_single_life': theme.colors.categoryColors.green,
+    'overcoming_codependency': theme.colors.categoryColors.teal
+  };
+
+  return breakupCategories.map(category => ({
+    id: category.id,
+    title: category.label,
+    icon: iconMap[category.id] || '💭',
+    color: colorMap[category.id] || theme.colors.categoryColors.pink,
+    locked: category.premium && subscriptionTier !== 'premium'
+  }));
+};
+
+// Group categories into sections
+const createCategorySections = (categories: Category[]) => {
+  const freeCategories = categories.filter(c => !c.locked);
+  const premiumCategories = categories.filter(c => c.locked);
+  
+  const sections = [];
+  
+  if (freeCategories.length > 0) {
+    sections.push({ title: 'Free Categories', categories: freeCategories.slice(0, 3) });
+    if (freeCategories.length > 3) {
+      sections.push({ title: 'More Free', categories: freeCategories.slice(3) });
+    }
+  }
+  
+  if (premiumCategories.length > 0) {
+    const premiumChunks = [];
+    for (let i = 0; i < premiumCategories.length; i += 3) {
+      premiumChunks.push(premiumCategories.slice(i, i + 3));
+    }
+    
+    premiumChunks.forEach((chunk, index) => {
+      sections.push({ 
+        title: index === 0 ? 'Premium Categories' : `More Premium ${index + 1}`, 
+        categories: chunk 
+      });
+    });
+  }
+  
+  return sections;
+};
 
 interface CategoriesModalProps {
   visible: boolean;
   onClose: () => void;
-  onCategorySelect: (category: Category) => void;
+  onCategorySelect: (category: BreakupCategory | null) => void;
 }
 
 export const CategoriesModal: React.FC<CategoriesModalProps> = ({
@@ -86,6 +118,7 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const backgroundOpacity = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
+  const subscriptionTier = useUserStore((state) => state.subscriptionTier);
 
   useEffect(() => {
     if (visible) {
@@ -123,11 +156,33 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
   const handleCategoryPress = (category: Category) => {
     if (category.locked) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Alert.alert(
+        "Premium Category",
+        "This category is available for premium subscribers. Upgrade to unlock all categories!",
+        [{ text: "OK" }]
+      );
       return;
     }
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onCategorySelect(category);
+    // Find the original breakup category
+    const breakupCategory = breakupInterestCategories.find(bc => bc.id === category.id);
+    
+    // Trigger slide down animation, then call onCategorySelect
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: screenHeight,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backgroundOpacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onCategorySelect(breakupCategory || null);
+    });
   };
 
   const handleClose = () => {
@@ -177,6 +232,9 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
     return null;
   }
 
+  const categories = mapBreakupCategoriesToUI(breakupInterestCategories, subscriptionTier);
+  const categorySections = createCategorySections(categories);
+
   return (
     <View style={styles.overlay}>
       {/* Background overlay */}
@@ -205,67 +263,67 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
             }
           ]}
         >
-                    <LinearGradient
+          <LinearGradient
             colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light]}
             style={styles.modalContent}
           >
             {/* Drag handle */}
             <View style={styles.dragHandle} />
             
-                      {/* Header */}
-          <View style={styles.header}>
-            <Pressable style={styles.cancelButton} onPress={handleClose}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </Pressable>
-            <View style={styles.titleContainer}>
-              <Text style={styles.headerTitle}>Categories</Text>
-            </View>
-          </View>
-
-          {/* Search bar */}
-          <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color={theme.colors.textSecondary} />
-            <Text style={styles.searchPlaceholder}>Search categories...</Text>
-          </View>
-
-          {/* Categories content */}
-          <ScrollView 
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {CATEGORY_SECTIONS.map((section, sectionIndex) => (
-              <View key={section.title} style={styles.section}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-                <View style={styles.categoryGrid}>
-                  {section.categories.map((category) => (
-                    <Pressable
-                      key={category.id}
-                      style={({ pressed }) => [
-                        styles.categoryCard,
-                        { backgroundColor: category.color },
-                        { opacity: pressed ? 0.8 : 1 },
-                        { transform: [{ scale: pressed ? 0.95 : 1 }] },
-                        category.locked && styles.lockedCard
-                      ]}
-                      onPress={() => handleCategoryPress(category)}
-                    >
-                      <View style={styles.categoryContent}>
-                        <Text style={styles.categoryIcon}>{category.icon}</Text>
-                        {category.locked && (
-                          <View style={styles.lockIcon}>
-                            <Ionicons name="lock-closed" size={16} color="#666" />
-                          </View>
-                        )}
-                      </View>
-                      <Text style={styles.categoryTitle}>{category.title}</Text>
-                    </Pressable>
-                  ))}
-                </View>
+            {/* Header */}
+            <View style={styles.header}>
+              <Pressable style={styles.cancelButton} onPress={handleClose}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </Pressable>
+              <View style={styles.titleContainer}>
+                <Text style={styles.headerTitle}>Categories</Text>
               </View>
-            ))}
-          </ScrollView>
-                  </LinearGradient>
+            </View>
+
+            {/* Search bar */}
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={20} color={theme.colors.textSecondary} />
+              <Text style={styles.searchPlaceholder}>Search categories...</Text>
+            </View>
+
+                         {/* Categories content */}
+             <ScrollView 
+               style={styles.content}
+               showsVerticalScrollIndicator={false}
+               contentContainerStyle={styles.scrollContent}
+             >
+               {categorySections.map((section, sectionIndex) => (
+                <View key={section.title} style={styles.section}>
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <View style={styles.categoryGrid}>
+                    {section.categories.map((category) => (
+                      <Pressable
+                        key={category.id}
+                        style={({ pressed }) => [
+                          styles.categoryCard,
+                          { backgroundColor: category.color },
+                          { opacity: pressed ? 0.8 : 1 },
+                          { transform: [{ scale: pressed ? 0.95 : 1 }] },
+                          category.locked && styles.lockedCard
+                        ]}
+                        onPress={() => handleCategoryPress(category)}
+                      >
+                        <View style={styles.categoryContent}>
+                          <Text style={styles.categoryIcon}>{category.icon}</Text>
+                          {category.locked && (
+                            <View style={styles.lockIcon}>
+                              <Ionicons name="lock-closed" size={16} color="#666" />
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.categoryTitle}>{category.title}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </LinearGradient>
         </Animated.View>
       </PanGestureHandler>
     </View>

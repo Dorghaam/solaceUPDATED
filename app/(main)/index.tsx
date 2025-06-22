@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Share } from 'react-native';
 import { router } from 'expo-router';
-import { useUserStore } from '../../store/userStore';
+import { useUserStore, BreakupCategory } from '../../store/userStore';
 import { hapticService } from '../../services/hapticService';
 import { reviewService } from '../../services/reviewService';
 import { MainFeedScreen } from '../../components/MainFeedScreen';
@@ -21,14 +21,10 @@ export default function FeedPage() {
     fetchQuotes,
     addFavorite,
     removeFavorite,
+    setActiveQuoteCategory,
     supabaseUser,
     hasCompletedOnboarding,
   } = useUserStore();
-
-  // If user is not authenticated, don't render anything (useAuthGuard handles redirect)
-  if (!shouldRender) {
-    return null;
-  }
 
   // Local state for UI interactions
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -114,12 +110,22 @@ export default function FeedPage() {
     setShowSettings(false);
   }, []);
 
-  const handleCategorySelect = useCallback((category: any) => {
-    console.log('Selected category:', category.title);
+  const handleCategorySelect = useCallback((category: BreakupCategory | null) => {
+    console.log('Category selected:', category ? category.label : 'View All');
     hapticService.selection();
+
+    // 1. Update the active category in the store.
+    setActiveQuoteCategory(category ? category.id : null);
+    
+    // 2. Close the categories modal.
     setShowCategories(false);
-    // Handle category selection logic here - could update activeQuoteCategory in store
-  }, []);
+
+    // 3. Fetch quotes for the new category.
+    setTimeout(() => {
+      fetchQuotes();
+    }, 250); // Delay allows modal to animate out smoothly
+
+  }, [setActiveQuoteCategory, fetchQuotes]);
 
   const handleSettingSelect = useCallback((setting: any) => {
     console.log('Selected setting:', setting.title);
@@ -139,6 +145,11 @@ export default function FeedPage() {
     console.log('Brush button pressed');
     // Handle brush/theme functionality here
   }, []);
+
+  // If user is not authenticated, don't render anything (useAuthGuard handles redirect)
+  if (!shouldRender) {
+    return null;
+  }
 
   return (
     <MainFeedScreen

@@ -188,52 +188,49 @@ export const useUserStore = create<UserState>()(
 
       setSupabaseUser: (user) => set({ supabaseUser: user }),
 
-      // Quote actions
       fetchQuotes: async () => {
         const { supabase } = await import('../services/supabaseClient');
         const state = get();
         
-        set({ isLoading: true });
+        set({ isLoading: true, quotes: [] }); // Clear previous quotes while loading
         try {
           let query = supabase
             .from('quotes')
             .select('id, text, category');
 
-          // Filter by active category if set
+          // --- NEW SIMPLIFIED LOGIC ---
           if (state.activeQuoteCategory) {
+            // If a category is selected, fetch ONLY from that category.
+            console.log(`Fetching quotes for single active category: ${state.activeQuoteCategory}`);
             query = query.eq('category', state.activeQuoteCategory);
-          } else if (state.interestCategories.length > 0) {
-            // Filter by user's interest categories
-            query = query.in('category', state.interestCategories);
-          }
-
-          const { data, error } = await query.limit(50);
-
-          if (error) {
-            console.error('Error fetching quotes:', error);
-            // Use fallback quotes if Supabase fails
-            const fallbackQuotes: Quote[] = [
-              { id: '1', text: "Keep going.\nYou're getting there." },
-              { id: '2', text: "The sun will rise and\nwe will try again." },
-              { id: '3', text: "Trust the timing\nof your life." },
-              { id: '4', text: "Every day is a\nnew beginning." },
-              { id: '5', text: "You are stronger\nthan you think." },
-            ];
-            set({ quotes: fallbackQuotes, isLoading: false });
           } else {
-            // Shuffle the quotes for variety
-            const shuffledQuotes = data ? [...data].sort(() => Math.random() - 0.5) : [];
-            set({ quotes: shuffledQuotes, isLoading: false });
+            // If NO category is selected (default state), fetch from all available categories.
+            console.log('No active category. Fetching default quotes based on subscription tier.');
+            const effectiveTier = state.subscriptionTier === 'premium' ? 'premium' : 'free';
+            if (effectiveTier === 'free') {
+              const freeCategoryIds = breakupInterestCategories
+                .filter(c => !c.premium)
+                .map(c => c.id);
+              console.log('User is free, fetching from categories:', freeCategoryIds);
+              query = query.in('category', freeCategoryIds);
+            }
+            // For premium users with no active category, the query remains unfiltered to fetch from ALL categories.
           }
-        } catch (error) {
-          console.error('Failed to fetch quotes:', error);
-          // Use fallback quotes
-          const fallbackQuotes: Quote[] = [
-            { id: '1', text: "Keep going.\nYou're getting there." },
-            { id: '2', text: "The sun will rise and\nwe will try again." },
-            { id: '3', text: "Trust the timing\nof your life." },
-          ];
-          set({ quotes: fallbackQuotes, isLoading: false });
+          // --- END OF NEW LOGIC ---
+
+          const { data, error } = await query.limit(50); // Fetch up to 50 quotes
+
+          if (error) throw error;
+
+          const shuffledQuotes = data ? [...data].sort(() => Math.random() - 0.5) : [];
+          set({ quotes: shuffledQuotes, isLoading: false });
+
+        } catch (error: any) {
+          console.error('Failed to fetch quotes:', error.message);
+          set({ 
+            quotes: [{ id: 'error', text: "Could not load affirmations. Please try again." }], 
+            isLoading: false 
+          });
         }
       },
 
