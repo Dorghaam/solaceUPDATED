@@ -26,6 +26,12 @@ export default ({ config }) => ({
       buildNumber: "1",
       googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
       storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
+      entitlements: {
+        "com.apple.security.application-groups": [
+          "group.com.dorghaamhaidar.solace.iphone.widget" // Shared group ID for widget data sharing
+        ],
+        "com.apple.developer.applesignin": ["Default"]
+      },
     },
     android: {
       ...config.expo?.android,
