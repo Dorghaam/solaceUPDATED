@@ -8,12 +8,15 @@ import {
   Animated,
   ScrollView,
   Alert,
+  Switch,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { theme } from '../constants/theme';
 import { useUserStore, breakupInterestCategories, BreakupCategory } from '../store/userStore';
+import { scheduleDailyAffirmationReminders, cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync } from '../services/notificationService';
 import * as Haptics from 'expo-haptics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -23,12 +26,12 @@ interface RemindersScreenProps {
   onClose: () => void;
 }
 
-const FREQUENCY_OPTIONS = [
-  { id: '1x', label: '1x', value: 1 },
-  { id: '3x', label: '3x', value: 3 },
-  { id: '5x', label: '5x', value: 5 },
-  { id: '10x', label: '10x', value: 10 },
-];
+// Updated frequency options to go from 1 to 10
+const FREQUENCY_OPTIONS = Array.from({ length: 10 }, (_, i) => ({
+  id: `${i + 1}x`,
+  label: `${i + 1}x`,
+  value: i + 1,
+}));
 
 export const RemindersScreen: React.FC<RemindersScreenProps> = ({
   visible,
@@ -38,13 +41,14 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
   const backgroundOpacity = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
 
-  const { subscriptionTier, notificationSettings } = useUserStore();
+  const { subscriptionTier, notificationSettings, setNotificationSettings } = useUserStore();
   
-  const [selectedFrequency, setSelectedFrequency] = useState('10x');
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('22:00');
+  // State for all reminder settings
+  const [notificationsEnabled, setNotificationsEnabled] = useState(notificationSettings?.enabled || false);
+  const [selectedFrequency, setSelectedFrequency] = useState(3); // Default to 3x
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showCategoriesList, setShowCategoriesList] = useState(false);
+  const [isSchedulingNotifications, setIsSchedulingNotifications] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -121,12 +125,11 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
 
   const handleFrequencyChange = (direction: 'increase' | 'decrease') => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const currentIndex = FREQUENCY_OPTIONS.findIndex(opt => opt.id === selectedFrequency);
     
-    if (direction === 'increase' && currentIndex < FREQUENCY_OPTIONS.length - 1) {
-      setSelectedFrequency(FREQUENCY_OPTIONS[currentIndex + 1].id);
-    } else if (direction === 'decrease' && currentIndex > 0) {
-      setSelectedFrequency(FREQUENCY_OPTIONS[currentIndex - 1].id);
+    if (direction === 'increase' && selectedFrequency < 10) {
+      setSelectedFrequency(selectedFrequency + 1);
+    } else if (direction === 'decrease' && selectedFrequency > 1) {
+      setSelectedFrequency(selectedFrequency - 1);
     }
   };
 
@@ -157,15 +160,130 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
     });
   };
 
-  const handleAllowAndSave = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Here you would implement the notification scheduling logic
-    Alert.alert(
-      'Reminders Set!',
-      `Your ${selectedFrequency} daily reminders have been scheduled from ${startTime} to ${endTime}.`,
-      [{ text: 'OK', onPress: handleClose }]
-    );
+  const generateCustomNotificationTimes = (frequency: number) => {
+    const times: { hour: number; minute: number }[] = [];
+    
+    // Fixed time range: 9 AM to 10 PM (13 hours)
+    const startHour = 9;
+    const startMinute = 0;
+    const endHour = 22;
+    const endMinute = 0;
+    
+    // Calculate the time range in minutes (13 hours = 780 minutes)
+    const startTimeInMinutes = startHour * 60 + startMinute; // 540 minutes (9:00 AM)
+    const endTimeInMinutes = endHour * 60 + endMinute; // 1320 minutes (10:00 PM)
+    const totalMinutes = endTimeInMinutes - startTimeInMinutes; // 780 minutes
+    
+    // Calculate interval between notifications
+    const interval = Math.floor(totalMinutes / frequency);
+    
+    for (let i = 0; i < frequency; i++) {
+      const timeInMinutes = startTimeInMinutes + (i * interval);
+      const hour = Math.floor(timeInMinutes / 60);
+      const minute = timeInMinutes % 60;
+      
+      times.push({ hour, minute });
+    }
+    
+    return times;
   };
+
+  const handleToggleNotifications = async (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    
+    if (enabled) {
+      // Request permissions when enabling notifications
+      try {
+        const token = await getPushTokenAndPermissionsAsync();
+        if (!token) {
+          // Permission denied
+          setNotificationsEnabled(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to get notification permissions:', error);
+        Alert.alert(
+          'Permission Error',
+          'Unable to get notification permissions. Please check your device settings.',
+          [{ text: 'OK' }]
+        );
+        setNotificationsEnabled(false);
+        return;
+      }
+    } else {
+      // Cancel all notifications when disabling
+      try {
+        await cancelAllScheduledAffirmationReminders();
+        console.log('All notifications cancelled');
+      } catch (error) {
+        console.error('Failed to cancel notifications:', error);
+      }
+    }
+    
+    // Update user store
+    setNotificationSettings({
+      enabled,
+      frequency: `${selectedFrequency}x` as any,
+    });
+  };
+
+  const handleAllowAndSave = async () => {
+    if (!notificationsEnabled) {
+      Alert.alert(
+        'Notifications Disabled',
+        'Please enable notifications to set up reminders.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    if (selectedCategories.length === 0) {
+      Alert.alert(
+        'No Categories Selected',
+        'Please select at least one category for your reminders.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsSchedulingNotifications(true);
+
+    try {
+      // Generate custom notification times based on frequency (9 AM to 10 PM)
+      const customTimes = generateCustomNotificationTimes(selectedFrequency);
+      
+      // Schedule notifications with custom times and selected categories
+      await scheduleDailyAffirmationReminders(
+        'custom',
+        customTimes,
+        selectedCategories
+      );
+
+      // Update user store with settings
+      setNotificationSettings({
+        enabled: notificationsEnabled,
+        frequency: `${selectedFrequency}x` as any,
+      });
+
+      Alert.alert(
+        'Reminders Set!',
+        `Your ${selectedFrequency}x daily reminders have been scheduled from 9:00 AM to 10:00 PM.`,
+        [{ text: 'OK', onPress: handleClose }]
+      );
+    } catch (error) {
+      console.error('Failed to schedule notifications:', error);
+      Alert.alert(
+        'Error',
+        'Failed to schedule notifications. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsSchedulingNotifications(false);
+    }
+  };
+
+
 
   const renderCategoriesList = () => {
     if (!showCategoriesList) return null;
@@ -313,20 +431,38 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
                 </Text>
               </View>
 
-              {/* How Many Section */}
+              {/* Enable Notifications Toggle */}
               <View style={styles.sectionContainer}>
+                <Text style={styles.sectionLabel}>Enable Notifications</Text>
+                <View style={styles.toggleContainer}>
+                  <Text style={styles.toggleLabel}>
+                    {notificationsEnabled ? 'Notifications enabled' : 'Notifications disabled'}
+                  </Text>
+                  <Switch
+                    value={notificationsEnabled}
+                    onValueChange={handleToggleNotifications}
+                    trackColor={{ false: '#767577', true: theme.colors.primary }}
+                    thumbColor={notificationsEnabled ? '#f4f3f4' : '#f4f3f4'}
+                  />
+                </View>
+              </View>
+
+              {/* How Many Section */}
+              <View style={[styles.sectionContainer, { opacity: notificationsEnabled ? 1 : 0.5 }]}>
                 <Text style={styles.sectionLabel}>How Many</Text>
                 <View style={styles.frequencyContainer}>
                   <Pressable
-                    style={styles.frequencyButton}
-                    onPress={() => handleFrequencyChange('decrease')}
+                    style={[styles.frequencyButton, { opacity: notificationsEnabled ? 1 : 0.5 }]}
+                    onPress={() => notificationsEnabled && handleFrequencyChange('decrease')}
+                    disabled={!notificationsEnabled}
                   >
                     <Ionicons name="remove" size={20} color="white" />
                   </Pressable>
-                  <Text style={styles.frequencyText}>{selectedFrequency}</Text>
+                  <Text style={styles.frequencyText}>{selectedFrequency}x</Text>
                   <Pressable
-                    style={styles.frequencyButton}
-                    onPress={() => handleFrequencyChange('increase')}
+                    style={[styles.frequencyButton, { opacity: notificationsEnabled ? 1 : 0.5 }]}
+                    onPress={() => notificationsEnabled && handleFrequencyChange('increase')}
+                    disabled={!notificationsEnabled}
                   >
                     <Ionicons name="add" size={20} color="white" />
                   </Pressable>
@@ -334,40 +470,44 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
               </View>
 
               {/* Categories Section */}
-              <View style={styles.sectionContainer}>
+              <View style={[styles.sectionContainer, { opacity: notificationsEnabled ? 1 : 0.5 }]}>
                 <Text style={styles.sectionLabel}>Categories</Text>
-                <Pressable style={styles.timeContainer} onPress={handleCategoriesPress}>
+                <Pressable 
+                  style={styles.timeContainer} 
+                  onPress={() => notificationsEnabled && handleCategoriesPress()}
+                  disabled={!notificationsEnabled}
+                >
                   <Text style={styles.timeLabel}>{getCategoriesDisplayText()}</Text>
                   <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
                 </Pressable>
               </View>
 
-              {/* Start At Section */}
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionLabel}>Start at</Text>
-                <View style={styles.timeContainer}>
-                  <Text style={styles.timeText}>{startTime}</Text>
-                </View>
-              </View>
 
-              {/* End At Section */}
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionLabel}>End at</Text>
-                <View style={styles.timeContainer}>
-                  <Text style={styles.timeText}>{endTime}</Text>
-                </View>
-              </View>
             </ScrollView>
 
             {/* Allow and Save Button */}
             <View style={styles.bottomSection}>
-              <Pressable style={styles.allowButton} onPress={handleAllowAndSave}>
-                <Text style={styles.allowButtonText}>Allow and Save</Text>
+              <Pressable 
+                style={[
+                  styles.allowButton, 
+                  { 
+                    opacity: notificationsEnabled ? 1 : 0.5,
+                    backgroundColor: notificationsEnabled ? theme.colors.text : theme.colors.textSecondary 
+                  }
+                ]} 
+                onPress={handleAllowAndSave}
+                disabled={isSchedulingNotifications}
+              >
+                <Text style={styles.allowButtonText}>
+                  {isSchedulingNotifications ? 'Scheduling...' : (notificationsEnabled ? 'Save Reminders' : 'Enable Notifications First')}
+                </Text>
               </Pressable>
             </View>
           </LinearGradient>
         </Animated.View>
       </PanGestureHandler>
+
+
 
       {/* Categories List Modal */}
       {renderCategoriesList()}
@@ -672,4 +812,23 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.semiBold,
     color: 'white',
   },
+  // Toggle styles
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: theme.radii.m,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  toggleLabel: {
+    fontSize: theme.typography.fontSizes.m,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.text,
+    flex: 1,
+  },
+
 }); 
