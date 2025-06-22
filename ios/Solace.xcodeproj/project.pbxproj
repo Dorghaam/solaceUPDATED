@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,18 +12,56 @@
 		3CFC3EB9CA6271AB5DA550FC /* Pods_Solace.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F08E2C5A50A6FA0501E289E /* Pods_Solace.framework */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		5AB084196D5B3432EC5A8A39 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FC92A0D7F2E7FC06BA42429 /* ExpoModulesProvider.swift */; };
+		84C6AC7A2E08B7FA0057C2F8 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84C6AC792E08B7FA0057C2F8 /* WidgetKit.framework */; };
+		84C6AC7C2E08B7FA0057C2F8 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84C6AC7B2E08B7FA0057C2F8 /* SwiftUI.framework */; };
+		84C6AC872E08B7FD0057C2F8 /* SolaceWidget SolaceWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 84C6AC782E08B7FA0057C2F8 /* SolaceWidget SolaceWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		84C6AC902E08B9400057C2F8 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C6AC8F2E08B9400057C2F8 /* SharedDataManager.swift */; };
+		84C6AC912E08B9400057C2F8 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C6AC8F2E08B9400057C2F8 /* SharedDataManager.swift */; };
+		84C6AC932E08B9690057C2F8 /* WidgetUpdateModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C6AC922E08B9690057C2F8 /* WidgetUpdateModule.swift */; };
+		84C6AC952E08B9810057C2F8 /* WidgetUpdateModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 84C6AC942E08B9810057C2F8 /* WidgetUpdateModule.m */; };
 		A4417EE28C3646399361144F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4ED1B0D81E9E48DFB7A76779 /* GoogleService-Info.plist */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		84C6AC852E08B7FD0057C2F8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 84C6AC772E08B7FA0057C2F8;
+			remoteInfo = "SolaceWidget SolaceWidgetExtension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		84C6AC882E08B7FD0057C2F8 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				84C6AC872E08B7FD0057C2F8 /* SolaceWidget SolaceWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		0DB66A5A6E85AD48B23D6E33 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Solace/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		0DB66A5A6E85AD48B23D6E33 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Solace/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0F08E2C5A50A6FA0501E289E /* Pods_Solace.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Solace.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* Solace.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Solace.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Solace/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Solace/Info.plist; sourceTree = "<group>"; };
 		4ED1B0D81E9E48DFB7A76779 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Solace/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		84C6AC782E08B7FA0057C2F8 /* SolaceWidget SolaceWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "SolaceWidget SolaceWidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		84C6AC792E08B7FA0057C2F8 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		84C6AC7B2E08B7FA0057C2F8 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		84C6AC8F2E08B9400057C2F8 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
+		84C6AC922E08B9690057C2F8 /* WidgetUpdateModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetUpdateModule.swift; sourceTree = "<group>"; };
+		84C6AC942E08B9810057C2F8 /* WidgetUpdateModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WidgetUpdateModule.m; sourceTree = "<group>"; };
+		84C6AC962E08B9E90057C2F8 /* SolaceWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = SolaceWidget.entitlements; path = SolaceWidget/SolaceWidget.entitlements; sourceTree = "<group>"; };
 		8BDACE365113D3CCFCC221FD /* Pods-Solace.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solace.release.xcconfig"; path = "Target Support Files/Pods-Solace/Pods-Solace.release.xcconfig"; sourceTree = "<group>"; };
 		92BBA57360384E6157146C87 /* Pods-Solace.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solace.debug.xcconfig"; path = "Target Support Files/Pods-Solace/Pods-Solace.debug.xcconfig"; sourceTree = "<group>"; };
 		9FC92A0D7F2E7FC06BA42429 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Solace/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
@@ -34,6 +72,20 @@
 		F11748442D0722820044C1D9 /* Solace-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Solace-Bridging-Header.h"; path = "Solace/Solace-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		84C6AC8B2E08B7FD0057C2F8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 84C6AC772E08B7FA0057C2F8 /* SolaceWidget SolaceWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		84C6AC7D2E08B7FA0057C2F8 /* SolaceWidget SolaceWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (84C6AC8B2E08B7FD0057C2F8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "SolaceWidget SolaceWidget"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -43,12 +95,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		84C6AC752E08B7FA0057C2F8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				84C6AC7C2E08B7FA0057C2F8 /* SwiftUI.framework in Frameworks */,
+				84C6AC7A2E08B7FA0057C2F8 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		13B07FAE1A68108700A75B9A /* Solace */ = {
 			isa = PBXGroup;
 			children = (
+				84C6AC942E08B9810057C2F8 /* WidgetUpdateModule.m */,
+				84C6AC922E08B9690057C2F8 /* WidgetUpdateModule.swift */,
+				84C6AC8F2E08B9400057C2F8 /* SharedDataManager.swift */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
 				F11748442D0722820044C1D9 /* Solace-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
@@ -66,6 +130,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				0F08E2C5A50A6FA0501E289E /* Pods_Solace.framework */,
+				84C6AC792E08B7FA0057C2F8 /* WidgetKit.framework */,
+				84C6AC7B2E08B7FA0057C2F8 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -96,8 +162,10 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				84C6AC962E08B9E90057C2F8 /* SolaceWidget.entitlements */,
 				13B07FAE1A68108700A75B9A /* Solace */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				84C6AC7D2E08B7FA0057C2F8 /* SolaceWidget SolaceWidget */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				840C5CCF46BB15DAEBEBE1E3 /* Pods */,
@@ -112,6 +180,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* Solace.app */,
+				84C6AC782E08B7FA0057C2F8 /* SolaceWidget SolaceWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -122,7 +191,6 @@
 				92BBA57360384E6157146C87 /* Pods-Solace.debug.xcconfig */,
 				8BDACE365113D3CCFCC221FD /* Pods-Solace.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -150,15 +218,39 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				66B89CB1BF564DDFEE5F2892 /* [CP] Embed Pods Frameworks */,
+				84C6AC882E08B7FD0057C2F8 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				84C6AC862E08B7FD0057C2F8 /* PBXTargetDependency */,
 			);
 			name = Solace;
 			productName = Solace;
 			productReference = 13B07F961A680F5B00A75B9A /* Solace.app */;
 			productType = "com.apple.product-type.application";
+		};
+		84C6AC772E08B7FA0057C2F8 /* SolaceWidget SolaceWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 84C6AC8C2E08B7FD0057C2F8 /* Build configuration list for PBXNativeTarget "SolaceWidget SolaceWidgetExtension" */;
+			buildPhases = (
+				84C6AC742E08B7FA0057C2F8 /* Sources */,
+				84C6AC752E08B7FA0057C2F8 /* Frameworks */,
+				84C6AC762E08B7FA0057C2F8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				84C6AC7D2E08B7FA0057C2F8 /* SolaceWidget SolaceWidget */,
+			);
+			name = "SolaceWidget SolaceWidgetExtension";
+			packageProductDependencies = (
+			);
+			productName = "SolaceWidget SolaceWidgetExtension";
+			productReference = 84C6AC782E08B7FA0057C2F8 /* SolaceWidget SolaceWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -166,12 +258,16 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = G9JD362QTT;
 						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
+					};
+					84C6AC772E08B7FA0057C2F8 = {
+						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
@@ -189,6 +285,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* Solace */,
+				84C6AC772E08B7FA0057C2F8 /* SolaceWidget SolaceWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -203,6 +300,13 @@
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				A4417EE28C3646399361144F /* GoogleService-Info.plist in Resources */,
 				26B364B2AB9E29CE9A866B30 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		84C6AC762E08B7FA0057C2F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -346,12 +450,31 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				84C6AC932E08B9690057C2F8 /* WidgetUpdateModule.swift in Sources */,
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
+				84C6AC902E08B9400057C2F8 /* SharedDataManager.swift in Sources */,
+				84C6AC952E08B9810057C2F8 /* WidgetUpdateModule.m in Sources */,
 				5AB084196D5B3432EC5A8A39 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		84C6AC742E08B7FA0057C2F8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				84C6AC912E08B9400057C2F8 /* SharedDataManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		84C6AC862E08B7FD0057C2F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 84C6AC772E08B7FA0057C2F8 /* SolaceWidget SolaceWidgetExtension */;
+			targetProxy = 84C6AC852E08B7FD0057C2F8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
@@ -492,10 +615,7 @@
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -561,14 +681,102 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		84C6AC892E08B7FD0057C2F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = SolaceWidget/SolaceWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = G9JD362QTT;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SolaceWidget SolaceWidget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "SolaceWidget SolaceWidget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.dorghaamhaidar.solace.iphone.SolaceWidget-SolaceWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		84C6AC8A2E08B7FD0057C2F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = SolaceWidget/SolaceWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = G9JD362QTT;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SolaceWidget SolaceWidget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "SolaceWidget SolaceWidget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.dorghaamhaidar.solace.iphone.SolaceWidget-SolaceWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -589,6 +797,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		84C6AC8C2E08B7FD0057C2F8 /* Build configuration list for PBXNativeTarget "SolaceWidget SolaceWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				84C6AC892E08B7FD0057C2F8 /* Debug */,
+				84C6AC8A2E08B7FD0057C2F8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -4,7 +4,7 @@ import WidgetKit
 final class SharedDataManager {
     // Singleton instance using the App Group ID
     static let shared: SharedDataManager? = {
-        guard let defaults = UserDefaults(suiteName: "group.com.dorghaamhaidar.solace.iphone.widget") else {
+        guard let defaults = UserDefaults(suiteName: "group.com.dorghaamhaidar.solace.iphone") else {
             print("❌ SharedDataManager: Could not initialize UserDefaults with App Group")
             return nil
         }
