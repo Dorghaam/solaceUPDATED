@@ -139,8 +139,15 @@ export default function FeedPage() {
   const handleSettingSelect = useCallback((setting: any) => {
     console.log('Selected setting:', setting.title);
     hapticService.selection();
-    setShowSettings(false);
-    // Handle setting selection logic here
+    
+    // Handle specific setting selections
+    if (setting.title === 'My Favorites') {
+      setShowSettings(false);
+      router.push('/(main)/favorites');
+    } else {
+      setShowSettings(false);
+    }
+    // Add other setting handlers here as needed
   }, []);
 
   const handlePremiumPress = useCallback(() => {
