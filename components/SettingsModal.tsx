@@ -8,6 +8,8 @@ import {
   Animated,
   ScrollView,
   Alert,
+  Linking,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,10 +32,11 @@ interface SettingsMenuItem {
   isPremium?: boolean;
 }
 
-const SETTINGS_ITEMS: SettingsMenuItem[] = [
+// Function to get settings items based on subscription tier
+const getSettingsItems = (subscriptionTier: string): SettingsMenuItem[] => [
   { 
     id: '1', 
-    title: 'Manage Subscription', 
+    title: subscriptionTier === 'premium' ? 'Manage Subscription' : 'Upgrade to Premium', 
     icon: 'diamond',
     backgroundColor: theme.colors.categoryColors.purple,
     isPremium: true 
@@ -75,6 +78,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const panY = useRef(new Animated.Value(0)).current;
   
   const [showReminders, setShowReminders] = useState(false);
+  
+  // Get subscription tier from store
+  const subscriptionTier = useUserStore((state) => state.subscriptionTier);
 
   useEffect(() => {
     if (visible) {
@@ -109,11 +115,43 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   }, [visible]);
 
+  const handleSubscriptionManagement = async () => {
+    if (subscriptionTier === 'premium') {
+      // Open Apple subscription management page
+      const url = Platform.OS === 'ios' 
+        ? 'https://apps.apple.com/account/subscriptions'
+        : 'https://play.google.com/store/account/subscriptions';
+      
+      try {
+        const supported = await Linking.canOpenURL(url);
+        if (supported) {
+          await Linking.openURL(url);
+        } else {
+          Alert.alert(
+            'Cannot Open Settings',
+            Platform.OS === 'ios' 
+              ? 'Go to Settings > Apple ID > Subscriptions to manage your subscription.'
+              : 'Go to Google Play Store > Menu > Subscriptions to manage your subscription.'
+          );
+        }
+      } catch (error) {
+        console.error('Error opening subscription management:', error);
+        Alert.alert('Error', 'Could not open subscription management page.');
+      }
+    } else {
+      // Navigate to paywall for free users (same as diamond button)
+      handleClose(); // Close settings modal first
+      router.push('/(onboarding)/paywall');
+    }
+  };
+
   const handleSettingPress = (setting: SettingsMenuItem) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     if (setting.title === 'Reminders') {
       setShowReminders(true);
+    } else if (setting.id === '1') { // Subscription management item
+      handleSubscriptionManagement();
     } else {
       onSettingSelect(setting);
     }
@@ -311,12 +349,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </Pressable>
                 </View>
 
-                {SETTINGS_ITEMS.map((item) => (
+                {getSettingsItems(subscriptionTier || 'free').map((item) => (
                   <Pressable
                     key={item.id}
                     style={({ pressed }) => [
                       styles.menuItem,
                       item.backgroundColor && { backgroundColor: item.backgroundColor },
+                      item.id === '1' && styles.premiumSubscriptionButton, // Special styling for subscription button
                       { opacity: pressed ? 0.8 : 1 },
                       { transform: [{ scale: pressed ? 0.98 : 1 }] }
                     ]}
@@ -554,7 +593,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   premiumIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   menuItemText: {
     fontSize: theme.typography.fontSizes.m,
@@ -564,6 +605,20 @@ const styles = StyleSheet.create({
   premiumText: {
     color: '#fff',
     fontFamily: theme.typography.fontFamily.semiBold,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  premiumSubscriptionButton: {
+    backgroundColor: '#C8A5E1', // Deeper, more vibrant purple
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3, // For Android shadow
   },
 
   signOutButton: {
