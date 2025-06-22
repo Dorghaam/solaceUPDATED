@@ -1,4 +1,5 @@
-// app/_layout.tsx
+// app/_layout.tsx - REPLACED
+
 import 'react-native-get-random-values';
 import 'react-native-reanimated';
 
@@ -11,13 +12,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../services/supabaseClient';
 import { configureGoogleSignIn } from '../services/googleAuthService';
-import { initRevenueCat, identifyUserWithRevenueCat, rcLogOut } from '../services/revenueCatService';
+import { initRevenueCat, verifyRevenueCatSetup } from '../services/revenueCatService';
 import { fetchAndSetUserProfile } from '../services/profileService';
-import { theme } from '../constants/theme';
-import { ensurePostLoginSync } from '../services/authService';
+import { ensurePostLoginSync, signOut } from '../services/authService';
 
 // This is a placeholder ThemeProvider until we create our own
-const ThemeProvider = ({ children }) => <>{children}</>; 
+const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>; 
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,48 +29,89 @@ export default function RootLayout() {
     'Inter-SemiBold': require('../Inter/static/Inter_18pt-SemiBold.ttf'),
   });
 
+  // This effect runs only once on app startup
   useEffect(() => {
-    if (fontError) throw fontError;
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
-  useEffect(() => {
-    console.log('Setting up auth listener...');
-    configureGoogleSignIn();
-    initRevenueCat(null); // Initialise anonymously
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSupabaseUser(session?.user ?? null);
-      if (session?.user) {
-        fetchAndSetUserProfile(session.user.id);
-        // Use enhanced sync for existing sessions too
-        ensurePostLoginSync(session.user.id);
-      }
-    });
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        console.log(`Auth event: ${_event}`, session?.user?.id || 'No User');
+    const initializeApp = async () => {
+      try {
+        console.log('[Startup] Starting app initialization...');
         
-        // Always update the user in the store
-        setSupabaseUser(session?.user ?? null);
-
-        if (_event === 'SIGNED_IN' && session?.user) {
-          console.log('User signed in, fetching profile and identifying with RevenueCat...');
-          // Fetch user profile from your database
-          fetchAndSetUserProfile(session.user.id);
-          // --- ENHANCED SYNC ---
-          // Ensure RevenueCat identity and force subscription refresh
-          await ensurePostLoginSync(session.user.id);
-          // --- END OF ENHANCED SYNC ---
+        // 1. Get the initial Supabase session FIRST
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('[Startup] Initial session fetched. User:', session?.user?.id || 'none');
+        
+        // 2. Configure Google Sign-In early
+        configureGoogleSignIn();
+        
+        // 3. Initialize RevenueCat BEFORE auth processing (critical for login flow)
+        console.log('[Startup] Initializing RevenueCat before auth processing...');
+        try {
+          await initRevenueCat(session?.user?.id ?? null);
+          
+          // Verify setup for debugging (can be removed in production)
+          await verifyRevenueCatSetup();
+          
+          // Force an initial subscription check after initialization
+          const { performInitialSubscriptionCheck } = await import('../services/revenueCatService');
+          await performInitialSubscriptionCheck();
+          console.log('[Startup] RevenueCat setup and initial check complete');
+        } catch (rcError) {
+          console.error('[Startup] RevenueCat initialization failed:', rcError);
+          // Set a fallback tier so the app can still function
+          const { useUserStore } = await import('../store/userStore');
+          useUserStore.getState().setSubscriptionTier('free');
+          console.log('[Startup] Set fallback subscription tier to free');
         }
         
-        if (_event === 'SIGNED_OUT') {
-          console.log('User signed out, resetting state and logging out of RevenueCat...');
-          // The signOut function in authService will handle rcLogOut
-          resetState();
+        // 4. Set user in store immediately (don't wait for RevenueCat)
+        if (session?.user) {
+          setSupabaseUser(session.user);
+          // Don't await these - let them happen in background
+          fetchAndSetUserProfile(session.user.id).catch(console.error);
+          ensurePostLoginSync(session.user.id).catch(console.error);
+        } else {
+          setSupabaseUser(null);
+        }
+
+
+      } catch (e) {
+        console.error("Error during app initialization:", e);
+      } finally {
+        if (fontsLoaded || fontError) {
+          await SplashScreen.hideAsync();
+        }
+      }
+    };
+    
+    initializeApp();
+  }, []);
+
+  // This effect listens for auth changes AFTER initial startup
+  useEffect(() => {
+    let isProcessing = false; // Prevent race condition on rapid events
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (isProcessing) {
+          console.log(`[AuthListener] Event: ${_event} - Already processing, skipping`);
+          return;
+        }
+        
+        isProcessing = true;
+        try {
+          console.log(`[AuthListener] Event: ${_event}`, session?.user?.id || 'No User');
+          setSupabaseUser(session?.user ?? null);
+
+          if (_event === 'SIGNED_IN' && session?.user) {
+            // Don't await these - let them happen in background to avoid blocking
+            ensurePostLoginSync(session.user.id).catch(console.error);
+            fetchAndSetUserProfile(session.user.id).catch(console.error);
+          } else if (_event === 'SIGNED_OUT') {
+            // The signOut function already handles RC logout.
+            // resetState clears the zustand store for the next user.
+            resetState();
+          }
+        } finally {
+          isProcessing = false;
         }
       }
     );
@@ -79,6 +120,12 @@ export default function RootLayout() {
       authListener?.subscription?.unsubscribe();
     };
   }, [setSupabaseUser, resetState]);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
     return null;

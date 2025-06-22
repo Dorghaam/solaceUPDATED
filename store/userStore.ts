@@ -204,25 +204,48 @@ export const useUserStore = create<UserState>()(
             console.log(`Fetching quotes for single active category: ${state.activeQuoteCategory}`);
             query = query.eq('category', state.activeQuoteCategory);
           } else {
-            // If NO category is selected (default state), fetch from all available categories.
-            console.log('No active category. Fetching default quotes based on subscription tier.');
-            const effectiveTier = state.subscriptionTier === 'premium' ? 'premium' : 'free';
-            if (effectiveTier === 'free') {
-              const freeCategoryIds = breakupInterestCategories
-                .filter(c => !c.premium)
-                .map(c => c.id);
-              console.log('User is free, fetching from categories:', freeCategoryIds);
-              query = query.in('category', freeCategoryIds);
-            }
+                      // If NO category is selected (default state), fetch from all available categories.
+          console.log('No active category. Fetching default quotes based on subscription tier.');
+          console.log('[FetchQuotes] Current subscription tier:', state.subscriptionTier);
+          
+          // Treat 'unknown' as 'free' until RevenueCat confirms otherwise
+          const effectiveTier = state.subscriptionTier === 'premium' ? 'premium' : 'free';
+          console.log('[FetchQuotes] Effective tier for fetching:', effectiveTier);
+          
+          if (effectiveTier === 'free') {
+            const freeCategoryIds = breakupInterestCategories
+              .filter(c => !c.premium)
+              .map(c => c.id);
+            console.log('User is free/unknown, fetching from categories:', freeCategoryIds);
+            query = query.in('category', freeCategoryIds);
+          } else {
+            console.log('User is premium, fetching from all categories');
+          }
             // For premium users with no active category, the query remains unfiltered to fetch from ALL categories.
           }
           // --- END OF NEW LOGIC ---
 
+          console.log('[FetchQuotes] Executing Supabase query...');
           const { data, error } = await query.limit(50); // Fetch up to 50 quotes
 
-          if (error) throw error;
+          console.log('[FetchQuotes] Supabase response:', { dataCount: data?.length, error: error?.message });
 
-          const shuffledQuotes = data ? [...data].sort(() => Math.random() - 0.5) : [];
+          if (error) {
+            console.error('[FetchQuotes] Supabase error:', error);
+            throw error;
+          }
+
+          if (!data || data.length === 0) {
+            console.warn('[FetchQuotes] No quotes returned from database');
+            set({ 
+              quotes: [{ id: 'no-quotes', text: "No quotes found. Please check your internet connection or try again." }], 
+              isLoading: false 
+            });
+            return;
+          }
+
+          const shuffledQuotes = [...data].sort(() => Math.random() - 0.5);
+          console.log('[FetchQuotes] Successfully fetched and shuffled', shuffledQuotes.length, 'quotes');
           set({ quotes: shuffledQuotes, isLoading: false });
 
         } catch (error: any) {
@@ -291,7 +314,7 @@ export const useUserStore = create<UserState>()(
       },
 
       // Authentication helpers
-      isAuthenticated: () => !!get().supabaseUser && get().hasCompletedOnboarding,
+      isAuthenticated: () => !!get().supabaseUser,
       isFullyOnboarded: () => get().hasCompletedOnboarding,
     }),
     {

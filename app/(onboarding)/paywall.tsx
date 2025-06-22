@@ -6,7 +6,7 @@ import RevenueCatUI from 'react-native-purchases-ui';
 import Purchases, { PurchasesEntitlementInfo, CustomerInfo } from 'react-native-purchases';
 
 function PaywallContent() {
-  const { setHasCompletedOnboarding, setSubscriptionTier, supabaseUser } = useUserStore();
+  const { setHasCompletedOnboarding, setSubscriptionTier, supabaseUser, subscriptionTier } = useUserStore();
 
   // Authentication guard - only authenticated users can access paywall
   useEffect(() => {
@@ -16,6 +16,14 @@ function PaywallContent() {
       return;
     }
   }, [supabaseUser]);
+
+  // Check if user is already premium and complete onboarding immediately
+  useEffect(() => {
+    if (subscriptionTier === 'premium') {
+      console.log('[Paywall] User is already premium, completing onboarding directly...');
+      completeOnboardingAndNavigate();
+    }
+  }, [subscriptionTier]);
 
   const completeOnboardingAndNavigate = useCallback(() => {
     // Double check authentication before completing onboarding
@@ -37,15 +45,45 @@ function PaywallContent() {
     completeOnboardingAndNavigate();
   }, [setSubscriptionTier, completeOnboardingAndNavigate]);
 
-  const handleDismiss = useCallback(() => {
-    console.log('[Paywall] Paywall dismissed. Completing onboarding as a free user.');
-    setSubscriptionTier('free');
+  const handleDismiss = useCallback(async () => {
+    console.log('[Paywall] Paywall dismissed. Checking current subscription status...');
+    
+    try {
+      // Get fresh customer info to check current subscription status
+      const customerInfo = await Purchases.getCustomerInfo();
+      const hasPremium = Object.values(customerInfo.entitlements.active).some((e: PurchasesEntitlementInfo) => e.isActive);
+      
+      if (hasPremium) {
+        console.log('[Paywall] User is premium despite dismissing paywall. Completing onboarding as premium.');
+        setSubscriptionTier('premium');
+      } else {
+        console.log('[Paywall] User dismissed paywall and has no active premium subscription. Completing onboarding as free user.');
+        setSubscriptionTier('free');
+      }
+    } catch (error) {
+      console.warn('[Paywall] Failed to check subscription status on dismiss, defaulting to current tier:', subscriptionTier);
+      // If we can't check RevenueCat, keep current tier unless it's unknown
+      if (subscriptionTier === 'unknown') {
+        setSubscriptionTier('free');
+      }
+    }
+    
     completeOnboardingAndNavigate();
-  }, [setSubscriptionTier, completeOnboardingAndNavigate]);
+  }, [setSubscriptionTier, completeOnboardingAndNavigate, subscriptionTier]);
 
   // If user is not authenticated, don't render the paywall
   if (!supabaseUser) {
     return null;
+  }
+
+  // If user is already premium, show loading while we complete onboarding
+  if (subscriptionTier === 'premium') {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+        <Text style={{ marginTop: 16 }}>Completing setup...</Text>
+      </View>
+    );
   }
 
   return (

@@ -6,7 +6,7 @@ import type { SubscriptionTier } from '../store/userStore';
 import { useUserStore } from '../store/userStore';
 // Removed subscriptionSyncService import - now using simplified RevenueCat-only approach
 import { supabase } from './supabaseClient';
-import { rcLogOut } from './revenueCatService';
+import { logInRevenueCat, logOutRevenueCat } from './revenueCatService';
 
 export const loginWithGoogle = async () => {
   try {
@@ -66,31 +66,19 @@ export const signOut = async () => {
   console.log('authService: Attempting full sign out...');
   try {
     // 1. Log out from RevenueCat FIRST to clear subscription cache
-    await rcLogOut();
-    console.log('authService: RevenueCat logOut successful.');
+    await logOutRevenueCat();
 
     // 2. Sign out from Supabase
-    const { error: supabaseSignOutError } = await supabase.auth.signOut();
-    if (supabaseSignOutError) {
-      console.error('authService: Supabase signOut error:', supabaseSignOutError);
-    } else {
-      console.log('authService: Supabase signOut successful.');
-    }
-
+    await supabase.auth.signOut();
+    console.log('authService: Supabase signOut successful.');
+    
     // 3. Sign out from Google (if applicable)
-    try {
-      const hasPreviousSignIn = GoogleSignin.hasPreviousSignIn();
-      if (hasPreviousSignIn) {
-        await GoogleSignin.revokeAccess();
-        await GoogleSignin.signOut();
-        console.log('authService: Google revokeAccess and signOut successful.');
-      }
-    } catch (googleError: any) {
-      console.warn('authService: Error during Google signOut:', googleError.message);
+    if (GoogleSignin.hasPreviousSignIn()) {
+      await GoogleSignin.signOut();
+      console.log('authService: Google signOut successful.');
     }
   } catch (error: any) {
     console.error('authService: General signOut error:', error.message);
-    throw new Error(error.message || 'An error occurred during sign out.');
   }
 };
 
@@ -202,26 +190,33 @@ export const checkAuthenticationSync = async () => {
 };
 
 /**
- * Enhanced post-login sync that ensures premium status is immediately available
- * Call this after successful authentication to guarantee subscription state is current
+ * Ensures RevenueCat identity is synced and subscription status is fresh after login.
  */
 export const ensurePostLoginSync = async (userId: string) => {
   try {
-    console.log('[AuthService] Ensuring post-login sync for user:', userId.substring(0, 8) + '...');
+    console.log(`[AuthService] 🔄 Starting post-login sync for user: ${userId.substring(0,8)}...`);
     
-    const { syncRevenueCat, forceRefreshSubscriptionStatus } = await import('./revenueCatService');
+    // Log current subscription state before sync
+    const { useUserStore } = await import('../store/userStore');
+    const currentTier = useUserStore.getState().subscriptionTier;
+    console.log(`[AuthService] Current subscription tier before sync: ${currentTier}`);
     
-    // 1. Sync RevenueCat identity
-    await syncRevenueCat(userId);
+    await logInRevenueCat(userId);
     
-    // 2. Force refresh to get the latest subscription status
-    await forceRefreshSubscriptionStatus();
-    
-    console.log('[AuthService] ✅ Post-login sync completed');
+    // Log subscription state after sync
+    const newTier = useUserStore.getState().subscriptionTier;
+    console.log(`[AuthService] ✅ Post-login sync complete. Tier: ${currentTier} -> ${newTier}`);
     
   } catch (error) {
-    console.error('[AuthService] Post-login sync failed:', error);
-    // Don't throw - let the app continue with cached/default state
+    console.error('[AuthService] ❌ Post-login sync failed:', error);
+    // Set a fallback tier to keep the app functional
+    const { useUserStore } = await import('../store/userStore');
+    const currentTier = useUserStore.getState().subscriptionTier;
+    if (currentTier === 'unknown') {
+      console.log('[AuthService] Setting fallback tier to free due to sync failure');
+      useUserStore.getState().setSubscriptionTier('free');
+    }
+    // Don't throw - let the app continue to function
   }
 };
 
