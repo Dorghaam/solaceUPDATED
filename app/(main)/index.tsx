@@ -153,16 +153,14 @@ export default function FeedPage() {
       return;
     }
     
-    // If user is free, navigate to paywall
+    // Navigate to paywall for free users or unknown subscription status
     if (subscriptionTier === 'free') {
       console.log('User is free tier, showing paywall...');
       router.push('/(onboarding)/paywall');
-      return;
+    } else {
+      console.log('Subscription status unknown, showing paywall...');
+      router.push('/(onboarding)/paywall');
     }
-    
-    // If subscription status is unknown, also show paywall as a fallback
-    console.log('Subscription status unknown, showing paywall...');
-    router.push('/(onboarding)/paywall');
   }, [subscriptionTier]);
 
   const handleBrushPress = useCallback(() => {

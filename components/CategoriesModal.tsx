@@ -24,10 +24,11 @@ interface Category {
   icon: string;
   color: string;
   locked?: boolean;
+  isSelected?: boolean;
 }
 
 // Map breakup categories to UI categories with icons and colors
-const mapBreakupCategoriesToUI = (breakupCategories: BreakupCategory[], subscriptionTier: string): Category[] => {
+const mapBreakupCategoriesToUI = (breakupCategories: BreakupCategory[], subscriptionTier: string, activeQuoteCategory: string | null): Category[] => {
   const iconMap: { [key: string]: string } = {
     'general_healing': '🌸',
     'moving_on': '🚀', 
@@ -69,35 +70,9 @@ const mapBreakupCategoriesToUI = (breakupCategories: BreakupCategory[], subscrip
     title: category.label,
     icon: iconMap[category.id] || '💭',
     color: colorMap[category.id] || theme.colors.categoryColors.pink,
-    locked: category.premium && subscriptionTier !== 'premium'
+    locked: category.premium && subscriptionTier !== 'premium',
+    isSelected: activeQuoteCategory === category.id
   }));
-};
-
-// Group categories into sections with unified design
-const createCategorySections = (categories: Category[]) => {
-  // Show all categories in a unified grid, organized by availability
-  const freeCategories = categories.filter(c => !c.locked);
-  const premiumCategories = categories.filter(c => c.locked);
-  
-  const sections = [];
-  
-  // Always show free categories first
-  if (freeCategories.length > 0) {
-    sections.push({ 
-      title: 'Available Categories', 
-      categories: freeCategories 
-    });
-  }
-  
-  // Show premium categories if any exist
-  if (premiumCategories.length > 0) {
-    sections.push({ 
-      title: 'Premium Categories', 
-      categories: premiumCategories 
-    });
-  }
-  
-  return sections;
 };
 
 interface CategoriesModalProps {
@@ -115,6 +90,7 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
   const backgroundOpacity = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
   const subscriptionTier = useUserStore((state) => state.subscriptionTier);
+  const activeQuoteCategory = useUserStore((state) => state.activeQuoteCategory);
 
   useEffect(() => {
     if (visible) {
@@ -224,12 +200,31 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
     }
   };
 
+  const handleViewAllPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Trigger slide down animation, then call onCategorySelect with null
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: screenHeight,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backgroundOpacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onCategorySelect(null);
+    });
+  };
+
   if (!visible) {
     return null;
   }
 
-  const categories = mapBreakupCategoriesToUI(breakupInterestCategories, subscriptionTier);
-  const categorySections = createCategorySections(categories);
+  const categories = mapBreakupCategoriesToUI(breakupInterestCategories, subscriptionTier, activeQuoteCategory);
 
   return (
     <View style={styles.overlay}>
@@ -282,41 +277,80 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
               <Text style={styles.searchPlaceholder}>Search categories...</Text>
             </View>
 
-                         {/* Categories content */}
-             <ScrollView 
-               style={styles.content}
-               showsVerticalScrollIndicator={false}
-               contentContainerStyle={styles.scrollContent}
-             >
-               {categorySections.map((section, sectionIndex) => (
-                <View key={section.title} style={styles.section}>
-                  <Text style={styles.sectionTitle}>{section.title}</Text>
-                  <View style={styles.categoryGrid}>
-                    {section.categories.map((category) => (
-                      <Pressable
-                        key={category.id}
-                        style={({ pressed }) => [
-                          styles.categoryCard,
-                          { backgroundColor: category.color },
-                          { opacity: pressed ? 0.8 : 1 },
-                          { transform: [{ scale: pressed ? 0.95 : 1 }] }
-                        ]}
-                        onPress={() => handleCategoryPress(category)}
-                      >
-                        <View style={styles.categoryContent}>
-                          <Text style={styles.categoryIcon}>{category.icon}</Text>
+            {/* Categories content */}
+            <ScrollView 
+              style={styles.content}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              {/* View All Option */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>All Categories</Text>
+                <View style={styles.categoryGrid}>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.categoryCard,
+                      styles.viewAllCard,
+                      { backgroundColor: theme.colors.categoryColors.pink },
+                      { opacity: pressed ? 0.8 : 1 },
+                      { transform: [{ scale: pressed ? 0.95 : 1 }] },
+                      activeQuoteCategory === null && styles.selectedCard
+                    ]}
+                    onPress={handleViewAllPress}
+                  >
+                    <View style={styles.categoryContent}>
+                      <Text style={styles.categoryIcon}>🌟</Text>
+                      {activeQuoteCategory === null && (
+                        <View style={styles.checkmarkIcon}>
+                          <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.categoryTitle}>View All</Text>
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Individual Categories */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Choose Category</Text>
+                <View style={styles.categoryGrid}>
+                  {categories.map((category) => (
+                    <Pressable
+                      key={category.id}
+                      style={({ pressed }) => [
+                        styles.categoryCard,
+                        { backgroundColor: category.color },
+                        { opacity: pressed ? 0.8 : (category.locked ? 0.6 : 1) },
+                        { transform: [{ scale: pressed ? 0.95 : 1 }] },
+                        category.isSelected && styles.selectedCard
+                      ]}
+                      onPress={() => handleCategoryPress(category)}
+                    >
+                      <View style={styles.categoryContent}>
+                        <Text style={[styles.categoryIcon, category.locked && styles.lockedIcon]}>
+                          {category.icon}
+                        </Text>
+                        <View style={styles.iconContainer}>
                           {category.locked && (
                             <View style={styles.lockIcon}>
                               <Ionicons name="lock-closed" size={16} color="#666" />
                             </View>
                           )}
+                          {category.isSelected && !category.locked && (
+                            <View style={styles.checkmarkIcon}>
+                              <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
+                            </View>
+                          )}
                         </View>
-                        <Text style={styles.categoryTitle}>{category.title}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
+                      </View>
+                      <Text style={[styles.categoryTitle, category.locked && styles.lockedTitle]}>
+                        {category.title}
+                      </Text>
+                    </Pressable>
+                  ))}
                 </View>
-              ))}
+              </View>
             </ScrollView>
           </LinearGradient>
         </Animated.View>
@@ -449,6 +483,23 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.m,
     padding: theme.spacing.m,
     justifyContent: 'space-between',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  viewAllCard: {
+    // Special styling for the "View All" card if needed
+  },
+  selectedCard: {
+    borderColor: theme.colors.primary,
+    borderWidth: 3,
+    shadowColor: theme.colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   categoryContent: {
     flexDirection: 'row',
@@ -458,15 +509,31 @@ const styles = StyleSheet.create({
   categoryIcon: {
     fontSize: 32,
   },
+  lockedIcon: {
+    opacity: 0.5,
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
   lockIcon: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 12,
     padding: 4,
+  },
+  checkmarkIcon: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    padding: 2,
   },
   categoryTitle: {
     fontSize: theme.typography.fontSizes.s,
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
     textAlign: 'left',
+  },
+  lockedTitle: {
+    opacity: 0.7,
   },
 }); 
