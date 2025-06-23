@@ -209,7 +209,19 @@ export const useUserStore = create<UserState>()(
             .select('id, text, category');
 
           // --- NEW SIMPLIFIED LOGIC ---
-          if (state.activeQuoteCategory) {
+          if (state.activeQuoteCategory === 'favorites') {
+            // Special handling for favorites category
+            console.log('Fetching favorite quotes');
+            if (state.favoriteQuoteIds.length === 0) {
+              console.log('No favorite quotes found');
+              set({ 
+                quotes: [{ id: 'no-favorites', text: "You haven't added any favorites yet. Heart some quotes to see them here!" }], 
+                isLoading: false 
+              });
+              return;
+            }
+            query = query.in('id', state.favoriteQuoteIds);
+          } else if (state.activeQuoteCategory) {
             // If a category is selected, fetch ONLY from that category.
             console.log(`Fetching quotes for single active category: ${state.activeQuoteCategory}`);
             query = query.eq('category', state.activeQuoteCategory);
@@ -258,9 +270,22 @@ export const useUserStore = create<UserState>()(
             return;
           }
 
-          const shuffledQuotes = [...data].sort(() => Math.random() - 0.5);
-          console.log('[FetchQuotes] Successfully fetched and shuffled', shuffledQuotes.length, 'quotes');
-          set({ quotes: shuffledQuotes, isLoading: false });
+          let finalQuotes;
+          if (state.activeQuoteCategory === 'favorites') {
+            // For favorites, maintain order based on favoriteQuoteIds (most recent first)
+            finalQuotes = data.sort((a, b) => {
+              const aIndex = state.favoriteQuoteIds.indexOf(a.id);
+              const bIndex = state.favoriteQuoteIds.indexOf(b.id);
+              return aIndex - bIndex;
+            });
+            console.log('[FetchQuotes] Successfully fetched', finalQuotes.length, 'favorite quotes in order');
+          } else {
+            // For regular categories, shuffle the quotes
+            finalQuotes = [...data].sort(() => Math.random() - 0.5);
+            console.log('[FetchQuotes] Successfully fetched and shuffled', finalQuotes.length, 'quotes');
+          }
+          
+          set({ quotes: finalQuotes, isLoading: false });
 
         } catch (error: any) {
           console.error('Failed to fetch quotes:', error.message);
@@ -294,6 +319,11 @@ export const useUserStore = create<UserState>()(
             });
           });
         }
+
+        // Refresh quotes if currently viewing favorites
+        if (state.activeQuoteCategory === 'favorites') {
+          setTimeout(() => get().fetchQuotes(), 100);
+        }
       },
       
       removeFavorite: (quoteId) => {
@@ -312,6 +342,11 @@ export const useUserStore = create<UserState>()(
               // Could show a toast notification here
             });
           });
+        }
+
+        // Refresh quotes if currently viewing favorites
+        if (state.activeQuoteCategory === 'favorites') {
+          setTimeout(() => get().fetchQuotes(), 100);
         }
       },
 
