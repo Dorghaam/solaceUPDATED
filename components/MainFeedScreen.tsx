@@ -274,7 +274,7 @@ export const MainFeedScreen = ({
                   <Ionicons 
                     name={isFavorite(currentQuote.id) ? "heart" : "heart-outline"} 
                     size={32} 
-                    color={isFavorite(currentQuote.id) ? "#FF6B6B" : "#333"} 
+                    color={isFavorite(currentQuote.id) ? "#000000" : "#333"} 
                   />
                 </Pressable>
               </View>
