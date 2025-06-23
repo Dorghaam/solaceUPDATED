@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, SafeAreaView, View, Text, Pressable, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, SafeAreaView, View, Text, Pressable, Platform, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
@@ -69,7 +69,11 @@ export const LoginScreen = ({
               <ActivityIndicator size="small" color={theme.colors.text} />
             ) : (
               <>
-                <Ionicons name="logo-google" size={20} color="#4285F4" />
+                <Image 
+                  source={require('../../googlesignin.png')} 
+                  style={styles.signInLogo}
+                  resizeMode="contain"
+                />
                 <Text style={styles.googleButtonText}>Sign in with Google</Text>
               </>
             )}
@@ -138,5 +142,9 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.semiBold,
     fontSize: theme.typography.fontSizes.m,
     color: theme.colors.text,
+  },
+  signInLogo: {
+    width: 20,
+    height: 20,
   },
 }); 

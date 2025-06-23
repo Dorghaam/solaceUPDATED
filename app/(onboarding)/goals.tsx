@@ -1,17 +1,14 @@
-import React, { useState } from 'react';
-import { StyleSheet, SafeAreaView, View, Text, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import React from 'react';
+import { StyleSheet, SafeAreaView, View, Text, Pressable, Image } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import * as Haptics from 'expo-haptics';
 
 export default function GoalsPage() {
-  const [goals, setGoals] = useState<string>('');
-
-  const handleSaveGoals = () => {
+  const handleLetsBegin = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Here you could save the goals to user preferences or analytics
-    router.push('/(onboarding)/login');
+    router.push('/(onboarding)/reminders');
   };
 
   return (
@@ -22,56 +19,42 @@ export default function GoalsPage() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView 
-          style={styles.keyboardAvoidingView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.container}>
-            {/* Header Text */}
-            <View style={styles.headerSection}>
-              <Text style={styles.title}>What Goals Are You{'\n'}Focusing On?</Text>
-              <Text style={styles.subtitle}>
-                The more you tell us, the better we can{'\n'}tailor your quotes to support you.
-              </Text>
-            </View>
-
-            {/* Text Input */}
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                value={goals}
-                onChangeText={setGoals}
-                placeholder="Hello"
-                placeholderTextColor={theme.colors.textSecondary}
-                multiline
-                textAlignVertical="top"
-                maxLength={500}
-                returnKeyType="done"
-                onSubmitEditing={handleSaveGoals}
-                blurOnSubmit={true}
-              />
-            </View>
-
-            {/* Spacer */}
-            <View style={styles.spacer} />
-
-            {/* Save Goals Button */}
-            <View style={styles.bottomSection}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.saveButton,
-                  { 
-                    opacity: pressed ? 0.9 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }]
-                  }
-                ]}
-                onPress={handleSaveGoals}
-              >
-                <Text style={styles.saveButtonText}>Save goals</Text>
-              </Pressable>
-            </View>
+        <View style={styles.container}>
+          {/* Top spacing */}
+          <View style={styles.topSpacer} />
+          
+          {/* Illustration */}
+          <View style={styles.illustrationContainer}>
+            <Image 
+              source={require('../../image copy.png')} 
+              style={styles.illustration}
+              resizeMode="contain"
+            />
           </View>
-        </KeyboardAvoidingView>
+
+          {/* Text content */}
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>
+              Personalize the App{'\n'}Around Your Goals
+            </Text>
+          </View>
+
+          {/* Bottom section with button */}
+          <View style={styles.bottomSection}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                { 
+                  opacity: pressed ? 0.9 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }]
+                }
+              ]}
+              onPress={handleLetsBegin}
+            >
+              <Text style={styles.buttonText}>Let's Begin</Text>
+            </Pressable>
+          </View>
+        </View>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -84,61 +67,44 @@ const styles = StyleSheet.create({
   safeArea: { 
     flex: 1 
   },
-  keyboardAvoidingView: {
-    flex: 1
-  },
   container: {
     flex: 1,
     paddingHorizontal: theme.spacing.l,
   },
-  headerSection: {
+  topSpacer: {
+    flex: 0.15,
+  },
+  illustrationContainer: {
+    flex: 0.5,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-    paddingTop: theme.spacing.xl,
+  },
+  illustration: {
+    width: '100%',
+    height: '100%',
+    maxWidth: 300,
+    maxHeight: 300,
+  },
+  textContainer: {
+    flex: 0.2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.m,
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 32,
+    fontSize: 28,
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: theme.spacing.m,
-    lineHeight: 38,
-  },
-  subtitle: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  inputContainer: {
-    marginBottom: theme.spacing.xl,
-  },
-  textInput: {
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.radii.l,
-    paddingHorizontal: theme.spacing.l,
-    paddingVertical: theme.spacing.l,
-    fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
-    minHeight: 200,
-    shadowColor: theme.colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  spacer: {
-    flex: 1,
+    lineHeight: 36,
   },
   bottomSection: {
+    flex: 0.15,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     paddingBottom: theme.spacing.xl,
   },
-  saveButton: {
+  button: {
     backgroundColor: theme.colors.primary,
     paddingVertical: theme.spacing.m,
     paddingHorizontal: theme.spacing.xl,
@@ -147,7 +113,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
-  saveButtonText: {
+  buttonText: {
     fontFamily: theme.typography.fontFamily.semiBold,
     fontSize: theme.typography.fontSizes.m,
     color: theme.colors.white,

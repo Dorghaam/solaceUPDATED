@@ -29,7 +29,7 @@ export default function GrowthPage() {
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     // Here you could save the selectedGrowth to analytics or user preferences
-    router.push('/(onboarding)/goals');
+    router.push('/(onboarding)/writegoals');
   };
 
   return (
