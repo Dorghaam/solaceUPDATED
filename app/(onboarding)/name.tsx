@@ -1,34 +1,30 @@
 import React, { useState } from 'react';
-import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
+import { StyleSheet, SafeAreaView, View, Text, Pressable, TextInput, Keyboard } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
-const ageOptions = [
-  '13 to 17',
-  '18 to 24',
-  '25 to 34',
-  '35 to 54',
-  '55+'
-];
+export default function NamePage() {
+  const [name, setName] = useState('');
+  const { setUserName } = useUserStore();
 
-export default function AgePage() {
-  const [selectedAge, setSelectedAge] = useState<string | null>(null);
-
-  const handleAgePress = (age: string) => {
+  const handleContinue = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setSelectedAge(age);
-    // Here you could save the selectedAge to analytics or user preferences
-    // Small delay to show selection before navigating
-    setTimeout(() => {
-      router.push('/(onboarding)/name');
-    }, 200);
+    
+    // Save the name to the user store (this will update the profile in settings)
+    if (name.trim()) {
+      setUserName(name.trim());
+    }
+    
+    // Navigate to login
+    router.push('/(onboarding)/login');
   };
 
   const handleSkip = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(onboarding)/name');
+    router.push('/(onboarding)/login');
   };
 
   return (
@@ -55,35 +51,41 @@ export default function AgePage() {
 
         {/* Main content */}
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>What's Your Age?</Text>
+          <Text style={styles.title}>What Should We Call You?</Text>
           <Text style={styles.subtitle}>
-            We use your age to personalize your{'\n'}experience and content.
+            Your name will appear in your{'\n'}personalized motivational quotes.
           </Text>
 
-          {/* Age options list */}
-          <View style={styles.optionsContainer}>
-            {ageOptions.map((age, index) => (
-              <Pressable
-                key={age}
-                style={({ pressed }) => [
-                  styles.ageButton,
-                  selectedAge === age && styles.selectedAge,
-                  { 
-                    opacity: pressed ? 0.8 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }]
-                  }
-                ]}
-                onPress={() => handleAgePress(age)}
-              >
-                <Text style={[
-                  styles.ageText,
-                  selectedAge === age && styles.selectedAgeText
-                ]}>
-                  {age}
-                </Text>
-              </Pressable>
-            ))}
+          {/* Name input */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.nameInput}
+              placeholder="Enter your name"
+              placeholderTextColor={theme.colors.textSecondary}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={handleContinue}
+              maxLength={50}
+            />
           </View>
+        </View>
+
+        {/* Bottom section with Continue button */}
+        <View style={styles.bottomSection}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.continueButton,
+              { 
+                opacity: pressed ? 0.9 : 1,
+                transform: [{ scale: pressed ? 0.98 : 1 }]
+              }
+            ]}
+            onPress={handleContinue}
+          >
+            <Text style={styles.continueButtonText}>Continue</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -118,8 +120,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingTop: theme.spacing.xl,
     paddingHorizontal: theme.spacing.l,
   },
   title: {
@@ -134,20 +135,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    marginBottom: theme.spacing.xl + theme.spacing.m,
+    marginBottom: theme.spacing.m,
     lineHeight: 22,
   },
-  optionsContainer: {
+  inputContainer: {
     width: '100%',
-    gap: theme.spacing.m,
+    marginTop: theme.spacing.s,
   },
-  ageButton: {
+  nameInput: {
     backgroundColor: theme.colors.white,
     paddingVertical: theme.spacing.m + 4,
     paddingHorizontal: theme.spacing.l,
     borderRadius: theme.radii.l,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    fontSize: theme.typography.fontSizes.m,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.text,
+    textAlign: 'left',
     shadowColor: theme.colors.black,
     shadowOffset: {
       width: 0,
@@ -157,17 +160,22 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
-  selectedAge: {
-    borderColor: theme.colors.text,
+  bottomSection: {
+    paddingHorizontal: theme.spacing.l,
+    paddingBottom: theme.spacing.xl,
   },
-  ageText: {
-    fontFamily: theme.typography.fontFamily.regular,
+  continueButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.m,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.radii.l,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  continueButtonText: {
+    fontFamily: theme.typography.fontFamily.semiBold,
     fontSize: theme.typography.fontSizes.m,
-    color: theme.colors.text,
-    textAlign: 'left',
-  },
-  selectedAgeText: {
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
+    color: theme.colors.white,
   },
 }); 
