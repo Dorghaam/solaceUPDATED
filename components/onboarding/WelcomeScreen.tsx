@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 export const WelcomeScreen = () => {
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(onboarding)/login');
+    router.push('/(onboarding)/discovery');
   };
 
   return (
