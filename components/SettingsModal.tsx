@@ -83,14 +83,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   
   const [showReminders, setShowReminders] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [isUpdatingWidget, setIsUpdatingWidget] = useState(false);
   
   // Get data from store
   const { 
-    subscriptionTier, 
-    widgetSettings, 
-    setWidgetSettings, 
-    favoriteQuoteIds, 
+    subscriptionTier,
     userName 
   } = useUserStore();
 
@@ -126,96 +122,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       ]).start();
     }
   }, [visible]);
-
-  const handleWidgetCategoryChange = async (categoryId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
-    const selectedCategory = breakupInterestCategories.find(cat => cat.id === categoryId);
-    if (selectedCategory?.premium && subscriptionTier === 'free') {
-      Alert.alert(
-        "Premium Feature",
-        `"${selectedCategory.label}" is a premium category. Please upgrade to use this topic on your widget.`
-      );
-      return;
-    }
-    
-    setWidgetSettings({ category: categoryId as any });
-    await updateWidgetWithCategory(categoryId);
-  };
-
-  const updateWidgetWithCategory = async (categoryId: string) => {
-    if (Platform.OS !== 'ios') {
-      Alert.alert("iOS Only", "Widgets are only available on iOS devices.");
-      return;
-    }
-
-    setIsUpdatingWidget(true);
-
-    try {
-      let quotesToSend: string[] = [`Hello ${userName || 'User'}! Open Solace to get inspired.`];
-
-      if (categoryId === 'favorites') {
-        // Handle favorites
-        if (favoriteQuoteIds.length === 0) {
-          quotesToSend = [`Hi ${userName || 'User'}! Add some favorites first to see them in your widget.`];
-        } else {
-          const { data, error } = await supabase
-            .from('quotes')
-            .select('text')
-            .in('id', favoriteQuoteIds)
-            .limit(20);
-          
-          if (error) throw error;
-          if (data && data.length > 0) {
-            quotesToSend = data.map(q => q.text);
-          }
-        }
-      } else {
-        // Handle category-based quotes
-        const categoriesToFetch = categoryId === 'all' 
-          ? breakupInterestCategories
-              .filter(c => subscriptionTier === 'premium' || !c.premium)
-              .map(c => c.id)
-          : [categoryId];
-
-        const { data, error } = await supabase
-          .from('quotes')
-          .select('text')  
-          .in('category', categoriesToFetch)
-          .limit(50);
-        
-        if (error) throw error;
-        if (data && data.length > 0) {
-          // Shuffle the quotes for variety
-          const shuffledQuotes = [...data].sort(() => Math.random() - 0.5);
-          quotesToSend = shuffledQuotes.map(q => q.text);
-        }
-      }
-
-      // Update widget with quotes
-      const { WidgetUpdateModule } = NativeModules;
-      if (WidgetUpdateModule) {
-        await WidgetUpdateModule.updateQuotes(quotesToSend);
-        if (userName) {
-          await WidgetUpdateModule.updateUserName(userName);
-        }
-        
-        const categoryName = categoryId === 'all' ? 'All Categories' : 
-                            categoryId === 'favorites' ? 'Favorites' :
-                            breakupInterestCategories.find(c => c.id === categoryId)?.label || 'Selected Category';
-        
-        Alert.alert("Widget Updated!", `Your widget will show ${quotesToSend.length} quotes from "${categoryName}" on rotation.`);
-      } else {
-        throw new Error("Widget module not found");
-      }
-
-    } catch (e: any) {
-      console.error('Widget update error:', e);
-      Alert.alert("Error Updating Widget", e.message || "Something went wrong");
-    } finally {
-      setIsUpdatingWidget(false);
-    }
-  };
 
   const handleSubscriptionManagement = async () => {
     if (subscriptionTier === 'premium') {
@@ -386,106 +292,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   ))}
                 </View>
               </View>
-
-              {/* Widget Category Selection */}
-              {Platform.OS === 'ios' && (
-                <View style={styles.widgetSection}>
-                  <View style={styles.widgetHeader}>
-                    <Ionicons name="phone-portrait" size={20} color={theme.colors.text} />
-                    <Text style={styles.widgetTitle}>Widget Category</Text>
-                  </View>
-                  <Text style={styles.widgetSubtitle}>Choose what quotes appear in your widget</Text>
-                  
-                  <View style={styles.widgetOptions}>
-                    <Pressable
-                      style={[
-                        styles.widgetOption,
-                        widgetSettings?.category === 'all' && styles.selectedWidgetOption,
-                        isUpdatingWidget && styles.disabledOption
-                      ]}
-                      onPress={() => !isUpdatingWidget && handleWidgetCategoryChange('all')}
-                      disabled={isUpdatingWidget}
-                    >
-                      <Text style={[
-                        styles.widgetOptionText,
-                        widgetSettings?.category === 'all' && styles.selectedWidgetOptionText
-                      ]}>
-                        🌟 All Categories
-                      </Text>
-                      {widgetSettings?.category === 'all' && (
-                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.primary} />
-                      )}
-                    </Pressable>
-
-                    <Pressable
-                      style={[
-                        styles.widgetOption,
-                        widgetSettings?.category === 'favorites' && styles.selectedWidgetOption,
-                        isUpdatingWidget && styles.disabledOption
-                      ]}
-                      onPress={() => !isUpdatingWidget && handleWidgetCategoryChange('favorites')}
-                      disabled={isUpdatingWidget}
-                    >
-                      <Text style={[
-                        styles.widgetOptionText,
-                        widgetSettings?.category === 'favorites' && styles.selectedWidgetOptionText
-                      ]}>
-                        ❤️ My Favorites ({favoriteQuoteIds.length})
-                      </Text>
-                      {widgetSettings?.category === 'favorites' && (
-                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.primary} />
-                      )}
-                    </Pressable>
-
-                    {breakupInterestCategories.slice(0, 3).map(category => (
-                      <Pressable
-                        key={category.id}
-                        style={[
-                          styles.widgetOption,
-                          widgetSettings?.category === category.id && styles.selectedWidgetOption,
-                          isUpdatingWidget && styles.disabledOption,
-                          category.premium && subscriptionTier !== 'premium' && styles.premiumOption
-                        ]}
-                        onPress={() => !isUpdatingWidget && handleWidgetCategoryChange(category.id)}
-                        disabled={isUpdatingWidget}
-                      >
-                        <View style={styles.widgetOptionContent}>
-                          <Text style={[
-                            styles.widgetOptionText,
-                            widgetSettings?.category === category.id && styles.selectedWidgetOptionText,
-                            category.premium && subscriptionTier !== 'premium' && styles.premiumOptionText
-                          ]}>
-                            {category.label}
-                          </Text>
-                          {category.premium && subscriptionTier !== 'premium' && (
-                            <Ionicons name="diamond" size={12} color={theme.colors.categoryColors.purple} />
-                          )}
-                        </View>
-                        {widgetSettings?.category === category.id && (
-                          <Ionicons name="checkmark-circle" size={16} color={theme.colors.primary} />
-                        )}
-                      </Pressable>
-                    ))}
-
-                    <Pressable
-                      style={[styles.widgetOption, styles.moreOptionsButton]}
-                      onPress={() => {
-                        handleClose();
-                        router.push('/(main)/widgetconfig');
-                      }}
-                    >
-                      <Text style={styles.moreOptionsText}>More Categories...</Text>
-                      <Ionicons name="chevron-forward" size={16} color={theme.colors.textSecondary} />
-                    </Pressable>
-                  </View>
-
-                  {isUpdatingWidget && (
-                    <View style={styles.updatingContainer}>
-                      <Text style={styles.updatingText}>Updating widget...</Text>
-                    </View>
-                  )}
-                </View>
-              )}
 
               {/* Settings Menu Items */}
               <View style={styles.menuSection}>
@@ -742,85 +548,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
-  },
-  // Widget styles
-  widgetSection: {
-    marginBottom: theme.spacing.l,
-  },
-  widgetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.s,
-    marginBottom: theme.spacing.s,
-  },
-  widgetTitle: {
-    fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.semiBold,
-    color: theme.colors.text,
-  },
-  widgetSubtitle: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.m,
-  },
-  widgetOptions: {
-    gap: theme.spacing.s,
-  },
-  widgetOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: theme.radii.s,
-    paddingHorizontal: theme.spacing.m,
-    paddingVertical: theme.spacing.s,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  selectedWidgetOption: {
-    backgroundColor: 'rgba(255, 105, 180, 0.1)',
-    borderColor: theme.colors.primary,
-  },
-  disabledOption: {
-    opacity: 0.5,
-  },
-  premiumOption: {
-    backgroundColor: 'rgba(200, 165, 225, 0.2)',
-  },
-  widgetOptionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.s,
-  },
-  widgetOptionText: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
-  },
-  selectedWidgetOptionText: {
-    fontFamily: theme.typography.fontFamily.semiBold,
-    color: theme.colors.primary,
-  },
-  premiumOptionText: {
-    color: theme.colors.categoryColors.purple,
-  },
-  moreOptionsButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    marginTop: theme.spacing.s,
-  },
-  moreOptionsText: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.textSecondary,
-  },
-  updatingContainer: {
-    alignItems: 'center',
-    marginTop: theme.spacing.s,
-  },
-  updatingText: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.textSecondary,
   },
 }); 
