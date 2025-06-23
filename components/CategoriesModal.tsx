@@ -200,25 +200,7 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
     }
   };
 
-  const handleViewAllPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
-    // Trigger slide down animation, then call onCategorySelect with null
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: screenHeight,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(backgroundOpacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      onCategorySelect(null);
-    });
-  };
+
 
   if (!visible) {
     return null;
@@ -283,33 +265,7 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.scrollContent}
             >
-              {/* View All Option */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>All Categories</Text>
-                <View style={styles.categoryGrid}>
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.categoryCard,
-                      styles.viewAllCard,
-                      { backgroundColor: theme.colors.categoryColors.pink },
-                      { opacity: pressed ? 0.8 : 1 },
-                      { transform: [{ scale: pressed ? 0.95 : 1 }] },
-                      activeQuoteCategory === null && styles.selectedCard
-                    ]}
-                    onPress={handleViewAllPress}
-                  >
-                    <View style={styles.categoryContent}>
-                      <Text style={styles.categoryIcon}>🌟</Text>
-                      {activeQuoteCategory === null && (
-                        <View style={styles.checkmarkIcon}>
-                          <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.categoryTitle}>View All</Text>
-                  </Pressable>
-                </View>
-              </View>
+
 
               {/* Individual Categories */}
               <View style={styles.section}>
@@ -486,9 +442,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  viewAllCard: {
-    // Special styling for the "View All" card if needed
-  },
+
   selectedCard: {
     borderColor: theme.colors.primary,
     borderWidth: 3,
