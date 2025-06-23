@@ -42,11 +42,8 @@ const getSettingsItems = (subscriptionTier: string): SettingsMenuItem[] => [
     backgroundColor: theme.colors.categoryColors.purple,
     isPremium: true 
   },
-  { id: '2', title: 'Create My Quotes', icon: 'create' },
-  { id: '3', title: 'General', icon: 'document-text' },
   { id: '4', title: 'My Favorites', icon: 'heart' },
   { id: '5', title: 'My Profile', icon: 'person' },
-  { id: '6', title: 'Based on Your Mood', icon: 'happy' },
   { id: '7', title: 'Reminders', icon: 'time' },
   { id: '8', title: 'Widget Settings', icon: 'phone-portrait' },
 ];
