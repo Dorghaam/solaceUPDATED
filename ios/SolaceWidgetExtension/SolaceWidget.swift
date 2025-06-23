@@ -79,8 +79,8 @@ struct SolaceWidgetEntryView : View {
             // A rectangular view for the lock screen, which can show text
             VStack(alignment: .leading, spacing: 1) {
                 Text(entry.quote)
-                    .font(.caption)
-                    .fontWeight(.medium)
+                    .font(.footnote)
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .lineLimit(3)
             }
@@ -89,15 +89,15 @@ struct SolaceWidgetEntryView : View {
             // Small home screen widget
             VStack(alignment: .leading, spacing: 8) {
                 Text(entry.quote)
-                    .font(.subheadline)
-                    .fontWeight(.medium) 
+                    .font(.body)
+                    .fontWeight(.semibold) 
                     .multilineTextAlignment(.leading)
-                    .lineLimit(6)
+                    .lineLimit(5)
                 
                 Spacer()
                 
                 Text("Hello, \(entry.userName)")
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundColor(.secondary)
             }
             .padding()
@@ -105,15 +105,15 @@ struct SolaceWidgetEntryView : View {
             // Medium home screen widget
             VStack(alignment: .leading, spacing: 8) {
                 Text(entry.quote)
-                    .font(.body)
-                    .fontWeight(.medium)
+                    .font(.title3)
+                    .fontWeight(.semibold)
                     .multilineTextAlignment(.leading)
-                    .lineLimit(4)
+                    .lineLimit(3)
                 
                 Spacer()
                 
                 Text("Hello, \(entry.userName)")
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
