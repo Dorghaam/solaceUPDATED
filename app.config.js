@@ -11,11 +11,11 @@ export default ({ config }) => ({
     version: "1.0.0",
     scheme: "solaceapp",
     orientation: "portrait",
-    icon: "./Copy of Solace(2).png", // Updated to new app icon
+    icon: "./assets/app-icon.png", // Updated to new app icon
     userInterfaceStyle: "light",
     newArchEnabled: true,
     splash: {
-      image: "./Copy of Solace(2).png", // Updated to use new app icon
+      image: "./assets/app-icon.png", // Updated to use new app icon
       resizeMode: "contain",
       backgroundColor: "#FFF5F7" // Updated to pink gradient lightest color
     },
@@ -36,7 +36,7 @@ export default ({ config }) => ({
     android: {
       ...config.expo?.android,
       adaptiveIcon: {
-        foregroundImage: "./Copy of Solace(2).png",
+        foregroundImage: "./assets/app-icon.png",
         backgroundColor: "#FFF5F7" // Updated to match pink theme
       },
       package: "com.dorghaamhaidar.solace"
