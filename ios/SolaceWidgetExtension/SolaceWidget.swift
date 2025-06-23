@@ -77,33 +77,22 @@ struct SolaceWidgetEntryView : View {
             }
         case .accessoryRectangular:
             // A rectangular view for the lock screen, which can show text
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Solace")
+            VStack(alignment: .leading, spacing: 1) {
+                Text(entry.quote)
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
-                Text(entry.quote)
-                    .font(.caption2)
-                    .foregroundColor(.white.opacity(0.9))
-                    .lineLimit(2)
+                    .lineLimit(3)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         case .systemSmall:
             // Small home screen widget
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "heart.fill")
-                        .foregroundColor(.pink)
-                    Text("Solace")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                    Spacer()
-                }
-                
                 Text(entry.quote)
-                    .font(.caption)
+                    .font(.subheadline)
+                    .fontWeight(.medium) 
                     .multilineTextAlignment(.leading)
-                    .lineLimit(4)
+                    .lineLimit(6)
                 
                 Spacer()
                 
@@ -114,30 +103,20 @@ struct SolaceWidgetEntryView : View {
             .padding()
         case .systemMedium:
             // Medium home screen widget
-            HStack(spacing: 12) {
-                VStack {
-                    Image(systemName: "heart.circle.fill")
-                        .font(.largeTitle)
-                        .foregroundColor(.pink)
-                    Text("Solace")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                }
+            VStack(alignment: .leading, spacing: 8) {
+                Text(entry.quote)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(4)
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(entry.quote)
-                        .font(.subheadline)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(3)
-                    
-                    Spacer()
-                    
-                    Text("Hello, \(entry.userName)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
+                
+                Text("Hello, \(entry.userName)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
         default:
             // Fallback for other widget families
