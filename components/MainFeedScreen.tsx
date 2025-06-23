@@ -180,7 +180,7 @@ export const MainFeedScreen = ({
           end={{ x: 0, y: 1 }}
         >
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#333" />
+            <ActivityIndicator size="large" color={theme.colors.text} />
             <Text style={styles.loadingText}>Loading quotes...</Text>
           </View>
         </LinearGradient>
@@ -222,7 +222,7 @@ export const MainFeedScreen = ({
         {/* Top Bar - Static */}
         <View style={styles.topBar}>
           <View style={styles.heartCounter}>
-            <Ionicons name="heart-outline" size={20} color="#333" />
+            <Ionicons name="heart-outline" size={20} color={theme.colors.text} />
             <Text style={styles.counterText}>{likeCount}/10</Text>
           </View>
           
@@ -238,7 +238,7 @@ export const MainFeedScreen = ({
               <Ionicons 
                 name={subscriptionTier === 'premium' ? "diamond" : "diamond-outline"} 
                 size={20} 
-                color={subscriptionTier === 'premium' ? "#FFD700" : "#333"} 
+                color={subscriptionTier === 'premium' ? "#FFD700" : theme.colors.text} 
               />
             </Pressable>
           </View>
@@ -301,7 +301,7 @@ export const MainFeedScreen = ({
                   <Ionicons 
                     name={isFavorite(currentQuote.id) ? "heart" : "heart-outline"} 
                     size={32} 
-                    color={isFavorite(currentQuote.id) ? "#000000" : "#333"} 
+                    color={isFavorite(currentQuote.id) ? theme.colors.primary : theme.colors.text} 
                   />
                 </Pressable>
               </View>
@@ -322,7 +322,7 @@ export const MainFeedScreen = ({
             onPress={onShowCategories}
             disabled={showCategories || showSettings}
           >
-            <Ionicons name="grid-outline" size={24} color="#333" />
+            <Ionicons name="grid-outline" size={24} color={theme.colors.text} />
           </Pressable>
           <Pressable 
             style={({ pressed }) => [
@@ -332,7 +332,7 @@ export const MainFeedScreen = ({
             onPress={onBrushPress}
             disabled={showCategories || showSettings}
           >
-            <Ionicons name="brush-outline" size={24} color="#333" />
+            <Ionicons name="brush-outline" size={24} color={theme.colors.text} />
           </Pressable>
           <Pressable 
             style={({ pressed }) => [
@@ -342,7 +342,7 @@ export const MainFeedScreen = ({
             onPress={onShowSettings}
             disabled={showCategories || showSettings}
           >
-            <Ionicons name="person-outline" size={24} color="#333" />
+            <Ionicons name="person-outline" size={24} color={theme.colors.text} />
           </Pressable>
         </View>
       </LinearGradient>
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#333',
+    color: theme.colors.text,
     marginTop: 16,
     fontWeight: '500',
   },
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   counterText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: theme.colors.text,
   },
   topRightButtons: {
     flexDirection: 'row',
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   quoteText: {
     fontSize: 32,
     fontWeight: '400',
-    color: '#333',
+    color: theme.colors.text,
     textAlign: 'center',
     lineHeight: 42,
     marginBottom: 60,

@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   saveButton: {
-    backgroundColor: '#5D4E75', // Dark purple like in the image
+    backgroundColor: theme.colors.primary, // Use theme pink instead of purple
     borderRadius: theme.radii.m,
     paddingVertical: theme.spacing.m + 4,
     alignItems: 'center',

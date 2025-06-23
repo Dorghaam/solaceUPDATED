@@ -164,7 +164,7 @@ export default function FavoritesScreen() {
             ]}
             onPress={handleGoBack}
           >
-            <Ionicons name="chevron-back" size={24} color="#333" />
+            <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
           </Pressable>
           <Text style={styles.headerTitle}>My Favorites</Text>
           <View style={styles.headerPlaceholder} />
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontFamily: theme.typography.fontFamily.semiBold,
-    color: '#333',
+    color: theme.colors.text,
   },
   headerPlaceholder: {
     width: 40,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#333',
+    color: theme.colors.text,
     marginTop: 16,
     fontWeight: '500',
   },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   },
   frameLine: {
     height: 2,
-    backgroundColor: '#333',
+    backgroundColor: theme.colors.text,
     width: '80%',
     alignSelf: 'center',
     opacity: 0.6,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 26,
     fontFamily: theme.typography.fontFamily.semiBold,
-    color: '#333',
+    color: theme.colors.text,
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 34,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   quoteText: {
     fontSize: 16,
     fontFamily: theme.typography.fontFamily.regular,
-    color: '#333',
+    color: theme.colors.text,
     lineHeight: 24,
     marginBottom: 16,
   },

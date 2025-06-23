@@ -533,7 +533,7 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
                   styles.allowButton, 
                   { 
                     opacity: notificationsEnabled ? 1 : 0.5,
-                    backgroundColor: notificationsEnabled ? theme.colors.text : theme.colors.textSecondary 
+                    backgroundColor: notificationsEnabled ? theme.colors.primary : theme.colors.textSecondary 
                   }
                 ]} 
                 onPress={handleAllowAndSave}
@@ -751,7 +751,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   allowButton: {
-    backgroundColor: theme.colors.text,
+    backgroundColor: theme.colors.primary,
     borderRadius: theme.radii.m,
     paddingVertical: 18,
     alignItems: 'center',

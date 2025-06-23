@@ -297,14 +297,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <View style={styles.streakDay}>
                           {isActive ? (
                             <View style={styles.heartContainer}>
-                              <Ionicons name="heart" size={28} color="#FF69B4" />
+                              <Ionicons name="heart" size={28} color={theme.colors.primary} />
                               <View style={styles.checkmarkContainer}>
                                 <Ionicons name="checkmark" size={14} color="white" />
                               </View>
                             </View>
                           ) : (
                             <View style={styles.heartContainer}>
-                              <Ionicons name="heart-outline" size={28} color="#E0E0E0" />
+                              <Ionicons name="heart-outline" size={28} color={theme.colors.textSecondary} />
                             </View>
                           )}
                         </View>
@@ -487,25 +487,19 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   streakBadge: {
-    backgroundColor: '#FF69B4',
+    backgroundColor: 'transparent',
     borderRadius: 20,
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    borderWidth: 2,
+    borderColor: '#000',
   },
   streakNumber: {
     fontSize: theme.typography.fontSizes.l,
     fontFamily: theme.typography.fontFamily.semiBold,
-    color: 'white',
+    color: '#000',
   },
   streakContainer: {
     flexDirection: 'row',
@@ -514,6 +508,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.m,
     paddingVertical: theme.spacing.m,
     paddingHorizontal: theme.spacing.s,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
   },
   streakItem: {
     alignItems: 'center',
@@ -608,7 +604,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   premiumSubscriptionButton: {
-    backgroundColor: '#C8A5E1',
+    backgroundColor: theme.colors.primary,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

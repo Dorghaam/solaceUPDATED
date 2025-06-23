@@ -1,6 +1,7 @@
 import { hapticService } from '@/services/hapticService';
 import { supabase } from '@/services/supabaseClient';
 import { BreakupCategory, breakupInterestCategories, useUserStore, WidgetTheme } from '@/store/userStore';
+import { theme } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -125,7 +126,7 @@ export default function WidgetConfigScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Widget Settings</Text>
         <View style={styles.backButton} />
@@ -139,7 +140,7 @@ export default function WidgetConfigScreen() {
             <View style={styles.previewBox}>
               <View style={styles.previewWidget}>
                 <View style={styles.previewHeader}>
-                  <Ionicons name="heart" size={16} color="#FF69B4" />
+                  <Ionicons name="heart" size={16} color={theme.colors.primary} />
                   <Text style={styles.previewAppName}>Solace</Text>
                 </View>
                 <Text style={styles.previewQuote}>
@@ -170,25 +171,25 @@ export default function WidgetConfigScreen() {
                   <Text style={styles.optionDescription}>Mix of all available affirmations</Text>
                 </View>
                 {widgetSettings.category === 'all' && (
-                  <Ionicons name="checkmark-circle" size={20} color="#FF69B4" />
-                )}
-              </TouchableOpacity>
+                                  <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
+              )}
+            </TouchableOpacity>
 
-              {/* Favorites Option */}
-              <TouchableOpacity 
-                style={[styles.option, widgetSettings.category === 'favorites' && styles.selectedOption]}
-                onPress={() => handleCategoryChange('favorites')}
-              >
-                <View style={styles.optionContent}>
-                  <Text style={[styles.optionText, widgetSettings.category === 'favorites' && styles.selectedOptionText]}>
-                    My Favorites
-                  </Text>
-                  <Text style={styles.optionDescription}>
-                    Your saved affirmations ({favoriteQuoteIds.length} saved)
-                  </Text>
-                </View>
-                {widgetSettings.category === 'favorites' && (
-                  <Ionicons name="checkmark-circle" size={20} color="#FF69B4" />
+            {/* Favorites Option */}
+            <TouchableOpacity 
+              style={[styles.option, widgetSettings.category === 'favorites' && styles.selectedOption]}
+              onPress={() => handleCategoryChange('favorites')}
+            >
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionText, widgetSettings.category === 'favorites' && styles.selectedOptionText]}>
+                  My Favorites
+                </Text>
+                <Text style={styles.optionDescription}>
+                  Your saved affirmations ({favoriteQuoteIds.length} saved)
+                </Text>
+              </View>
+              {widgetSettings.category === 'favorites' && (
+                <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
                 )}
               </TouchableOpacity>
 
@@ -224,7 +225,7 @@ export default function WidgetConfigScreen() {
                       )}
                     </View>
                     {isSelected && (
-                      <Ionicons name="checkmark-circle" size={20} color="#FF69B4" />
+                      <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
                     )}
                   </TouchableOpacity>
                 );
@@ -371,7 +372,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   selectedOptionText: {
-    color: '#FF69B4',
+    color: theme.colors.primary,
   },
   lockedOptionText: {
     color: '#999',
@@ -383,12 +384,12 @@ const styles = StyleSheet.create({
   },
   premiumBadge: {
     fontSize: 12,
-    color: '#FF69B4',
+    color: theme.colors.primary,
     fontWeight: '500',
     marginTop: 4,
   },
   updateButton: {
-    backgroundColor: '#FF69B4',
+    backgroundColor: theme.colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
