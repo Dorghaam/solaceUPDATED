@@ -280,6 +280,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             >
               {/* Streak Section */}
               <View style={styles.streakSection}>
+                <View style={styles.streakTitleContainer}>
+                  <Text style={styles.streakTitle}>Your Streak</Text>
+                  <View style={styles.streakBadge}>
+                    <Text style={styles.streakNumber}>{streakData.currentStreak}</Text>
+                  </View>
+                </View>
+                
                 <View style={styles.streakContainer}>
                   {getLastSevenDays().map((day, index) => {
                     const isActive = streakData.dailyActivity[day.date] || false;
@@ -305,11 +312,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </View>
                     );
                   })}
-                </View>
-                <View style={styles.streakInfo}>
-                  <Text style={styles.streakText}>
-                    {streakData.currentStreak} day{streakData.currentStreak !== 1 ? 's' : ''} streak!
-                  </Text>
                 </View>
               </View>
 
@@ -472,6 +474,38 @@ const styles = StyleSheet.create({
   },
   streakSection: {
     marginBottom: theme.spacing.l,
+  },
+  streakTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.s,
+  },
+  streakTitle: {
+    fontSize: theme.typography.fontSizes.l,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: theme.colors.text,
+  },
+  streakBadge: {
+    backgroundColor: '#FF69B4',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  streakNumber: {
+    fontSize: theme.typography.fontSizes.l,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: 'white',
   },
   streakContainer: {
     flexDirection: 'row',

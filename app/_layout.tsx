@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Linking from 'expo-linking';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -16,6 +17,7 @@ import { initRevenueCat, verifyRevenueCatSetup } from '../services/revenueCatSer
 import { fetchAndSetUserProfile } from '../services/profileService';
 import { ensurePostLoginSync, signOut } from '../services/authService';
 import { reviewService } from '../services/reviewService';
+import { router } from 'expo-router';
 
 // This is a placeholder ThemeProvider until we create our own
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>; 
@@ -24,6 +26,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { supabaseUser, hasCompletedOnboarding, setSupabaseUser, resetState, updateStreakData } = useUserStore();
+  const [pendingDeepLink, setPendingDeepLink] = React.useState<string | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('../Inter/static/Inter_18pt-Regular.ttf'),
@@ -129,6 +132,70 @@ export default function RootLayout() {
       authListener?.subscription?.unsubscribe();
     };
   }, [setSupabaseUser, resetState]);
+
+  // Handle deep links for widget navigation
+  useEffect(() => {
+    const handleDeepLink = (url: string) => {
+      console.log('[DeepLink] Received:', url);
+      
+      if (url.includes('widget-settings')) {
+        if (supabaseUser && hasCompletedOnboarding) {
+          console.log('[DeepLink] Navigating to widget settings');
+          setTimeout(() => {
+            try {
+              router.push('/(main)/widgetconfig');
+            } catch (error) {
+              console.error('[DeepLink] Navigation error:', error);
+              // Fallback: try navigating to main first, then widget settings
+              router.replace('/(main)');
+              setTimeout(() => {
+                router.push('/(main)/widgetconfig');
+              }, 100);
+            }
+          }, 300);
+        } else {
+          console.log('[DeepLink] User not ready, storing pending deep link');
+          setPendingDeepLink(url);
+        }
+      }
+    };
+
+    // Handle initial URL if app was opened from widget
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        console.log('[DeepLink] Initial URL:', url);
+        handleDeepLink(url);
+      }
+    });
+
+    // Listen for subsequent deep links
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLink(url);
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [supabaseUser, hasCompletedOnboarding]);
+
+  // Handle pending deep link when user becomes ready
+  useEffect(() => {
+    if (pendingDeepLink && supabaseUser && hasCompletedOnboarding) {
+      console.log('[DeepLink] Processing pending deep link:', pendingDeepLink);
+      
+      if (pendingDeepLink.includes('widget-settings')) {
+        setTimeout(() => {
+          try {
+            router.push('/(main)/widgetconfig');
+            setPendingDeepLink(null);
+          } catch (error) {
+            console.error('[DeepLink] Pending navigation error:', error);
+            setPendingDeepLink(null);
+          }
+        }, 500);
+      }
+    }
+  }, [pendingDeepLink, supabaseUser, hasCompletedOnboarding]);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
