@@ -138,23 +138,12 @@ export default function RootLayout() {
     const handleDeepLink = (url: string) => {
       console.log('[DeepLink] Received:', url);
       
-      if (url.includes('widget-settings')) {
+      // For now, just open the main app - no special widget navigation
+      if (url.includes('solaceapp://')) {
         if (supabaseUser && hasCompletedOnboarding) {
-          console.log('[DeepLink] Navigating to widget settings');
-          // Use replace instead of push to avoid route stack issues
-          // Add a small delay to ensure the main app is fully loaded
-          setTimeout(() => {
-            try {
-              router.replace('/(main)/widgetconfig');
-            } catch (error) {
-              console.error('[DeepLink] Navigation error:', error);
-              // Fallback: ensure we're in main stack first
-              router.replace('/(main)');
-              setTimeout(() => {
-                router.replace('/(main)/widgetconfig');
-              }, 50);
-            }
-          }, 100);
+          console.log('[DeepLink] Opening main app');
+          // Just ensure we're in the main app - no special navigation needed
+          router.replace('/(main)');
         } else {
           console.log('[DeepLink] User not ready, storing pending deep link');
           setPendingDeepLink(url);
@@ -185,16 +174,10 @@ export default function RootLayout() {
     if (pendingDeepLink && supabaseUser && hasCompletedOnboarding) {
       console.log('[DeepLink] Processing pending deep link:', pendingDeepLink);
       
-      if (pendingDeepLink.includes('widget-settings')) {
-        setTimeout(() => {
-          try {
-            router.replace('/(main)/widgetconfig');
-            setPendingDeepLink(null);
-          } catch (error) {
-            console.error('[DeepLink] Pending navigation error:', error);
-            setPendingDeepLink(null);
-          }
-        }, 200);
+      if (pendingDeepLink.includes('solaceapp://')) {
+        // Just open the main app
+        router.replace('/(main)');
+        setPendingDeepLink(null);
       }
     }
   }, [pendingDeepLink, supabaseUser, hasCompletedOnboarding]);

@@ -77,7 +77,7 @@ struct SolaceWidgetEntryView : View {
                     .lineLimit(3)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .widgetURL(URL(string: "solaceapp://widget-settings"))
+            .widgetURL(URL(string: "solaceapp://"))
         case .systemSmall:
             // Small home screen widget
             ZStack {
@@ -102,7 +102,7 @@ struct SolaceWidgetEntryView : View {
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            .widgetURL(URL(string: "solaceapp://widget-settings"))
+            .widgetURL(URL(string: "solaceapp://"))
         case .systemMedium:
             // Medium home screen widget
             ZStack {
@@ -127,7 +127,7 @@ struct SolaceWidgetEntryView : View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding()
             }
-            .widgetURL(URL(string: "solaceapp://widget-settings"))
+            .widgetURL(URL(string: "solaceapp://"))
         default:
             // Fallback for other widget families
             VStack {
@@ -138,7 +138,7 @@ struct SolaceWidgetEntryView : View {
                     .multilineTextAlignment(.center)
             }
             .padding()
-            .widgetURL(URL(string: "solaceapp://widget-settings"))
+            .widgetURL(URL(string: "solaceapp://"))
         }
     }
 }
