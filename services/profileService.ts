@@ -22,8 +22,10 @@ export const fetchAndSetUserProfile = async (userId: string) => {
     if (data) {
       console.log('profileService: Profile found. Database tier:', data.subscription_tier);
       
-      // Update the username if it exists in the profile
-      if (data.username) {
+      // Only update the username from database if user hasn't set one locally
+      // (i.e., if they haven't completed onboarding or entered a name)
+      const currentUserName = useUserStore.getState().userName;
+      if (data.username && !currentUserName) {
         const { setUserName } = useUserStore.getState();
         setUserName(data.username);
       }

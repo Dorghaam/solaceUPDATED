@@ -35,9 +35,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const panY = useRef(new Animated.Value(0)).current;
 
   // Profile form state
-  const [profileName, setProfileName] = useState('Johnson');
-  const [profilePhone, setProfilePhone] = useState('0987654321');
-  const [profileEmail, setProfileEmail] = useState('michaeljohnson@gmail.com');
+  const [profileName, setProfileName] = useState('');
+  const [profilePhone, setProfilePhone] = useState(''); // Empty by default
+  const [profileEmail, setProfileEmail] = useState('');
   const [countryCode, setCountryCode] = useState('+1');
   
   // Get user data from store
@@ -46,12 +46,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   // Set initial profile data from store when component mounts
   useEffect(() => {
+    // Always set the name from the user store (from onboarding flow)
     if (userName) {
       setProfileName(userName);
     }
+    // Set email from authenticated user
     if (supabaseUser?.email) {
       setProfileEmail(supabaseUser.email);
     }
+    // Phone remains empty as requested
   }, [userName, supabaseUser]);
 
   useEffect(() => {
@@ -130,6 +133,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const handleProfileSave = () => {
     // Save profile logic here
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Update the user store with the new name
+    const { setUserName } = useUserStore.getState();
+    if (profileName.trim() && profileName !== userName) {
+      setUserName(profileName.trim());
+    }
+    
     Alert.alert('Profile Saved', 'Your profile has been updated successfully.');
   };
 
