@@ -79,38 +79,52 @@ struct SolaceWidgetEntryView : View {
             .frame(maxWidth: .infinity, alignment: .leading)
         case .systemSmall:
             // Small home screen widget
-            VStack(alignment: .leading, spacing: 8) {
-                Text(entry.quote)
-                    .font(.title3)
-                    .fontWeight(.bold) 
-                    .multilineTextAlignment(.leading)
-                    .lineLimit(4)
+            ZStack {
+                // Pink gradient background
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 1.0, green: 0.94, blue: 0.96), // #FFF5F7
+                        Color(red: 1.0, green: 0.82, blue: 0.86)  // #FFD1DC
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
                 
-                Spacer()
-                
-                Text("Hello, \(entry.userName)")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(entry.quote)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(5)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            .padding()
         case .systemMedium:
             // Medium home screen widget
-            VStack(alignment: .leading, spacing: 8) {
-                Text(entry.quote)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .multilineTextAlignment(.leading)
-                    .lineLimit(3)
+            ZStack {
+                // Pink gradient background
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 1.0, green: 0.94, blue: 0.96), // #FFF5F7
+                        Color(red: 1.0, green: 0.82, blue: 0.86)  // #FFD1DC
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
                 
-                Spacer()
-                
-                Text("Hello, \(entry.userName)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(entry.quote)
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(4)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
         default:
             // Fallback for other widget families
             VStack {
@@ -133,7 +147,7 @@ struct SolaceWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             SolaceWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(Color.clear, for: .widget)
         }
         .configurationDisplayName("Solace Affirmations")
         .description("Your daily dose of healing and motivation.")
