@@ -49,6 +49,10 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showCategoriesList, setShowCategoriesList] = useState(false);
   const [isSchedulingNotifications, setIsSchedulingNotifications] = useState(false);
+  
+  // Animation refs for categories list
+  const categoriesSlideAnim = useRef(new Animated.Value(screenHeight)).current;
+  const categoriesBackgroundOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
@@ -80,8 +84,15 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
           useNativeDriver: true,
         }),
       ]).start();
+      
+      // Also hide categories list if main modal is closing
+      if (showCategoriesList) {
+        handleCloseCategoriesList();
+      }
     }
   }, [visible]);
+
+
 
   const handleClose = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -135,7 +146,30 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
 
   const handleCategoriesPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Start animation from off-screen position
+    categoriesSlideAnim.setValue(screenHeight);
     setShowCategoriesList(true);
+    
+    // Animate in
+    setTimeout(() => {
+      Animated.timing(categoriesSlideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }, 50);
+  };
+
+  const handleCloseCategoriesList = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Animate out
+    Animated.timing(categoriesSlideAnim, {
+      toValue: screenHeight,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowCategoriesList(false);
+    });
   };
 
   const handleCategoryToggle = (categoryId: string) => {
@@ -290,10 +324,17 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
 
     return (
       <View style={styles.categoriesListOverlay}>
-        <View style={styles.categoriesListContainer}>
+        <Pressable 
+          style={styles.categoriesOverlayTouchable} 
+          onPress={handleCloseCategoriesList} 
+        />
+        <Animated.View style={[
+          styles.categoriesListContainer,
+          { transform: [{ translateY: categoriesSlideAnim }] }
+        ]}>
           <View style={styles.categoriesListHeader}>
             <Text style={styles.categoriesListTitle}>Select Categories</Text>
-            <Pressable onPress={() => setShowCategoriesList(false)}>
+            <Pressable onPress={handleCloseCategoriesList}>
               <Ionicons name="close" size={24} color={theme.colors.text} />
             </Pressable>
           </View>
@@ -339,11 +380,11 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
           
           <Pressable
             style={styles.categoriesDoneButton}
-            onPress={() => setShowCategoriesList(false)}
+            onPress={handleCloseCategoriesList}
           >
             <Text style={styles.categoriesDoneButtonText}>Done</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </View>
     );
   };
@@ -731,6 +772,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     zIndex: 2000,
     justifyContent: 'flex-end',
+  },
+  categoriesOverlayTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   categoriesListContainer: {
     backgroundColor: 'white',
