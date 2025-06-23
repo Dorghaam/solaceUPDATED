@@ -67,14 +67,6 @@ struct SolaceWidgetEntryView : View {
     var body: some View {
         // Switch the view based on where it's displayed
         switch family {
-        case .accessoryCircular:
-             // A small circular view for the lock screen
-            ZStack {
-                AccessoryWidgetBackground()
-                Image(systemName: "heart.text.square.fill")
-                    .font(.title2)
-                    .foregroundColor(.white)
-            }
         case .accessoryRectangular:
             // A rectangular view for the lock screen, which can show text
             VStack(alignment: .leading, spacing: 1) {
@@ -147,7 +139,6 @@ struct SolaceWidget: Widget {
         .description("Your daily dose of healing and motivation.")
         // IMPORTANT: Specify which families are supported
         .supportedFamilies([
-            .accessoryCircular,
             .accessoryRectangular,
             .systemSmall,
             .systemMedium
