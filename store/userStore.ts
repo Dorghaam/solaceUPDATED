@@ -19,6 +19,12 @@ export interface DailyMood {
   date: string; // YYYY-MM-DD
 }
 
+export interface StreakData {
+  currentStreak: number;
+  lastActiveDate: string; // YYYY-MM-DD
+  dailyActivity: { [key: string]: boolean }; // date -> active
+}
+
 export interface TargetQuote {
   id: string;
   text: string;
@@ -94,6 +100,7 @@ interface UserState {
   notificationSettings: NotificationSettings | null;
   pushToken: string | null;
   dailyMood: DailyMood | null;
+  streakData: StreakData;
   targetQuote: TargetQuote | null; // For handling notification navigations
 
   // Widget Settings
@@ -125,6 +132,7 @@ interface UserState {
   setNotificationSettings: (settings: Partial<NotificationSettings>) => void;
   setPushToken: (token: string | null) => void;
   setDailyMood: (mood: DailyMood) => void;
+  updateStreakData: () => void;
   setTargetQuote: (quote: TargetQuote | null) => void;
   clearTargetQuote: () => void;
 
@@ -165,6 +173,11 @@ const initialState = {
   },
   pushToken: null,
   dailyMood: null,
+  streakData: {
+    currentStreak: 0,
+    lastActiveDate: '',
+    dailyActivity: {},
+  },
   targetQuote: null,
 
   // Widget Settings
@@ -401,6 +414,43 @@ export const useUserStore = create<UserState>()(
         })),
       setPushToken: (token) => set({ pushToken: token }),
       setDailyMood: (mood) => set({ dailyMood: mood }),
+              updateStreakData: () => {
+          const state = get();
+          const today = new Date().toISOString().split('T')[0];
+          const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+          
+          // If already marked active today, don't update
+          if (state.streakData.dailyActivity[today]) {
+            return;
+          }
+          
+          // Mark today as active
+          const newDailyActivity = {
+            ...state.streakData.dailyActivity,
+            [today]: true
+          };
+          
+          let newStreak: number;
+          
+          // Calculate streak
+          if (state.streakData.lastActiveDate === yesterday || state.streakData.lastActiveDate === '') {
+            // Continue streak or start new one
+            newStreak = state.streakData.currentStreak + 1;
+          } else {
+            // Streak broken, restart
+            newStreak = 1;
+          }
+          
+          set({
+            streakData: {
+              currentStreak: newStreak,
+              lastActiveDate: today,
+              dailyActivity: newDailyActivity,
+            }
+          });
+          
+          console.log(`🔥 Streak updated: ${newStreak} days`);
+        },
       setTargetQuote: (quote) => set({ targetQuote: quote }),
       clearTargetQuote: () => set({ targetQuote: null }),
 
@@ -470,6 +520,7 @@ export const useUserStore = create<UserState>()(
         notificationSettings: state.notificationSettings,
         // pushToken is often re-fetched
         dailyMood: state.dailyMood,
+        streakData: state.streakData,
         widgetSettings: state.widgetSettings,
         isWidgetCustomizing: state.isWidgetCustomizing,
         // REMOVED: subscriptionTier - Let RevenueCat be the single source of truth

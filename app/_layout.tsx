@@ -15,6 +15,7 @@ import { configureGoogleSignIn } from '../services/googleAuthService';
 import { initRevenueCat, verifyRevenueCatSetup } from '../services/revenueCatService';
 import { fetchAndSetUserProfile } from '../services/profileService';
 import { ensurePostLoginSync, signOut } from '../services/authService';
+import { reviewService } from '../services/reviewService';
 
 // This is a placeholder ThemeProvider until we create our own
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>; 
@@ -22,7 +23,7 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{childr
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { supabaseUser, hasCompletedOnboarding, setSupabaseUser, resetState } = useUserStore();
+  const { supabaseUser, hasCompletedOnboarding, setSupabaseUser, resetState, updateStreakData } = useUserStore();
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('../Inter/static/Inter_18pt-Regular.ttf'),
@@ -68,6 +69,10 @@ export default function RootLayout() {
           // Don't await these - let them happen in background
           fetchAndSetUserProfile(session.user.id).catch(console.error);
           ensurePostLoginSync(session.user.id).catch(console.error);
+          
+          // 5. Track app open for streak and review service
+          reviewService.trackAppOpen();
+          updateStreakData();
         } else {
           setSupabaseUser(null);
         }
@@ -105,6 +110,10 @@ export default function RootLayout() {
             // Don't await these - let them happen in background to avoid blocking
             ensurePostLoginSync(session.user.id).catch(console.error);
             fetchAndSetUserProfile(session.user.id).catch(console.error);
+            
+            // Track app open on sign in
+            reviewService.trackAppOpen();
+            updateStreakData();
           } else if (_event === 'SIGNED_OUT') {
             // The signOut function already handles RC logout.
             // resetState clears the zustand store for the next user.

@@ -49,14 +49,22 @@ const getSettingsItems = (subscriptionTier: string): SettingsMenuItem[] => [
   { id: '8', title: 'Widget Settings', icon: 'phone-portrait' },
 ];
 
-const WEEKDAYS = ['We', 'Th', 'Fr', 'Sa', 'Su'];
-const STREAK_DATA = [
-  { day: 'We', completed: true, streak: 1 },
-  { day: 'Th', completed: true, streak: 2 },
-  { day: 'Fr', completed: false, streak: 0 },
-  { day: 'Sa', completed: false, streak: 0 },
-  { day: 'Su', completed: false, streak: 0 },
-];
+const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+// Helper function to get the last 7 days
+const getLastSevenDays = () => {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    days.push({
+      date: date.toISOString().split('T')[0],
+      dayName: WEEKDAYS[date.getDay()],
+      dayShort: WEEKDAYS[date.getDay()]
+    });
+  }
+  return days;
+};
 
 interface SettingsModalProps {
   visible: boolean;
@@ -87,7 +95,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   // Get data from store
   const { 
     subscriptionTier,
-    userName 
+    userName,
+    streakData
   } = useUserStore();
 
   useEffect(() => {
@@ -272,25 +281,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {/* Streak Section */}
               <View style={styles.streakSection}>
                 <View style={styles.streakContainer}>
-                  {STREAK_DATA.map((item, index) => (
-                    <View key={item.day} style={styles.streakItem}>
-                      <View style={styles.streakDay}>
-                        {item.completed ? (
-                          <View style={styles.flameContainer}>
-                            <Text style={styles.flameIcon}>🔥</Text>
-                            <Text style={styles.streakNumber}>{item.streak}</Text>
-                          </View>
-                        ) : item.day === 'We' ? (
-                          <View style={[styles.dayCircle, styles.activeDayCircle]}>
-                            <Ionicons name="checkmark" size={16} color="white" />
-                          </View>
-                        ) : (
-                          <View style={styles.dayCircle} />
-                        )}
+                  {getLastSevenDays().map((day, index) => {
+                    const isActive = streakData.dailyActivity[day.date] || false;
+                    const isToday = day.date === new Date().toISOString().split('T')[0];
+                    
+                    return (
+                      <View key={day.date} style={styles.streakItem}>
+                        <View style={styles.streakDay}>
+                          {isActive ? (
+                            <View style={styles.heartContainer}>
+                              <Ionicons name="heart" size={28} color="#FF69B4" />
+                              <View style={styles.checkmarkContainer}>
+                                <Ionicons name="checkmark" size={14} color="white" />
+                              </View>
+                            </View>
+                          ) : (
+                            <View style={styles.heartContainer}>
+                              <Ionicons name="heart-outline" size={28} color="#E0E0E0" />
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.dayLabel}>{day.dayShort}</Text>
                       </View>
-                      <Text style={styles.dayLabel}>{item.day}</Text>
-                    </View>
-                  ))}
+                    );
+                  })}
+                </View>
+                <View style={styles.streakInfo}>
+                  <Text style={styles.streakText}>
+                    {streakData.currentStreak} day{streakData.currentStreak !== 1 ? 's' : ''} streak!
+                  </Text>
                 </View>
               </View>
 
@@ -470,25 +489,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  flameContainer: {
+  heartContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
     position: 'relative',
   },
-  flameIcon: {
-    fontSize: 24,
-  },
-  streakNumber: {
+  checkmarkContainer: {
     position: 'absolute',
-    bottom: -2,
-    fontSize: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+  },
+  streakInfo: {
+    alignItems: 'center',
+    marginTop: theme.spacing.s,
+  },
+  streakText: {
+    fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    minWidth: 16,
-    textAlign: 'center',
   },
   dayCircle: {
     width: 32,

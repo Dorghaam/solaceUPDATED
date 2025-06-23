@@ -25,6 +25,7 @@ export default function FeedPage() {
     supabaseUser,
     hasCompletedOnboarding,
     subscriptionTier,
+    updateStreakData,
   } = useUserStore();
 
   // Local state for UI interactions
@@ -33,10 +34,12 @@ export default function FeedPage() {
   const [showCategories, setShowCategories] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Load quotes when the component mounts
+  // Load quotes when the component mounts and track app usage
   useEffect(() => {
     fetchQuotes();
-  }, [fetchQuotes]);
+    // Track that user opened the main app for streak
+    updateStreakData();
+  }, [fetchQuotes, updateStreakData]);
 
   // Auto-refetch quotes when subscription tier changes to ensure premium content is unlocked
   useEffect(() => {
