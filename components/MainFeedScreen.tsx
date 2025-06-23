@@ -82,6 +82,11 @@ export const MainFeedScreen = ({
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
 
+  // Helper function to check if a quote is a placeholder
+  const isPlaceholderQuote = (quoteId: string) => {
+    return ['no-favorites', 'no-quotes', 'error'].includes(quoteId);
+  };
+
   const handleGestureEvent = Animated.event(
     [{ nativeEvent: { translationY: translateY } }],
     { useNativeDriver: true }
@@ -256,20 +261,42 @@ export const MainFeedScreen = ({
               {/* Action Buttons - Move with the quote */}
               <View style={styles.actionButtons}>
                 <Pressable 
-                  style={({ pressed }) => [
-                    styles.actionButton,
-                    { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-                  ]} 
-                  onPress={() => onShare(currentQuote)}
+                  style={({ pressed }) => {
+                    const isPlaceholder = isPlaceholderQuote(currentQuote.id);
+                    return [
+                      styles.actionButton,
+                      { 
+                        opacity: isPlaceholder ? 0.3 : (pressed ? 0.6 : 1), 
+                        transform: [{ scale: pressed && !isPlaceholder ? 0.95 : 1 }] 
+                      }
+                    ];
+                  }}
+                  onPress={() => {
+                    if (!isPlaceholderQuote(currentQuote.id)) {
+                      onShare(currentQuote);
+                    }
+                  }}
+                  disabled={isPlaceholderQuote(currentQuote.id)}
                 >
                   <Ionicons name="share-outline" size={32} color="#333" />
                 </Pressable>
                 <Pressable 
-                  style={({ pressed }) => [
-                    styles.actionButton,
-                    { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-                  ]} 
-                  onPress={() => onToggleFavorite(currentQuote)}
+                  style={({ pressed }) => {
+                    const isPlaceholder = isPlaceholderQuote(currentQuote.id);
+                    return [
+                      styles.actionButton,
+                      { 
+                        opacity: isPlaceholder ? 0.3 : (pressed ? 0.6 : 1), 
+                        transform: [{ scale: pressed && !isPlaceholder ? 0.95 : 1 }] 
+                      }
+                    ];
+                  }}
+                  onPress={() => {
+                    if (!isPlaceholderQuote(currentQuote.id)) {
+                      onToggleFavorite(currentQuote);
+                    }
+                  }}
+                  disabled={isPlaceholderQuote(currentQuote.id)}
                 >
                   <Ionicons 
                     name={isFavorite(currentQuote.id) ? "heart" : "heart-outline"} 

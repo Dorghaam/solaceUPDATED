@@ -301,6 +301,14 @@ export const useUserStore = create<UserState>()(
 
       addFavorite: (quoteId) => {
         const state = get();
+        
+        // Prevent adding placeholder quotes to favorites
+        const placeholderIds = ['no-favorites', 'no-quotes', 'error'];
+        if (placeholderIds.includes(quoteId)) {
+          console.log(`[UserStore] Ignoring favorite action for placeholder quote: ${quoteId}`);
+          return;
+        }
+        
         if (state.favoriteQuoteIds.includes(quoteId)) {
           return; // Already favorited
         }

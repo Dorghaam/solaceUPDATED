@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   checkmarkIcon: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'transparent',
     borderRadius: 12,
     padding: 2,
   },
