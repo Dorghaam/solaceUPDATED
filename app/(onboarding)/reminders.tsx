@@ -151,17 +151,17 @@ export default function RemindersPage() {
         <View style={styles.container}>
           {/* Header Text */}
           <View style={styles.headerTextSection}>
-            <Text style={styles.mainTitle}>Stay Inspired{'\n'}Throughout the Day</Text>
+            <Text style={styles.mainTitle}>Stay Strong{'\n'}Throughout the Day</Text>
             <Text style={styles.subtitle}>
-              A few powerful words at the right time{'\n'}can change your mindset.
+              Healing reminders when you need them most.{'\n'}Don't worry - you can always change these{'\n'}settings later in the app.
             </Text>
           </View>
 
           {/* Quote Card */}
           <View style={styles.quoteCard}>
-            <Text style={styles.quoteCardTitle}>AI Motivation Daily Quotes</Text>
+            <Text style={styles.quoteCardTitle}>Your Daily Dose of Healing</Text>
             <Text style={styles.quoteText}>
-              One day, you'll arrive exactly where you've always dreamed of being.
+              Your healing journey is valid, and you're exactly where you need to be right now.
             </Text>
           </View>
 

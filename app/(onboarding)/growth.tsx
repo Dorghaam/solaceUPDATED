@@ -45,7 +45,7 @@ export default function GrowthPage() {
           <View style={styles.headerSection}>
             <Text style={styles.title}>Where Do You Want to{'\n'}Grow?</Text>
             <Text style={styles.subtitle}>
-              Choose a focus so we can align your{'\n'}quotes with your goals.
+              Choose your focus so we can send you{'\n'}exactly what your heart needs to heal.
             </Text>
           </View>
 

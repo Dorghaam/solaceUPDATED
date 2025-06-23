@@ -22,7 +22,7 @@ export const WelcomeScreen = () => {
         <View style={styles.contentContainer}>
           <Text style={styles.title}>Find Your Solace</Text>
           <Text style={styles.subtitle}>
-            Heal and grow with affirmations designed for your journey through breakup recovery.
+            Daily affirmations designed for your healing journey. You're stronger than you know.
           </Text>
         </View>
         <View style={styles.buttonContainer}>

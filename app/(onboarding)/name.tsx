@@ -53,7 +53,7 @@ export default function NamePage() {
         <View style={styles.contentContainer}>
           <Text style={styles.title}>What Should We Call You?</Text>
           <Text style={styles.subtitle}>
-            Your name will appear in your{'\n'}personalized motivational quotes.
+            Your name will appear in your{'\n'}personalized healing affirmations.
           </Text>
 
           {/* Name input */}

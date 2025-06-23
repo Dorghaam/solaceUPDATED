@@ -38,9 +38,9 @@ export default function RelationshipPage() {
       <SafeAreaView style={styles.safeArea}>
         {/* Main content */}
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>Tell Us About Your{'\n'}Relationship Status</Text>
+          <Text style={styles.title}>Where Are You In{'\n'}Your Healing Journey?</Text>
           <Text style={styles.subtitle}>
-            We'll tailor motivational quotes to{'\n'}match your situation.
+            We'll send you the perfect reminders for{'\n'}exactly where you are right now.
           </Text>
 
           {/* Relationship status options list */}

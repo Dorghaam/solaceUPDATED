@@ -29,9 +29,9 @@ export default function WriteGoalsPage() {
           <View style={styles.container}>
             {/* Header Text */}
             <View style={styles.headerSection}>
-              <Text style={styles.title}>What Goals Are You{'\n'}Focusing On?</Text>
+              <Text style={styles.title}>What Are Your{'\n'}Healing Goals?</Text>
               <Text style={styles.subtitle}>
-                The more you tell us, the better we can{'\n'}tailor your quotes to support you.
+                Share what you're working towards.{'\n'}We'll personalize your daily affirmations to match.
               </Text>
             </View>
 
@@ -41,7 +41,7 @@ export default function WriteGoalsPage() {
                 style={styles.textInput}
                 value={goals}
                 onChangeText={setGoals}
-                placeholder="Hello"
+                placeholder="I want to rebuild my confidence and learn to love myself again..."
                 placeholderTextColor={theme.colors.textSecondary}
                 multiline
                 textAlignVertical="top"
@@ -67,7 +67,7 @@ export default function WriteGoalsPage() {
                 ]}
                 onPress={handleSaveGoals}
               >
-                <Text style={styles.saveButtonText}>Save goals</Text>
+                <Text style={styles.saveButtonText}>Save My Goals</Text>
               </Pressable>
             </View>
           </View>

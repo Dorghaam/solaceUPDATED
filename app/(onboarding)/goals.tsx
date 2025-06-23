@@ -35,7 +35,7 @@ export default function GoalsPage() {
           {/* Text content */}
           <View style={styles.textContainer}>
             <Text style={styles.title}>
-              Personalize the App{'\n'}Around Your Goals
+              Your Healing Journey{'\n'}Starts Here
             </Text>
           </View>
 

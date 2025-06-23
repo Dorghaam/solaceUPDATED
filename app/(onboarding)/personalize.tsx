@@ -35,7 +35,7 @@ export default function PersonalizePage() {
           {/* Text content */}
           <View style={styles.textContainer}>
             <Text style={styles.title}>
-              Personalize the App{'\n'}for a Better Experience
+              Let's Customize Your{'\n'}Healing Journey
             </Text>
           </View>
           
