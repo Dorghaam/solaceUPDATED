@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 export default function PersonalizePage() {
   const handleMakeItYours = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(onboarding)/login');
+    router.push('/(onboarding)/age');
   };
 
   return (
