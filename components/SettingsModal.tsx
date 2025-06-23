@@ -22,6 +22,7 @@ import { useUserStore } from '@/store/userStore';
 import { RemindersScreen } from './RemindersScreen';
 import { ProfileScreen } from './ProfileScreen';
 import { WidgetSettingsScreen } from './WidgetSettingsScreen';
+import { FavoritesScreen } from './FavoritesScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -81,6 +82,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [showReminders, setShowReminders] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   
   // Get data from store
   const { 
@@ -160,6 +162,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       setShowProfile(true);
     } else if (setting.title === 'Widget Settings') {
       setShowWidgetSettings(true);
+    } else if (setting.title === 'My Favorites') {
+      setShowFavorites(true);
     } else if (setting.id === '1') { // Subscription management item
       handleSubscriptionManagement();
     } else {
@@ -351,6 +355,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <WidgetSettingsScreen
         visible={showWidgetSettings}
         onClose={() => setShowWidgetSettings(false)}
+      />
+      
+      {/* Favorites Screen */}
+      <FavoritesScreen
+        visible={showFavorites}
+        onClose={() => setShowFavorites(false)}
       />
     </View>
   );
