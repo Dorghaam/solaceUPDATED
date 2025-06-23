@@ -103,20 +103,26 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
 
   useEffect(() => {
     if (visible) {
-      // Reset pan gesture and slide up animation
+      // Reset pan gesture and slide up animation with a small delay to ensure layout is complete
       panY.setValue(0);
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(backgroundOpacity, {
-          toValue: 0.5,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      slideAnim.setValue(screenHeight); // Ensure starting position is set
+      backgroundOpacity.setValue(0);
+      
+      // Use requestAnimationFrame to ensure the component is fully mounted before animating
+      requestAnimationFrame(() => {
+        Animated.parallel([
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 280,
+            useNativeDriver: true,
+          }),
+          Animated.timing(backgroundOpacity, {
+            toValue: 0.5,
+            duration: 280,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
     } else {
       // Slide down animation
       Animated.parallel([
@@ -235,11 +241,11 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
     });
   };
 
+  const categories = mapBreakupCategoriesToUI(breakupInterestCategories, subscriptionTier, activeQuoteCategory);
+
   if (!visible) {
     return null;
   }
-
-  const categories = mapBreakupCategoriesToUI(breakupInterestCategories, subscriptionTier, activeQuoteCategory);
 
   return (
     <View style={styles.overlay}>

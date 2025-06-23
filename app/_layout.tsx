@@ -141,18 +141,20 @@ export default function RootLayout() {
       if (url.includes('widget-settings')) {
         if (supabaseUser && hasCompletedOnboarding) {
           console.log('[DeepLink] Navigating to widget settings');
+          // Use replace instead of push to avoid route stack issues
+          // Add a small delay to ensure the main app is fully loaded
           setTimeout(() => {
             try {
-              router.push('/(main)/widgetconfig');
+              router.replace('/(main)/widgetconfig');
             } catch (error) {
               console.error('[DeepLink] Navigation error:', error);
-              // Fallback: try navigating to main first, then widget settings
+              // Fallback: ensure we're in main stack first
               router.replace('/(main)');
               setTimeout(() => {
-                router.push('/(main)/widgetconfig');
-              }, 100);
+                router.replace('/(main)/widgetconfig');
+              }, 50);
             }
-          }, 300);
+          }, 100);
         } else {
           console.log('[DeepLink] User not ready, storing pending deep link');
           setPendingDeepLink(url);
@@ -186,13 +188,13 @@ export default function RootLayout() {
       if (pendingDeepLink.includes('widget-settings')) {
         setTimeout(() => {
           try {
-            router.push('/(main)/widgetconfig');
+            router.replace('/(main)/widgetconfig');
             setPendingDeepLink(null);
           } catch (error) {
             console.error('[DeepLink] Pending navigation error:', error);
             setPendingDeepLink(null);
           }
-        }, 500);
+        }, 200);
       }
     }
   }, [pendingDeepLink, supabaseUser, hasCompletedOnboarding]);
