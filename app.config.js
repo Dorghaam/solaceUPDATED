@@ -15,7 +15,7 @@ export default ({ config }) => ({
     userInterfaceStyle: "light",
     newArchEnabled: true,
     splash: {
-      image: "./assets/splash-icon.png", // Make sure this asset exists
+      image: "./Copy of Solace(2).png", // Updated to use new app icon
       resizeMode: "contain",
       backgroundColor: "#FFF5F7" // Updated to pink gradient lightest color
     },

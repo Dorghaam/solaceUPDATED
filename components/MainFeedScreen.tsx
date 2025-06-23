@@ -221,10 +221,7 @@ export const MainFeedScreen = ({
       >
         {/* Top Bar - Static */}
         <View style={styles.topBar}>
-          <View style={styles.heartCounter}>
-            <Ionicons name="heart-outline" size={20} color={theme.colors.text} />
-            <Text style={styles.counterText}>{likeCount}/10</Text>
-          </View>
+          <View style={styles.topLeftSpacer} />
           
           <View style={styles.topRightButtons}>
             <Pressable 
@@ -324,16 +321,7 @@ export const MainFeedScreen = ({
           >
             <Ionicons name="grid-outline" size={24} color={theme.colors.text} />
           </Pressable>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.bottomButton,
-              { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
-            ]} 
-            onPress={onBrushPress}
-            disabled={showCategories || showSettings}
-          >
-            <Ionicons name="brush-outline" size={24} color={theme.colors.text} />
-          </Pressable>
+          <View style={styles.invisibleButton} />
           <Pressable 
             style={({ pressed }) => [
               styles.bottomButton,
@@ -476,5 +464,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  topLeftSpacer: {
+    width: 44,
+    height: 44,
+  },
+  invisibleButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: 'transparent',
   },
 }); 
