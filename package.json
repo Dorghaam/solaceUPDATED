@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --scheme solaceapp",
+    "start:dev": "expo start --dev-client --clear --scheme solaceapp",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web"
