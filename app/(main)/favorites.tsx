@@ -99,10 +99,9 @@ export default function FavoritesScreen() {
   };
 
   const renderFavoriteQuote = ({ item, index }: { item: FavoriteQuote; index: number }) => (
-    <View style={[styles.quoteCard, index === 1 && styles.highlightedCard]}>
+    <View style={styles.quoteCard}>
       <Text style={styles.quoteText}>{item.text}</Text>
       <View style={styles.quoteFooter}>
-        <Text style={styles.quoteDate}>{formatDate(item.created_at)}</Text>
         <Pressable
           style={({ pressed }) => [
             styles.heartButton,
@@ -287,8 +286,8 @@ const styles = StyleSheet.create({
   quoteCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    padding: 12,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.05)',
   },
@@ -302,11 +301,11 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.text,
     lineHeight: 24,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   quoteFooter: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   quoteDate: {
