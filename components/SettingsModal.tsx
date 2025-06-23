@@ -10,7 +10,6 @@ import {
   Alert,
   Linking,
   Platform,
-  NativeModules,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,10 +18,10 @@ import { router } from 'expo-router';
 import { theme } from '../constants/theme';
 import { signOut } from '../services/authService';
 import * as Haptics from 'expo-haptics';
-import { useUserStore, breakupInterestCategories } from '@/store/userStore';
+import { useUserStore } from '@/store/userStore';
 import { RemindersScreen } from './RemindersScreen';
 import { ProfileScreen } from './ProfileScreen';
-import { supabase } from '../services/supabaseClient';
+import { WidgetSettingsScreen } from './WidgetSettingsScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -70,6 +69,7 @@ interface SettingsModalProps {
 interface SettingsModalState {
   showReminders: boolean;
   showProfile: boolean;
+  showWidgetSettings: boolean;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -83,6 +83,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   
   const [showReminders, setShowReminders] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showWidgetSettings, setShowWidgetSettings] = useState(false);
   
   // Get data from store
   const { 
@@ -161,8 +162,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     } else if (setting.title === 'My Profile') {
       setShowProfile(true);
     } else if (setting.title === 'Widget Settings') {
-      handleClose(); // Close settings modal first
-      router.push('/(main)/widgetconfig');
+      setShowWidgetSettings(true);
     } else if (setting.id === '1') { // Subscription management item
       handleSubscriptionManagement();
     } else {
@@ -348,6 +348,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <ProfileScreen
         visible={showProfile}
         onClose={() => setShowProfile(false)}
+      />
+      
+      {/* Widget Settings Screen */}
+      <WidgetSettingsScreen
+        visible={showWidgetSettings}
+        onClose={() => setShowWidgetSettings(false)}
       />
     </View>
   );
