@@ -18,13 +18,13 @@ export default function NamePage() {
       setUserName(name.trim());
     }
     
-    // Navigate to login
-    router.push('/(onboarding)/login');
+    // Navigate to gender page
+    router.push('/(onboarding)/gender');
   };
 
   const handleSkip = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(onboarding)/login');
+    router.push('/(onboarding)/gender');
   };
 
   return (
