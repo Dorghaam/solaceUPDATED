@@ -24,13 +24,13 @@ export default function DiscoveryPage() {
     // Here you could save the selectedOption to analytics or user preferences
     // Small delay to show selection before navigating
     setTimeout(() => {
-      router.push('/(onboarding)/login');
+      router.push('/(onboarding)/personalize');
     }, 200);
   };
 
   const handleSkip = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(onboarding)/login');
+    router.push('/(onboarding)/personalize');
   };
 
   return (
