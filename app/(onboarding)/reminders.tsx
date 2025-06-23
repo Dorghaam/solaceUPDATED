@@ -87,6 +87,16 @@ export default function RemindersPage() {
 
   const handleAllowAndSave = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    if (!notificationsEnabled) {
+      Alert.alert(
+        'Notifications Disabled',
+        'Please enable notifications to set up reminders.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
     setIsSchedulingNotifications(true);
 
     try {
@@ -94,16 +104,13 @@ export default function RemindersPage() {
       const token = await getPushTokenAndPermissionsAsync();
       if (!token) {
         Alert.alert(
-          'Permission Required',
+          'Permission Required',  
           'Please allow notifications to receive daily motivational reminders.',
           [{ text: 'OK' }]
         );
         setIsSchedulingNotifications(false);
         return;
       }
-
-      // Set notifications as enabled
-      setNotificationsEnabled(true);
 
       // Generate custom notification times based on frequency (9 AM to 10 PM)
       const customTimes = generateCustomNotificationTimes(selectedFrequency);
@@ -159,26 +166,44 @@ export default function RemindersPage() {
 
           {/* Quote Card */}
           <View style={styles.quoteCard}>
-            <Text style={styles.quoteCardTitle}>Your Daily Dose of Healing</Text>
+            <Text style={styles.quoteCardTitle}>Solace</Text>
             <Text style={styles.quoteText}>
               Your healing journey is valid, and you're exactly where you need to be right now.
             </Text>
           </View>
 
-          {/* How Many Section */}
+          {/* Enable Notifications Toggle */}
           <View style={styles.sectionContainer}>
+            <Text style={styles.sectionLabel}>Enable Notifications</Text>
+            <View style={styles.toggleContainer}>
+              <Text style={styles.toggleLabel}>
+                {notificationsEnabled ? 'Notifications enabled' : 'Notifications disabled'}
+              </Text>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={handleToggleNotifications}
+                trackColor={{ false: '#767577', true: theme.colors.primary }}
+                thumbColor={notificationsEnabled ? '#f4f3f4' : '#f4f3f4'}
+              />
+            </View>
+          </View>
+
+          {/* How Many Section */}
+          <View style={[styles.sectionContainer, { opacity: notificationsEnabled ? 1 : 0.5 }]}>
             <Text style={styles.sectionLabel}>How Many</Text>
             <View style={styles.frequencyContainer}>
               <Pressable
-                style={styles.frequencyButton}
-                onPress={() => handleFrequencyChange('decrease')}
+                style={[styles.frequencyButton, { opacity: notificationsEnabled ? 1 : 0.5 }]}
+                onPress={() => notificationsEnabled && handleFrequencyChange('decrease')}
+                disabled={!notificationsEnabled}
               >
                 <Ionicons name="remove" size={20} color="white" />
               </Pressable>
               <Text style={styles.frequencyText}>{selectedFrequency}x</Text>
               <Pressable
-                style={styles.frequencyButton}
-                onPress={() => handleFrequencyChange('increase')}
+                style={[styles.frequencyButton, { opacity: notificationsEnabled ? 1 : 0.5 }]}
+                onPress={() => notificationsEnabled && handleFrequencyChange('increase')}
+                disabled={!notificationsEnabled}
               >
                 <Ionicons name="add" size={20} color="white" />
               </Pressable>
@@ -193,13 +218,16 @@ export default function RemindersPage() {
             <Pressable 
               style={[
                 styles.allowButton,
-                { opacity: isSchedulingNotifications ? 0.7 : 1 }
+                { 
+                  opacity: isSchedulingNotifications ? 0.7 : (notificationsEnabled ? 1 : 0.5),
+                  backgroundColor: notificationsEnabled ? theme.colors.primary : theme.colors.textSecondary 
+                }
               ]} 
               onPress={handleAllowAndSave}
               disabled={isSchedulingNotifications}
             >
               <Text style={styles.allowButtonText}>
-                {isSchedulingNotifications ? 'Setting up...' : 'Allow and Save'}
+                {isSchedulingNotifications ? 'Setting up...' : (notificationsEnabled ? 'Save and Continue' : 'Enable Notifications First')}
               </Text>
             </Pressable>
           </View>
@@ -309,5 +337,20 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.semiBold,
     color: 'white',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: theme.radii.l,
+    padding: theme.spacing.m,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  toggleLabel: {
+    fontSize: theme.typography.fontSizes.m,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.text,
   },
 }); 
