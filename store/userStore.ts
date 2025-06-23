@@ -66,7 +66,7 @@ export const breakupInterestCategories: BreakupCategory[] = [
 
 
 export interface WidgetSettings {
-  category: BreakupCategory['id'] | 'favorites' | 'all'; // Can be a specific category ID, 'favorites', or 'all'
+  category: BreakupCategory['id'] | 'favorites'; // Can be a specific category ID or 'favorites'
   theme: WidgetTheme;
 }
 
@@ -169,7 +169,7 @@ const initialState = {
 
   // Widget Settings
   widgetSettings: {
-    category: 'all', // Default to 'all' breakup quotes for widget
+    category: 'general_healing', // Default to general healing for widget
     theme: 'light' as WidgetTheme,
   },
   isWidgetCustomizing: false, // Default to not customizing

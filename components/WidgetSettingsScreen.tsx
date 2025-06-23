@@ -171,12 +171,8 @@ export const WidgetSettingsScreen: React.FC<WidgetSettingsScreenProps> = ({
           }
         }
       } else {
-        // Handle category-based quotes
-        const categoriesToFetch = queryCategory === 'all' 
-          ? breakupInterestCategories
-              .filter(c => subscriptionTier === 'premium' || !c.premium)
-              .map(c => c.id)
-          : [queryCategory];
+        // Handle category-based quotes - single category only
+        const categoriesToFetch = [queryCategory];
 
         const { data, error } = await supabase
           .from('quotes')
@@ -280,7 +276,7 @@ export const WidgetSettingsScreen: React.FC<WidgetSettingsScreenProps> = ({
                       <Text style={styles.previewAppName}>Solace</Text>
                     </View>
                     <Text style={styles.previewQuote}>
-                      {selectedCategory ? `${selectedCategory.label} affirmations` : 'All affirmations'}
+                      {selectedCategory ? `${selectedCategory.label} affirmations` : 'Select a category'}
                     </Text>
                     <Text style={styles.previewUser}>Hello, {userName || 'User'}</Text>
                   </View>
@@ -295,21 +291,7 @@ export const WidgetSettingsScreen: React.FC<WidgetSettingsScreenProps> = ({
                 
                 <View style={styles.optionsList}>
                   
-                  {/* All Quotes Option */}
-                  <Pressable 
-                    style={[styles.option, widgetSettings.category === 'all' && styles.selectedOption]}
-                    onPress={() => handleCategoryChange('all')}
-                  >
-                    <View style={styles.optionContent}>
-                      <Text style={[styles.optionText, widgetSettings.category === 'all' && styles.selectedOptionText]}>
-                        All Quotes
-                      </Text>
-                      <Text style={styles.optionDescription}>Mix of all available affirmations</Text>
-                    </View>
-                    {widgetSettings.category === 'all' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#FF69B4" />
-                    )}
-                  </Pressable>
+
 
                   {/* Favorites Option */}
                   <Pressable 
@@ -561,7 +543,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.medium,
+    fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.text,
   },
   selectedOptionText: {
@@ -580,7 +562,7 @@ const styles = StyleSheet.create({
   premiumBadge: {
     fontSize: theme.typography.fontSizes.xs,
     color: theme.colors.primary,
-    fontFamily: theme.typography.fontFamily.medium,
+    fontFamily: theme.typography.fontFamily.regular,
     marginTop: 4,
   },
   updateButton: {

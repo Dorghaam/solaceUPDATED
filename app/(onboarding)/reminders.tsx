@@ -128,8 +128,8 @@ export default function RemindersPage() {
         frequency: `${selectedFrequency}x` as any,
       });
 
-      // Navigate to growth page after successful setup
-      router.push('/(onboarding)/growth');
+      // Navigate to lockscreen widget setup after successful setup
+      router.push('/(onboarding)/lockscreenwidget');
     } catch (error) {
       console.error('Failed to schedule notifications:', error);
       Alert.alert(
@@ -138,7 +138,7 @@ export default function RemindersPage() {
         [
           { 
             text: 'Continue', 
-            onPress: () => router.push('/(onboarding)/growth')
+            onPress: () => router.push('/(onboarding)/lockscreenwidget')
           }
         ]
       );
