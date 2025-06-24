@@ -84,7 +84,12 @@ export const MainFeedScreen = ({
 
   // Helper function to check if a quote is a placeholder
   const isPlaceholderQuote = (quoteId: string) => {
-    return ['no-favorites', 'no-quotes', 'error'].includes(quoteId);
+    return ['no-favorites', 'no-quotes', 'error', 'offline', 'cache-error'].includes(quoteId);
+  };
+
+  // Helper function to check if showing cached/offline content
+  const isOfflineMode = (quoteId: string) => {
+    return ['offline', 'cache-error'].includes(quoteId);
   };
 
   const handleGestureEvent = Animated.event(
@@ -222,6 +227,14 @@ export const MainFeedScreen = ({
         {/* Top Bar - Static */}
         <View style={styles.topBar}>
           <View style={styles.topLeftSpacer} />
+          
+          {/* Show offline indicator if current quote is from cache */}
+          {currentQuote && isOfflineMode(currentQuote.id) && (
+            <View style={styles.offlineIndicator}>
+              <Ionicons name="cloud-offline-outline" size={16} color="#666" />
+              <Text style={styles.offlineText}>Offline</Text>
+            </View>
+          )}
           
           <View style={styles.topRightButtons}>
             <Pressable 
@@ -473,5 +486,19 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     backgroundColor: 'transparent',
+  },
+  offlineIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  offlineText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
   },
 }); 

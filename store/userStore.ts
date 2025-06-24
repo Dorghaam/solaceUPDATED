@@ -213,15 +213,67 @@ export const useUserStore = create<UserState>()(
 
       fetchQuotes: async () => {
         const { supabase } = await import('../services/supabaseClient');
+        const { quoteCacheService } = await import('../services/quoteCacheService');
+        const { networkService } = await import('../services/networkService');
         const state = get();
         
-        set({ isLoading: true, quotes: [] }); // Clear previous quotes while loading
+        set({ isLoading: true }); // Don't clear quotes immediately - show previous quotes while loading
+        
+        // Check network status first
+        const isOnline = await networkService.checkConnection();
+        
+        if (!isOnline) {
+          // OFFLINE MODE: Try to use cached quotes
+          console.log('[FetchQuotes] Device is offline, attempting to use cached quotes');
+          
+          try {
+            const cachedQuotes = await quoteCacheService.getCachedQuotes(
+              state.subscriptionTier,
+              state.interestCategories
+            );
+            
+            if (cachedQuotes && cachedQuotes.length > 0) {
+              // Shuffle cached quotes for variety
+              const shuffledCached = [...cachedQuotes].sort(() => Math.random() - 0.5);
+              console.log(`[FetchQuotes] Using ${shuffledCached.length} cached quotes (offline mode)`);
+              
+              set({ 
+                quotes: shuffledCached, 
+                isLoading: false 
+              });
+              return;
+            } else {
+              // No cached quotes available
+              console.log('[FetchQuotes] No cached quotes available for offline use');
+              set({ 
+                quotes: [{ 
+                  id: 'offline', 
+                  text: "You're offline and no quotes are cached yet. Please connect to the internet to load quotes." 
+                }], 
+                isLoading: false 
+              });
+              return;
+            }
+          } catch (error) {
+            console.error('[FetchQuotes] Error accessing cached quotes:', error);
+            set({ 
+              quotes: [{ 
+                id: 'cache-error', 
+                text: "Unable to load cached quotes. Please check your connection." 
+              }], 
+              isLoading: false 
+            });
+            return;
+          }
+        }
+
+        // ONLINE MODE: Fetch from Supabase
         try {
           let query = supabase
             .from('quotes')
             .select('id, text, category');
 
-          // --- NEW SIMPLIFIED LOGIC ---
+          // --- EXISTING LOGIC ---
           if (state.activeQuoteCategory === 'favorites') {
             // Special handling for favorites category
             console.log('Fetching favorite quotes');
@@ -239,26 +291,24 @@ export const useUserStore = create<UserState>()(
             console.log(`Fetching quotes for single active category: ${state.activeQuoteCategory}`);
             query = query.eq('category', state.activeQuoteCategory);
           } else {
-                      // If NO category is selected (default state), fetch from all available categories.
-          console.log('No active category. Fetching default quotes based on subscription tier.');
-          console.log('[FetchQuotes] Current subscription tier:', state.subscriptionTier);
-          
-          // Treat 'unknown' as 'free' until RevenueCat confirms otherwise
-          const effectiveTier = state.subscriptionTier === 'premium' ? 'premium' : 'free';
-          console.log('[FetchQuotes] Effective tier for fetching:', effectiveTier);
-          
-          if (effectiveTier === 'free') {
-            const freeCategoryIds = breakupInterestCategories
-              .filter(c => !c.premium)
-              .map(c => c.id);
-            console.log('User is free/unknown, fetching from categories:', freeCategoryIds);
-            query = query.in('category', freeCategoryIds);
-          } else {
-            console.log('User is premium, fetching from all categories');
+            // If NO category is selected (default state), fetch from all available categories.
+            console.log('No active category. Fetching default quotes based on subscription tier.');
+            console.log('[FetchQuotes] Current subscription tier:', state.subscriptionTier);
+            
+            // Treat 'unknown' as 'free' until RevenueCat confirms otherwise
+            const effectiveTier = state.subscriptionTier === 'premium' ? 'premium' : 'free';
+            console.log('[FetchQuotes] Effective tier for fetching:', effectiveTier);
+            
+            if (effectiveTier === 'free') {
+              const freeCategoryIds = breakupInterestCategories
+                .filter(c => !c.premium)
+                .map(c => c.id);
+              console.log('User is free/unknown, fetching from categories:', freeCategoryIds);
+              query = query.in('category', freeCategoryIds);
+            } else {
+              console.log('User is premium, fetching from all categories');
+            }
           }
-            // For premium users with no active category, the query remains unfiltered to fetch from ALL categories.
-          }
-          // --- END OF NEW LOGIC ---
 
           console.log('[FetchQuotes] Executing Supabase query...');
           const { data, error } = await query.limit(50);
@@ -298,10 +348,43 @@ export const useUserStore = create<UserState>()(
             console.log('[FetchQuotes] Successfully fetched and shuffled', finalQuotes.length, 'quotes');
           }
           
+          // CACHE THE QUOTES for offline use (but not favorites as they change frequently)
+          if (state.activeQuoteCategory !== 'favorites') {
+            quoteCacheService.cacheQuotes(
+              finalQuotes,
+              state.subscriptionTier,
+              state.interestCategories
+            ).catch(error => {
+              console.warn('[FetchQuotes] Failed to cache quotes:', error);
+            });
+          }
+          
           set({ quotes: finalQuotes, isLoading: false });
 
         } catch (error: any) {
           console.error('Failed to fetch quotes:', error.message);
+          
+          // ON ERROR: Try to fallback to cached quotes
+          try {
+            const cachedQuotes = await quoteCacheService.getCachedQuotes(
+              state.subscriptionTier,
+              state.interestCategories
+            );
+            
+            if (cachedQuotes && cachedQuotes.length > 0) {
+              console.log('[FetchQuotes] Network failed, falling back to cached quotes');
+              const shuffledCached = [...cachedQuotes].sort(() => Math.random() - 0.5);
+              set({ 
+                quotes: shuffledCached, 
+                isLoading: false 
+              });
+              return;
+            }
+          } catch (cacheError) {
+            console.error('[FetchQuotes] Cache fallback also failed:', cacheError);
+          }
+          
+          // If everything fails, show error message
           set({ 
             quotes: [{ id: 'error', text: "Could not load affirmations. Please try again." }], 
             isLoading: false 
@@ -316,7 +399,7 @@ export const useUserStore = create<UserState>()(
         const state = get();
         
         // Prevent adding placeholder quotes to favorites
-        const placeholderIds = ['no-favorites', 'no-quotes', 'error'];
+        const placeholderIds = ['no-favorites', 'no-quotes', 'error', 'offline', 'cache-error'];
         if (placeholderIds.includes(quoteId)) {
           console.log(`[UserStore] Ignoring favorite action for placeholder quote: ${quoteId}`);
           return;

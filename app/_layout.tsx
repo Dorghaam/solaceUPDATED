@@ -17,6 +17,7 @@ import { initRevenueCat, verifyRevenueCatSetup } from '../services/revenueCatSer
 import { fetchAndSetUserProfile } from '../services/profileService';
 import { ensurePostLoginSync, signOut } from '../services/authService';
 import { reviewService } from '../services/reviewService';
+import { networkService } from '../services/networkService';
 import { router } from 'expo-router';
 
 // This is a placeholder ThemeProvider until we create our own
@@ -45,6 +46,10 @@ export default function RootLayout() {
         
         // 2. Configure Google Sign-In early
         configureGoogleSignIn();
+        
+        // 3. Initialize network monitoring
+        await networkService.checkConnection();
+        console.log('[Startup] Network service initialized');
         
         // 3. Initialize RevenueCat BEFORE auth processing (critical for login flow)
         console.log('[Startup] Initializing RevenueCat before auth processing...');

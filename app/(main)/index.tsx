@@ -41,6 +41,31 @@ export default function FeedPage() {
     updateStreakData();
   }, [fetchQuotes, updateStreakData]);
 
+  // Auto-retry fetching quotes when coming back online
+  useEffect(() => {
+    const initializeNetworkListener = async () => {
+      const { networkService } = await import('../../services/networkService');
+      
+      const unsubscribe = networkService.onConnectionChange((isConnected) => {
+        if (isConnected) {
+          console.log('[FeedPage] Device came back online, refetching quotes');
+          fetchQuotes();
+        }
+      });
+
+      return unsubscribe;
+    };
+
+    let cleanup: (() => void) | undefined;
+    initializeNetworkListener().then(unsubscribeFn => {
+      cleanup = unsubscribeFn;
+    });
+
+    return () => {
+      cleanup?.();
+    };
+  }, [fetchQuotes]);
+
   // Auto-refetch quotes when subscription tier changes to ensure premium content is unlocked
   useEffect(() => {
     if (subscriptionTier !== 'unknown') {
