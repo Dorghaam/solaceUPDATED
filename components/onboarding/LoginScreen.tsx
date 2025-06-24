@@ -89,16 +89,16 @@ export const LoginScreen = ({
 
           {/* Privacy Policy and Terms Links */}
           <View style={styles.legalLinksContainer}>
-            <Text style={styles.legalText}>
-              By signing in, you agree to our{' '}
+            <View style={styles.legalTextRow}>
+              <Text style={styles.legalText}>By signing in, you agree to our </Text>
               <Pressable onPress={handleTermsPress}>
                 <Text style={styles.linkText}>Terms of Service</Text>
               </Pressable>
-              {' '}and{' '}
+              <Text style={styles.legalText}> and </Text>
               <Pressable onPress={handlePrivacyPolicyPress}>
                 <Text style={styles.linkText}>Privacy Policy</Text>
               </Pressable>
-            </Text>
+            </View>
           </View>
         </View>
       </SafeAreaView>
@@ -173,6 +173,12 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.l,
     alignItems: 'center',
   },
+  legalTextRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   legalText: {
     fontFamily: theme.typography.fontFamily.regular,
     fontSize: 12,
@@ -183,7 +189,7 @@ const styles = StyleSheet.create({
   linkText: {
     fontFamily: theme.typography.fontFamily.regular,
     fontSize: 12,
-    color: theme.colors.primary,
+    color: theme.colors.black,
     textDecorationLine: 'underline',
   },
 }); 
