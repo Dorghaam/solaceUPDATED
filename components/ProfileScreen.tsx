@@ -15,7 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { theme } from '../constants/theme';
-import { signOut } from '../services/authService';
+import { signOut, deleteCurrentUserAccount } from '../services/authService';
 import { useUserStore } from '../store/userStore';
 import * as Haptics from 'expo-haptics';
 
@@ -178,6 +178,72 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }
   };
 
+  const handleDeleteProfile = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      Alert.alert(
+        'Delete Account',
+        'This action cannot be undone. Your account, all data, favorites, and subscription will be permanently deleted.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Delete Account',
+            style: 'destructive',
+            onPress: () => {
+              // Second confirmation for extra safety
+              Alert.alert(
+                'Are you absolutely sure?',
+                'This will permanently delete your account and all associated data. This action cannot be undone.',
+                [
+                  {
+                    text: 'Cancel',
+                    style: 'cancel',
+                  },
+                  {
+                    text: 'Yes, Delete Forever',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        // Show loading state while deleting
+                        Alert.alert('Deleting Account', 'Please wait while we delete your account...');
+                        
+                        // First close the modal
+                        handleClose();
+                        
+                        // Call the delete function which handles both Supabase and RevenueCat cleanup
+                        await deleteCurrentUserAccount();
+                        
+                        console.log('ProfileScreen: Account deletion successful, redirecting to onboarding');
+                        router.replace('/(onboarding)');
+                        
+                        // Show success message
+                        setTimeout(() => {
+                          Alert.alert('Account Deleted', 'Your account has been permanently deleted.');
+                        }, 1000);
+                        
+                      } catch (error: any) {
+                        console.error('ProfileScreen: Account deletion error:', error);
+                        Alert.alert(
+                          'Error', 
+                          'Failed to delete your account. Please try again or contact support if the problem persists.'
+                        );
+                      }
+                    },
+                  },
+                ]
+              );
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('ProfileScreen: Error showing delete account alert:', error);
+    }
+  };
+
   if (!visible) {
     return null;
   }
@@ -295,6 +361,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 onPress={handleProfileSignOut}
               >
                 <Text style={styles.logOutText}>Log Out</Text>
+              </Pressable>
+
+              {/* Delete Profile Button */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.deleteButton,
+                  { opacity: pressed ? 0.8 : 1 }
+                ]}
+                onPress={handleDeleteProfile}
+              >
+                <View style={styles.deleteButtonContent}>
+                  <Ionicons name="trash-outline" size={20} color="#dc3545" />
+                  <Text style={styles.deleteButtonText}>Delete Profile</Text>
+                </View>
               </Pressable>
             </ScrollView>
           </LinearGradient>
@@ -454,5 +534,25 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
+  },
+  deleteButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: theme.radii.m,
+    paddingVertical: theme.spacing.m + 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(220, 53, 69, 0.2)', // Light red border
+    marginTop: theme.spacing.m,
+  },
+  deleteButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.s,
+  },
+  deleteButtonText: {
+    fontSize: theme.typography.fontSizes.m,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: '#dc3545', // Red color for delete action
   },
 }); 
