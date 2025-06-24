@@ -8,7 +8,7 @@ export default ({ config }) => ({
     ...config.expo,
     name: "Solace",
     slug: "solace",
-    version: "1.0.7",
+    version: "1.0.8",
     scheme: "solaceapp",
     orientation: "portrait",
     icon: "./icon.png", // Updated to new app icon
@@ -25,7 +25,7 @@ export default ({ config }) => ({
         isTabletOnly: false,
         requireFullScreen: true,
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
-        buildNumber: "3",
+        buildNumber: "4",
         googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
         storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
         entitlements: {
@@ -57,6 +57,7 @@ export default ({ config }) => ({
           ios: {
             useFrameworks: "static",
             buildSettings: {
+              TARGETED_DEVICE_FAMILY: "1",
               "Debug": {
                  "STOREKIT_CONFIGURATION_FILE_PATH": "$(SRCROOT)/Product_StoreKit_Config.storekit"
               }
