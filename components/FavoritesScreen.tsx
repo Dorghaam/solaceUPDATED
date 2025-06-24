@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { theme } from '../constants/theme';
+import { getModalDimensions, getResponsiveFontSize } from '../utils/responsive';
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../services/supabaseClient';
 import * as Haptics from 'expo-haptics';

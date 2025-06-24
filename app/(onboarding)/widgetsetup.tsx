@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
 import { supabase } from '../../services/supabaseClient';
+import { getResponsiveDimensions, getWidgetPreviewSize, getResponsiveFontSize } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
@@ -14,6 +15,9 @@ export default function WidgetSetupPage() {
   const { setWidgetSettings, userName } = useUserStore();
   const [isApplying, setIsApplying] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
+  const responsiveDimensions = getResponsiveDimensions();
+  const widgetSize = getWidgetPreviewSize();
+  const styles = createStyles();
 
   useEffect(() => {
     // Auto-apply the widget with general healing category when screen loads
@@ -199,17 +203,23 @@ export default function WidgetSetupPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  backgroundGradient: { 
-    flex: 1 
-  },
-  safeArea: { 
-    flex: 1 
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.l,
-  },
+const createStyles = () => {
+  const responsiveDimensions = getResponsiveDimensions();
+  const widgetSize = getWidgetPreviewSize();
+  
+  return StyleSheet.create({
+    backgroundGradient: { 
+      flex: 1 
+    },
+    safeArea: { 
+      flex: 1 
+    },
+    container: {
+      flex: 1,
+      paddingHorizontal: responsiveDimensions.horizontalPadding,
+      maxWidth: responsiveDimensions.contentWidth,
+      alignSelf: 'center',
+    },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -228,10 +238,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 32,
+    fontSize: getResponsiveFontSize(32),
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: 38,
+    lineHeight: getResponsiveFontSize(38),
     marginBottom: theme.spacing.s,
   },
   subtitle: {
@@ -246,8 +256,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.l,
   },
   widgetPreview: {
-    width: width * 0.85,
-    height: 160,
+    width: widgetSize.width,
+    height: widgetSize.height,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: theme.radii.l,
     borderWidth: 2,
@@ -344,4 +354,5 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.semiBold,
     color: 'white',
   },
-}); 
+  });
+}; 

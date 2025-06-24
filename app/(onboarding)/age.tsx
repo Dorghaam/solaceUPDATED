@@ -126,6 +126,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.l,
+    maxWidth: 500,
+    alignSelf: 'center',
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,

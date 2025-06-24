@@ -16,6 +16,7 @@ import { CategoriesModal } from './CategoriesModal';
 import { SettingsModal } from './SettingsModal';
 import { theme } from '../constants/theme';
 import { SubscriptionTier } from '../store/userStore';
+import { getResponsiveDimensions, getResponsiveFontSize } from '../utils/responsive';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -81,6 +82,7 @@ export const MainFeedScreen = ({
 }: MainFeedScreenProps) => {
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
+  const responsiveDimensions = getResponsiveDimensions();
 
   // Helper function to check if a quote is a placeholder
   const isPlaceholderQuote = (quoteId: string) => {
@@ -391,7 +393,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: getResponsiveFontSize(16),
     color: theme.colors.text,
     marginTop: 16,
     fontWeight: '500',
@@ -414,7 +416,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   counterText: {
-    fontSize: 16,
+    fontSize: getResponsiveFontSize(16),
     fontWeight: '600',
     color: theme.colors.text,
   },
@@ -444,13 +446,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
+    maxWidth: 800, // Constrain width on larger screens
+    alignSelf: 'center',
   },
   quoteText: {
-    fontSize: 32,
+    fontSize: getResponsiveFontSize(32),
     fontWeight: '400',
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: 42,
+    lineHeight: getResponsiveFontSize(42),
     marginBottom: 60,
   },
   actionButtons: {

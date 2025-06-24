@@ -3,9 +3,12 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable, Image } from 'react-na
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { getResponsiveDimensions, getResponsiveFontSize } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 export default function PersonalizePage() {
+  const responsiveDimensions = getResponsiveDimensions();
+  
   const handleMakeItYours = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/(onboarding)/age');
@@ -70,6 +73,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: theme.spacing.l,
+    maxWidth: 600,
+    alignSelf: 'center',
   },
   topSpacer: {
     flex: 0.15,
@@ -93,10 +98,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 28,
+    fontSize: getResponsiveFontSize(28),
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: 36,
+    lineHeight: getResponsiveFontSize(36),
   },
   bottomSection: {
     flex: 0.15,

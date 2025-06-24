@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
+import { getResponsiveDimensions, getWidgetPreviewSize, getResponsiveFontSize } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');

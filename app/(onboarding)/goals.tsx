@@ -70,6 +70,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: theme.spacing.l,
+    maxWidth: 600,
+    alignSelf: 'center',
   },
   topSpacer: {
     flex: 0.15,

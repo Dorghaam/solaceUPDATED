@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { theme } from '../constants/theme';
+import { getModalDimensions, getResponsiveFontSize } from '../utils/responsive';
 import * as Haptics from 'expo-haptics';
 import { BreakupCategory, breakupInterestCategories, useUserStore } from '@/store/userStore';
 
@@ -432,6 +433,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
+    maxWidth: 800, // Constrain width on larger screens
+    alignSelf: 'center',
   },
   modalContent: {
     flex: 1,
@@ -506,7 +509,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.s,
   },
   categoryCard: {
-    width: (screenWidth - theme.spacing.m * 2 - theme.spacing.s) / 2,
+    width: Math.min((screenWidth - theme.spacing.m * 2 - theme.spacing.s) / 2, 180),
     height: 180,
     borderRadius: theme.radii.m,
     padding: 0,
