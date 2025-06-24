@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
 const ageOptions = [
@@ -15,11 +16,15 @@ const ageOptions = [
 
 export default function AgePage() {
   const [selectedAge, setSelectedAge] = useState<string | null>(null);
+  const { setAge } = useUserStore();
 
-  const handleAgePress = (age: string) => {
+  const handleAgePress = async (age: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedAge(age);
-    // Here you could save the selectedAge to analytics or user preferences
+    
+    // Save locally (will sync to database after authentication)
+    setAge(age);
+    
     // Small delay to show selection before navigating
     setTimeout(() => {
       router.push('/(onboarding)/name');

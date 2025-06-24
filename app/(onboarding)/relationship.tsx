@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
 const relationshipOptions = [
@@ -17,11 +18,15 @@ const relationshipOptions = [
 
 export default function RelationshipPage() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const { setRelationshipStatus } = useUserStore();
 
-  const handleStatusPress = (status: string) => {
+  const handleStatusPress = async (status: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedStatus(status);
-    // Here you could save the selectedStatus to analytics or user preferences
+    
+    // Save locally (will sync to database after authentication)
+    setRelationshipStatus(status);
+    
     // Small delay to show selection before navigating
     setTimeout(() => {
       router.push('/(onboarding)/spiritual');

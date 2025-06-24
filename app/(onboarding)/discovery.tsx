@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
 const discoveryOptions = [
@@ -17,11 +18,15 @@ const discoveryOptions = [
 
 export default function DiscoveryPage() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const { setDiscoverySource } = useUserStore();
 
-  const handleOptionPress = (option: string) => {
+  const handleOptionPress = async (option: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedOption(option);
-    // Here you could save the selectedOption to analytics or user preferences
+    
+    // Save locally (will sync to database after authentication)
+    setDiscoverySource(option);
+    
     // Small delay to show selection before navigating
     setTimeout(() => {
       router.push('/(onboarding)/personalize');

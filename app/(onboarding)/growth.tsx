@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
 const growthOptions = [
@@ -16,19 +17,23 @@ const growthOptions = [
 
 export default function GrowthPage() {
   const [selectedGrowth, setSelectedGrowth] = useState<string | null>(null);
+  const { setGrowthFocus } = useUserStore();
 
   const handleGrowthPress = (growth: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedGrowth(growth);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedGrowth) {
       return; // Don't continue if nothing is selected
     }
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Here you could save the selectedGrowth to analytics or user preferences
+    
+    // Save locally (will sync to database after authentication)
+    setGrowthFocus(selectedGrowth);
+    
     router.push('/(onboarding)/writegoals');
   };
 

@@ -212,6 +212,15 @@ export const ensurePostLoginSync = async (userId: string) => {
     } catch (favoriteError) {
       console.error('[AuthService] Failed to sync favorites, but continuing:', favoriteError);
     }
+
+    // 🚀 BATCH SYNC: Sync all onboarding data after authentication
+    try {
+      console.log('[AuthService] Syncing onboarding data to database...');
+      const { syncOnboardingToDatabase } = useUserStore.getState();
+      await syncOnboardingToDatabase();
+    } catch (onboardingError) {
+      console.error('[AuthService] Failed to sync onboarding data, but continuing:', onboardingError);
+    }
     
     // Log subscription state after sync
     const newTier = useUserStore.getState().subscriptionTier;

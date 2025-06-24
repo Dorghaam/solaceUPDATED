@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
 const spiritualOptions = [
@@ -13,11 +14,15 @@ const spiritualOptions = [
 
 export default function SpiritualPage() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const { setSpiritualPreference } = useUserStore();
 
-  const handleOptionPress = (option: string) => {
+  const handleOptionPress = async (option: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedOption(option);
-    // Here you could save the selectedOption to analytics or user preferences
+    
+    // Save locally (will sync to database after authentication)
+    setSpiritualPreference(option);
+    
     // Small delay to show selection before navigating
     setTimeout(() => {
       router.push('/(onboarding)/goals');

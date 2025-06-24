@@ -86,6 +86,15 @@ interface UserState {
   affirmationFamiliarity: FamiliarityAffirmations;
   interestCategories: string[]; // Stores IDs of selected BreakupCategory
   activeQuoteCategory: string | null; // ID of the currently active category for the feed
+  
+  // Onboarding data (stored locally AND synced to database)
+  age: string | null;
+  gender: string | null;
+  relationshipStatus: string | null;
+  spiritualPreference: string | null;
+  growthFocus: string | null;
+  discoverySource: string | null;
+  healingGoals: string | null;
 
   // Authentication
   supabaseUser: any | null; // Consider using Supabase User type if available
@@ -117,6 +126,16 @@ interface UserState {
   toggleInterestCategory: (categoryId: string) => void;
   setInterestCategories: (categoryIds: string[]) => void; // For setting all at once if needed
   setActiveQuoteCategory: (categoryId: string | null) => void;
+  
+  // Onboarding data actions
+  setAge: (age: string) => void;
+  setGender: (gender: string) => void;
+  setRelationshipStatus: (status: string) => void;
+  setSpiritualPreference: (preference: string) => void;
+  setGrowthFocus: (focus: string) => void;
+  setDiscoverySource: (source: string) => void;
+  setHealingGoals: (goals: string) => void;
+  syncOnboardingToDatabase: () => Promise<void>;
 
   setSupabaseUser: (user: any | null) => void;
 
@@ -156,6 +175,15 @@ const initialState = {
   affirmationFamiliarity: null,
   interestCategories: [breakupInterestCategories.find(cat => !cat.premium)?.id || 'general_healing'], // Default to the first free category
   activeQuoteCategory: null, // No active category by default, shows all (or all from selected free)
+  
+  // Onboarding data
+  age: null,
+  gender: null,
+  relationshipStatus: null,
+  spiritualPreference: null,
+  growthFocus: null,
+  discoverySource: null,
+  healingGoals: null,
 
   // Auth
   supabaseUser: null,
@@ -208,6 +236,59 @@ export const useUserStore = create<UserState>()(
         })),
       setInterestCategories: (categoryIds) => set({ interestCategories: categoryIds }),
       setActiveQuoteCategory: (categoryId) => set({ activeQuoteCategory: categoryId }),
+
+      // Onboarding data actions
+      setAge: (age) => set({ age }),
+      setGender: (gender) => set({ gender }),
+      setRelationshipStatus: (status) => set({ relationshipStatus: status }),
+      setSpiritualPreference: (preference) => set({ spiritualPreference: preference }),
+      setGrowthFocus: (focus) => set({ growthFocus: focus }),
+      setDiscoverySource: (source) => set({ discoverySource: source }),
+      setHealingGoals: (goals) => set({ healingGoals: goals }),
+      
+      syncOnboardingToDatabase: async () => {
+        const state = get();
+        if (!state.supabaseUser?.id) {
+          console.log('[UserStore] No user ID, skipping onboarding sync');
+          return;
+        }
+
+        // Check if we have any onboarding data to sync
+        const hasOnboardingData = state.age || state.gender || state.relationshipStatus || 
+          state.spiritualPreference || state.growthFocus || state.discoverySource || 
+          state.healingGoals || state.affirmationFamiliarity;
+
+        if (!hasOnboardingData) {
+          console.log('[UserStore] No onboarding data to sync');
+          return;
+        }
+
+        try {
+          const { saveOnboardingData } = await import('../services/onboardingService');
+          await saveOnboardingData({
+            user_id: state.supabaseUser.id,
+            age_range: state.age,
+            gender: state.gender,
+            relationship_status: state.relationshipStatus,
+            spiritual_preference: state.spiritualPreference,
+            growth_focus: state.growthFocus,
+            discovery_source: state.discoverySource,
+            healing_goals: state.healingGoals,
+            affirmation_familiarity: state.affirmationFamiliarity,
+          });
+          console.log('[UserStore] Successfully synced onboarding data to database');
+        } catch (error) {
+          console.error('[UserStore] Failed to sync onboarding data:', error);
+          
+          // 🔄 RETRY MECHANISM: Schedule retry after 30 seconds for failed syncs
+          setTimeout(() => {
+            console.log('[UserStore] Retrying onboarding sync...');
+            get().syncOnboardingToDatabase().catch(e => 
+              console.log('[UserStore] Retry also failed:', e)
+            );
+          }, 30000);
+        }
+      },
 
       setSupabaseUser: (user) => set({ supabaseUser: user }),
 
@@ -598,6 +679,14 @@ export const useUserStore = create<UserState>()(
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         affirmationFamiliarity: state.affirmationFamiliarity,
         interestCategories: state.interestCategories,
+        // Onboarding data for instant personalization
+        age: state.age,
+        gender: state.gender,
+        relationshipStatus: state.relationshipStatus,
+        spiritualPreference: state.spiritualPreference,
+        growthFocus: state.growthFocus,
+        discoverySource: state.discoverySource,
+        healingGoals: state.healingGoals,
         // supabaseUser is handled by Supabase client persistence
         favoriteQuoteIds: state.favoriteQuoteIds,
         notificationSettings: state.notificationSettings,

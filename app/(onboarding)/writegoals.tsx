@@ -3,14 +3,21 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable, TextInput, KeyboardAvo
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
 export default function WriteGoalsPage() {
   const [goals, setGoals] = useState<string>('');
+  const { setHealingGoals } = useUserStore();
 
-  const handleSaveGoals = () => {
+  const handleSaveGoals = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Here you could save the goals to user preferences or analytics
+    
+    // Save locally (will sync to database after authentication)
+    if (goals.trim()) {
+      setHealingGoals(goals.trim());
+    }
+    
     router.push('/(onboarding)/login');
   };
 

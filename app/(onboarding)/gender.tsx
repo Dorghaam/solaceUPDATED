@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
 const genderOptions = [
@@ -14,11 +15,15 @@ const genderOptions = [
 
 export default function GenderPage() {
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
+  const { setGender } = useUserStore();
 
-  const handleGenderPress = (gender: string) => {
+  const handleGenderPress = async (gender: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedGender(gender);
-    // Here you could save the selectedGender to analytics or user preferences
+    
+    // Save locally (will sync to database after authentication)
+    setGender(gender);
+    
     // Small delay to show selection before navigating
     setTimeout(() => {
       router.push('/(onboarding)/relationship');
