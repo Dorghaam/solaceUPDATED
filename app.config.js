@@ -8,7 +8,7 @@ export default ({ config }) => ({
     ...config.expo,
     name: "Solace",
     slug: "solace",
-    version: "1.0.0",
+    version: "1.0.6",
     scheme: "solaceapp",
     orientation: "portrait",
     icon: "./icon.png", // Updated to new app icon
@@ -23,7 +23,7 @@ export default ({ config }) => ({
       ...config.expo?.ios,
       supportsTablet: true,
       bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
-      buildNumber: "1",
+      buildNumber: "2",
       googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
       storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
       entitlements: {
@@ -69,7 +69,7 @@ export default ({ config }) => ({
     extra: {
       ...config.expo?.extra,
       eas: {
-        projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || "YOUR_EAS_PROJECT_ID_HERE"
+        projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || "3492a16b-5ccf-47a1-bbb5-e1ed0d2d1181"
       }
     }
   }
