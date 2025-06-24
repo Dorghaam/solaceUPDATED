@@ -19,20 +19,26 @@ export default ({ config }) => ({
       resizeMode: "contain",
       backgroundColor: "#FFF5F7" // Updated to pink gradient lightest color
     },
-    ios: {
-      ...config.expo?.ios,
-      supportsTablet: true,
-      bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
-      buildNumber: "2",
-      googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
-      storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
-      entitlements: {
-        "com.apple.security.application-groups": [
-          "group.com.dorghaamhaidar.solace.iphone" // Shared group ID for widget data sharing
-        ],
-        "com.apple.developer.applesignin": ["Default"]
+          ios: {
+        ...config.expo?.ios,
+        supportsTablet: false,
+        isTabletOnly: false,
+        requireFullScreen: true,
+        bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
+        buildNumber: "2",
+        googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
+        storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
+        entitlements: {
+          "com.apple.security.application-groups": [
+            "group.com.dorghaamhaidar.solace.iphone.widget"
+          ],
+          "com.apple.developer.applesignin": ["Default"]
+        },
+        infoPlist: {
+          ...(config?.expo?.ios?.infoPlist || {}),
+          UIDeviceFamily: [1], // iPhone only
+        }
       },
-    },
     android: {
       ...config.expo?.android,
       adaptiveIcon: {
