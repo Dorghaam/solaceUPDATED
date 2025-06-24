@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, SafeAreaView, View, Text, Pressable, Platform, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, SafeAreaView, View, Text, Pressable, Platform, ActivityIndicator, Image, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
@@ -17,6 +17,14 @@ export const LoginScreen = ({
   isGoogleLoading,
   isAppleLoading,
 }: LoginScreenProps) => {
+  const handlePrivacyPolicyPress = () => {
+    Linking.openURL('https://sites.google.com/view/solace-app/privacy-policy');
+  };
+
+  const handleTermsPress = () => {
+    Linking.openURL('https://sites.google.com/view/solace-app/home');
+  };
+
   return (
     <LinearGradient
       colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light, theme.colors.lightPink.medium]}
@@ -78,6 +86,20 @@ export const LoginScreen = ({
               </>
             )}
           </Pressable>
+
+          {/* Privacy Policy and Terms Links */}
+          <View style={styles.legalLinksContainer}>
+            <Text style={styles.legalText}>
+              By signing in, you agree to our{' '}
+              <Pressable onPress={handleTermsPress}>
+                <Text style={styles.linkText}>Terms of Service</Text>
+              </Pressable>
+              {' '}and{' '}
+              <Pressable onPress={handlePrivacyPolicyPress}>
+                <Text style={styles.linkText}>Privacy Policy</Text>
+              </Pressable>
+            </Text>
+          </View>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -146,5 +168,22 @@ const styles = StyleSheet.create({
   signInLogo: {
     width: 20,
     height: 20,
+  },
+  legalLinksContainer: {
+    marginTop: theme.spacing.l,
+    alignItems: 'center',
+  },
+  legalText: {
+    fontFamily: theme.typography.fontFamily.regular,
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  linkText: {
+    fontFamily: theme.typography.fontFamily.regular,
+    fontSize: 12,
+    color: theme.colors.primary,
+    textDecorationLine: 'underline',
   },
 }); 
