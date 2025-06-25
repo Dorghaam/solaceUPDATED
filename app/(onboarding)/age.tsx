@@ -126,8 +126,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.l,
-    maxWidth: 500,
-    alignSelf: 'center',
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
@@ -150,9 +148,10 @@ const styles = StyleSheet.create({
   },
   ageButton: {
     backgroundColor: theme.colors.white,
-    paddingVertical: theme.spacing.m + 4,
+    width: '100%',
+    paddingVertical: theme.spacing.l + theme.spacing.s,
     paddingHorizontal: theme.spacing.l,
-    borderRadius: theme.radii.l,
+    borderRadius: theme.radii.l + theme.radii.s,
     borderWidth: 2,
     borderColor: 'transparent',
     shadowColor: theme.colors.black,
@@ -163,6 +162,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   selectedAge: {
     borderColor: theme.colors.text,
