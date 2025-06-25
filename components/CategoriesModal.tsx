@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
   Image,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,6 +20,7 @@ import * as Haptics from 'expo-haptics';
 import { BreakupCategory, breakupInterestCategories, useUserStore } from '@/store/userStore';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const isTablet = screenWidth >= 768;
 
 // Preload images at module level
 const CATEGORY_IMAGES = {
@@ -426,18 +428,18 @@ const styles = StyleSheet.create({
   },
   modal: {
     position: 'absolute',
-    top: 0,
+    top: isTablet ? 0 : 50,
     left: 0,
     right: 0,
     bottom: 0,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
+    borderTopLeftRadius: isTablet ? 0 : 24,
+    borderTopRightRadius: isTablet ? 0 : 24,
     overflow: 'hidden',
   },
   modalContent: {
     flex: 1,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
+    borderTopLeftRadius: isTablet ? 0 : 24,
+    borderTopRightRadius: isTablet ? 0 : 24,
   },
   dragHandle: {
     width: 40,
