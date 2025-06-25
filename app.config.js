@@ -8,7 +8,7 @@ export default ({ config }) => ({
     ...config.expo,
     name: "Solace",
     slug: "solace",
-    version: "1.0.10",
+    version: "1.0.11",
     scheme: "solaceapp",
     orientation: "default",
     icon: "./icon.png", // Updated to new app icon
@@ -25,7 +25,7 @@ export default ({ config }) => ({
         isTabletOnly: false,
         requireFullScreen: true,
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
-        buildNumber: "10",
+        buildNumber: "11",
         googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
         storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
         entitlements: {
