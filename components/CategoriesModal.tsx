@@ -426,20 +426,18 @@ const styles = StyleSheet.create({
   },
   modal: {
     position: 'absolute',
-    top: 50, // Show some of the main screen at the top
+    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     overflow: 'hidden',
-    maxWidth: 800, // Constrain width on larger screens
-    alignSelf: 'center',
   },
   modalContent: {
     flex: 1,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
   dragHandle: {
     width: 40,
