@@ -643,8 +643,9 @@ export const useUserStore = create<UserState>()(
         // quotes and isLoading are also transient
       }),
       // Custom hydration logic if needed
-      onRehydrateStorage: () => async (state) => {
+      onRehydrateStorage: () => (state) => {
         console.log('UserStore: Hydration starts.');
+        
         if (state) {
           // Ensure critical defaults if hydration somehow misses them
           state.widgetSettings = state.widgetSettings || initialState.widgetSettings;
@@ -654,25 +655,17 @@ export const useUserStore = create<UserState>()(
           
           // ALWAYS start with 'unknown' - RevenueCat will update this
           state.subscriptionTier = 'unknown';
-          console.log('UserStore: Subscription tier reset to unknown for RevenueCat to determine');
           
           // Reset transient quote state
           state.quotes = [];
           state.isLoading = false;
           
-          // Mark as hydrated (CRITICAL for preventing welcome screen flash)
+          // Mark as hydrated
           state.hydrated = true;
           
-          console.log('UserStore: Hydration complete, state:', {
-            userName: state.userName,
-            hasCompletedOnboarding: state.hasCompletedOnboarding,
-            subscriptionTier: state.subscriptionTier,
-            interestCategories: state.interestCategories,
-            isWidgetCustomizing: state.isWidgetCustomizing,
-            hydrated: state.hydrated,
-          });
+          console.log('UserStore: Hydration complete');
         } else {
-          console.log('UserStore: Hydration - no persisted state found, using initial state.');
+          console.log('UserStore: No persisted state found');
         }
       },
     }

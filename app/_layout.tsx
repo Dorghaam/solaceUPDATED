@@ -46,83 +46,66 @@ export default function RootLayout() {
     'Inter-SemiBold': require('../Inter/static/Inter_18pt-SemiBold.ttf'),
   });
 
-  // Consolidated initialization - wait for ALL async operations before rendering
+  // Simplified initialization with better error handling
   useEffect(() => {
     const initializeApp = async () => {
-      console.time('[Startup] Total initialization time');
-      
       try {
-        console.log('[Startup] Starting consolidated app initialization...');
+        console.log('[Startup] Starting app initialization...');
         
-        // Wait for store hydration first (critical to prevent routing flashes)
+        // Wait for basic store hydration
         await waitForStoreHydration();
-        console.log('[Startup] ✅ Store hydration complete');
+        console.log('[Startup] Store hydrated');
 
-        // Now run all other initialization tasks in parallel
-        const [session] = await Promise.all([
-          // Core auth session
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            console.log('[Startup] ✅ Supabase session fetched:', session?.user?.id || 'none');
-            return session;
-          }),
+        // Initialize core services with error handling
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          console.log('[Startup] Session check complete');
           
-          // RevenueCat initialization
-          (async () => {
-            try {
-              console.log('[Startup] Initializing RevenueCat...');
-              const session = await supabase.auth.getSession().then(({ data: { session } }) => session);
-              await initRevenueCat(session?.user?.id ?? null);
-              await verifyRevenueCatSetup();
-              const { performInitialSubscriptionCheck } = await import('../services/revenueCatService');
-              await performInitialSubscriptionCheck();
-              console.log('[Startup] ✅ RevenueCat setup complete');
-            } catch (rcError) {
-              console.error('[Startup] RevenueCat initialization failed:', rcError);
-              useUserStore.getState().setSubscriptionTier('free');
-              console.log('[Startup] Set fallback subscription tier to free');
-            }
-          })(),
-          
-          // Other services
-          (async () => {
-            configureGoogleSignIn();
-            await networkService.checkConnection();
-            console.log('[Startup] ✅ Additional services initialized');
-          })(),
-        ]);
-
-        // Set authentication state
-        if (session?.user) {
-          setSupabaseUser(session.user);
-          
-          // Background tasks (don't await)
-          fetchAndSetUserProfile(session.user.id).catch(console.error);
-          ensurePostLoginSync(session.user.id).catch(console.error);
-          reviewService.trackAppOpen();
-          updateStreakData();
-          
-          console.log('[Startup] ✅ User authenticated and background tasks started');
-        } else {
+          if (session?.user) {
+            setSupabaseUser(session.user);
+            // Background tasks
+            fetchAndSetUserProfile(session.user.id).catch(console.error);
+            ensurePostLoginSync(session.user.id).catch(console.error);
+            reviewService.trackAppOpen();
+            updateStreakData();
+          } else {
+            setSupabaseUser(null);
+          }
+        } catch (authError) {
+          console.error('[Startup] Auth error:', authError);
           setSupabaseUser(null);
-          console.log('[Startup] ✅ No user session found');
         }
 
-        // Mark auth check as complete
+        // Initialize RevenueCat safely
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          await initRevenueCat(session?.user?.id ?? null);
+          const { performInitialSubscriptionCheck } = await import('../services/revenueCatService');
+          await performInitialSubscriptionCheck();
+        } catch (rcError) {
+          console.error('[Startup] RevenueCat error:', rcError);
+          useUserStore.getState().setSubscriptionTier('free');
+        }
+
+        // Other services
+        try {
+          configureGoogleSignIn();
+          await networkService.checkConnection();
+        } catch (servicesError) {
+          console.error('[Startup] Services error:', servicesError);
+        }
+
         setAuthChecked(true);
-        console.log('[Startup] ✅ Auth check complete');
+        console.log('[Startup] Initialization complete');
 
       } catch (e) {
-        console.error('[Startup] Error during app initialization:', e);
-        // Ensure auth is marked as checked even on error
+        console.error('[Startup] Critical error:', e);
         setAuthChecked(true);
+        useUserStore.getState().setSubscriptionTier('free');
       } finally {
-        console.timeEnd('[Startup] Total initialization time');
         setIsInitialized(true);
-        
-        // Hide splash screen
         if (fontsLoaded || fontError) {
-          await SplashScreen.hideAsync();
-          console.log('[Startup] ✅ Splash screen hidden, app ready');
+          SplashScreen.hideAsync().catch(console.error);
         }
       }
     };
@@ -230,18 +213,17 @@ export default function RootLayout() {
     return null;
   }
 
-  // CRITICAL: Don't render stacks until everything is ready (prevents welcome screen flash)
-  // Exception: If user explicitly logged out, allow rendering even if not fully initialized
-  const hasExplicitlyLoggedOut = !supabaseUser && authChecked;
+  // Simplified production-safe rendering logic
+  // Only wait for fonts and basic hydration to prevent crashes
+  const isBasicallyReady = (fontsLoaded || fontError) && hydrated;
   
-  if (!isInitialized || !hydrated || (!authChecked && !hasExplicitlyLoggedOut)) {
-    console.log('[Layout] Waiting for app readiness...', { 
-      isInitialized, 
-      hydrated, 
-      authChecked,
-      hasExplicitlyLoggedOut
+  if (!isBasicallyReady) {
+    console.log('[Layout] Waiting for basic app readiness...', { 
+      fontsLoaded, 
+      fontError, 
+      hydrated 
     });
-    return null; // Splash screen remains visible
+    return null; // Keep splash screen visible
   }
 
   // Authentication Flow Logic:
