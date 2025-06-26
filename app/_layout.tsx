@@ -13,7 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../services/supabaseClient';
 import { configureGoogleSignIn } from '../services/googleAuthService';
-import { initRevenueCat, verifyRevenueCatSetup } from '../services/revenueCatService';
+import { initRevenueCat, getInitialSubscriptionTier } from '../services/revenueCatService';
 import { fetchAndSetUserProfile } from '../services/profileService';
 import { ensurePostLoginSync, signOut } from '../services/authService';
 import { reviewService } from '../services/reviewService';
@@ -36,7 +36,9 @@ export default function RootLayout() {
     hydrated,
     authChecked,
     setAuthChecked,
-    isAppReady
+    isAppReady,
+    subscriptionTier,
+    fetchQuotes
   } = useUserStore();
   const [pendingDeepLink, setPendingDeepLink] = React.useState<string | null>(null);
   const [isInitialized, setIsInitialized] = React.useState(false);
@@ -46,7 +48,7 @@ export default function RootLayout() {
     'Inter-SemiBold': require('../Inter/static/Inter_18pt-SemiBold.ttf'),
   });
 
-  // Simplified initialization with better error handling
+  // Initialize app with splash screen logic - keep splash visible while loading
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -76,26 +78,18 @@ export default function RootLayout() {
           setSupabaseUser(null);
         }
 
-        // Initialize RevenueCat safely
+        // Initialize RevenueCat and get subscription tier
         try {
           const { data: { session } } = await supabase.auth.getSession();
           await initRevenueCat(session?.user?.id ?? null);
           
-          // ✅ Get initial tier from cache/persistence (don't depend on network)
-          const { getInitialSubscriptionTier } = await import('../services/revenueCatService');
+          // Get initial tier from cache/persistence
           const initialTier = await getInitialSubscriptionTier();
-          
-          if (initialTier !== 'unknown') {
-            console.log(`[Startup] Using initial tier: ${initialTier}`);
-          } else {
-            console.log('[Startup] Will wait for RevenueCat listener to determine tier');
-          }
+          console.log(`[Startup] Initial subscription tier: ${initialTier}`);
           
         } catch (rcError) {
           console.error('[Startup] RevenueCat error:', rcError);
-          // ✅ REMOVE AGGRESSIVE FALLBACK - Let persisted/cached state handle UI
           console.warn('[RevenueCat] Will use cached/persisted subscription state');
-          // ❌ REMOVED: useUserStore.getState().setSubscriptionTier('free');
         }
 
         // Other services
@@ -106,18 +100,32 @@ export default function RootLayout() {
           console.error('[Startup] Services error:', servicesError);
         }
 
+        // Pre-load quotes in background if user is authenticated and subscription is ready
+        try {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (currentSession?.user && subscriptionTier !== 'unknown') {
+            console.log('[Startup] Pre-loading quotes...');
+            await fetchQuotes();
+            console.log('[Startup] Quotes pre-loaded');
+          }
+        } catch (quotesError) {
+          console.error('[Startup] Failed to pre-load quotes:', quotesError);
+        }
+
         setAuthChecked(true);
         console.log('[Startup] Initialization complete');
 
       } catch (e) {
         console.error('[Startup] Critical error:', e);
         setAuthChecked(true);
-        // ✅ REMOVE AGGRESSIVE FALLBACK - Let persisted/cached state handle UI
         console.warn('[RevenueCat] Will use cached/persisted subscription state');
       } finally {
         setIsInitialized(true);
+        // Hide splash screen after everything is loaded
         if (fontsLoaded || fontError) {
-          SplashScreen.hideAsync().catch(console.error);
+          setTimeout(() => {
+            SplashScreen.hideAsync().catch(console.error);
+          }, 1000); // 1 second delay to show splash screen
         }
       }
     };
@@ -216,25 +224,20 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      // Don't hide splash immediately - let initialization complete
+      if (isInitialized) {
+        SplashScreen.hideAsync().catch(console.error);
+      }
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, isInitialized]);
 
-  // Don't render anything until fonts are loaded AND app is fully initialized
+  // Don't render anything until fonts are loaded AND app is initialized
   if (!fontsLoaded && !fontError) {
     return null;
   }
 
-  // Simplified production-safe rendering logic
-  // Only wait for fonts and basic hydration to prevent crashes
-  const isBasicallyReady = (fontsLoaded || fontError) && hydrated;
-  
-  if (!isBasicallyReady) {
-    console.log('[Layout] Waiting for basic app readiness...', { 
-      fontsLoaded, 
-      fontError, 
-      hydrated 
-    });
+  // Wait for basic initialization to complete
+  if (!isInitialized || !hydrated) {
     return null; // Keep splash screen visible
   }
 
