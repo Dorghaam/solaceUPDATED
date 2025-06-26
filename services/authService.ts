@@ -6,7 +6,7 @@ import type { SubscriptionTier } from '../store/userStore';
 import { useUserStore } from '../store/userStore';
 // Removed subscriptionSyncService import - now using simplified RevenueCat-only approach
 import { supabase } from './supabaseClient';
-import { logInRevenueCat, logOutRevenueCat } from './revenueCatService';
+import { logOut as revenueCatLogOut } from './revenueCatService';
 
 export const loginWithGoogle = async () => {
   try {
@@ -63,54 +63,23 @@ export const loginWithGoogle = async () => {
 };
 
 export const signOut = async () => {
-  console.log('authService: Attempting full sign out...');
-  
-  let revenueCatLogoutSuccess = false;
-  let supabaseLogoutSuccess = false;
-  let googleLogoutSuccess = false;
-  
   try {
-    // 1. Log out from RevenueCat FIRST to clear subscription cache
-    try {
-      await logOutRevenueCat();
-      revenueCatLogoutSuccess = true;
-      console.log('authService: RevenueCat signOut successful.');
-    } catch (rcError: any) {
-      console.error('authService: RevenueCat signOut error (non-fatal):', rcError.message);
-      // Don't throw - RevenueCat logout failure shouldn't prevent overall logout
-    }
+    console.log('[Auth] Signing out user...');
+    
+    // ✅ Log out from RevenueCat first to clear the user identity
+    await revenueCatLogOut();
 
-    // 2. Sign out from Supabase
-    try {
-      await supabase.auth.signOut();
-      supabaseLogoutSuccess = true;
-      console.log('authService: Supabase signOut successful.');
-    } catch (supabaseError: any) {
-      console.error('authService: Supabase signOut error:', supabaseError.message);
-      // Supabase logout is critical, but we'll continue to clean up other services
+    // Then, sign out from Supabase
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      // Even if Supabase fails, we tried to log out of RC
+      throw error;
     }
     
-    // 3. Sign out from Google (if applicable)
-    try {
-      if (await GoogleSignin.hasPreviousSignIn()) {
-        await GoogleSignin.signOut();
-        googleLogoutSuccess = true;
-        console.log('authService: Google signOut successful.');
-      }
-    } catch (googleError: any) {
-      console.error('authService: Google signOut error (non-fatal):', googleError.message);
-      // Google logout failure is non-fatal
-    }
-
-    console.log('authService: Sign out completed.', {
-      revenueCat: revenueCatLogoutSuccess,
-      supabase: supabaseLogoutSuccess,
-      google: googleLogoutSuccess
-    });
-
+    console.log('[Auth] Sign out from Supabase successful.');
   } catch (error: any) {
-    console.error('authService: Unexpected signOut error:', error.message);
-    // Don't throw - let the auth state change handle the cleanup
+    console.error('[Auth] Error during sign out:', error.message);
+    throw error;
   }
 };
 
@@ -202,17 +171,8 @@ export const checkAuthenticationSync = async () => {
   try {
     console.log('[AuthService] Smart sync: Checking RevenueCat identity alignment...');
     
-    const { supabaseUser } = useUserStore.getState();
-    const { syncRevenueCat, forceRefreshSubscriptionStatus } = await import('./revenueCatService');
-    
-    // Use the smart sync function that avoids unnecessary logOut calls
-    await syncRevenueCat(supabaseUser?.id || null);
-    
-    // Force a refresh of subscription status to ensure it's up to date
-    if (supabaseUser?.id) {
-      console.log('[AuthService] Forcing subscription status refresh after sync...');
-      await forceRefreshSubscriptionStatus();
-    }
+    // Note: RevenueCat sync is now handled by the auth listener in _layout.tsx
+    // The logIn function is called automatically when user signs in
     
     console.log('[AuthService] ✅ Smart sync completed successfully');
     
@@ -234,7 +194,7 @@ export const ensurePostLoginSync = async (userId: string) => {
     const currentTier = useUserStore.getState().subscriptionTier;
     console.log(`[AuthService] Current subscription tier before sync: ${currentTier}`);
     
-    await logInRevenueCat(userId);
+    // Note: RevenueCat login is now handled by the auth listener in _layout.tsx
     
     // Sync any local favorites to database (in case user had favorites while offline)
     try {

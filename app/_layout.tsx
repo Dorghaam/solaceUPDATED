@@ -13,7 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../services/supabaseClient';
 import { configureGoogleSignIn } from '../services/googleAuthService';
-import { initRevenueCat, getInitialSubscriptionTier } from '../services/revenueCatService';
+import { initRevenueCat, getInitialSubscriptionTier, logIn, logOut } from '../services/revenueCatService';
 import { fetchAndSetUserProfile } from '../services/profileService';
 import { ensurePostLoginSync, signOut } from '../services/authService';
 import { reviewService } from '../services/reviewService';
@@ -80,12 +80,12 @@ export default function RootLayout() {
 
         // Initialize RevenueCat and get subscription tier
         try {
-          const { data: { session } } = await supabase.auth.getSession();
-          await initRevenueCat(session?.user?.id ?? null);
-          
-          // Get initial tier from cache/persistence
+          // ✅ Initialize RevenueCat without a user ID
+          await initRevenueCat();
+
+          // Then get the initial subscription state from the cache
           const initialTier = await getInitialSubscriptionTier();
-          console.log(`[Startup] Initial subscription tier: ${initialTier}`);
+          console.log(`[Startup] Initial subscription tier from cache: ${initialTier}`);
           
         } catch (rcError) {
           console.error('[Startup] RevenueCat error:', rcError);
@@ -152,7 +152,10 @@ export default function RootLayout() {
           setSupabaseUser(session?.user ?? null);
 
           if (_event === 'SIGNED_IN' && session?.user) {
-            // Don't await these - let them happen in background to avoid blocking
+            // ✅ Log the user into RevenueCat with their Supabase ID
+            await logIn(session.user.id);
+            
+            // Other background tasks
             ensurePostLoginSync(session.user.id).catch(console.error);
             fetchAndSetUserProfile(session.user.id).catch(console.error);
             
@@ -160,6 +163,8 @@ export default function RootLayout() {
             reviewService.trackAppOpen();
             updateStreakData();
           } else if (_event === 'SIGNED_OUT') {
+            // ✅ Log the user out of RevenueCat
+            await logOut();
             console.log('[AuthListener] Processing sign out...');
             
             // Add delay to prevent race conditions with navigation
