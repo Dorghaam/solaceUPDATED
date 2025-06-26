@@ -34,22 +34,25 @@ export default function FeedPage() {
   const [showCategories, setShowCategories] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Load quotes when the component mounts and track app usage
+  // Load quotes only once when component mounts with proper guards
   useEffect(() => {
-    fetchQuotes();
-    // Track that user opened the main app for streak
-    updateStreakData();
-  }, [fetchQuotes, updateStreakData]);
-
-
-
-  // Auto-refetch quotes when subscription tier changes to ensure premium content is unlocked
-  useEffect(() => {
-    if (subscriptionTier !== 'unknown') {
-      console.log('[FeedPage] Subscription tier changed:', subscriptionTier);
+    // Only fetch if we have a determined subscription tier and user is authenticated
+    if (subscriptionTier !== 'unknown' && supabaseUser) {
+      console.log('[FeedPage] Initial quote fetch with tier:', subscriptionTier);
       fetchQuotes();
     }
-  }, [subscriptionTier, fetchQuotes]);
+    
+    // Track that user opened the main app for streak (only once)
+    updateStreakData();
+  }, []);
+
+  // Fetch quotes when subscription tier is determined (but only once per tier change)
+  useEffect(() => {
+    if (subscriptionTier !== 'unknown' && supabaseUser && quotes.length === 0) {
+      console.log('[FeedPage] Fetching quotes for determined tier:', subscriptionTier);
+      fetchQuotes();
+    }
+  }, [subscriptionTier, supabaseUser]);
 
   // Update like count when favorites change
   useEffect(() => {

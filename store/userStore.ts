@@ -82,6 +82,10 @@ export type WidgetTheme = 'light' | 'dark' | 'pink_text_on_white' | 'dark_text_o
 
 // --- State ---
 interface UserState {
+  // App State Control
+  hydrated: boolean;
+  authChecked: boolean;
+  
   // Onboarding & Profile
   userName: string | null;
   hasCompletedOnboarding: boolean;
@@ -162,15 +166,23 @@ interface UserState {
 
   setSubscriptionTier: (tier: SubscriptionTier) => void; // Added action for subscription tier
 
+  // App State Control Actions
+  setAuthChecked: (checked: boolean) => void;
+
   resetState: () => void;
   
   // Authentication helpers
   isAuthenticated: () => boolean;
   isFullyOnboarded: () => boolean;
+  isAppReady: () => boolean;
 }
 
 // --- Store ---
 const initialState = {
+  // App State Control
+  hydrated: false,
+  authChecked: false,
+  
   // Onboarding & Profile
   userName: null,
   hasCompletedOnboarding: false,
@@ -566,25 +578,14 @@ export const useUserStore = create<UserState>()(
         
         set({ subscriptionTier: tier });
         
-        // Auto-refetch quotes when subscription tier changes to ensure UI updates
-        // Add debouncing to prevent rapid calls during login
-        if (currentTier !== tier && tier !== 'unknown') {
-          console.log('[UserStore] Subscription tier changed, refetching quotes...');
-          
-          // Clear any existing timeout
-          const state = get();
-          if (state.fetchQuotesTimeout) {
-            clearTimeout(state.fetchQuotesTimeout);
-          }
-          
-          // Set new timeout with longer delay to allow RevenueCat to settle
-          const timeoutId = setTimeout(() => {
-            console.log('[UserStore] Executing debounced fetchQuotes after tier change');
-            get().fetchQuotes();
-          }, 500); // Increased from 100ms to 500ms
-          
-          set({ fetchQuotesTimeout: timeoutId });
-        }
+        // Note: Quote fetching will now be handled by consolidated initialization
+        // Remove auto-refetch to prevent duplicate calls during startup
+      },
+
+      // App State Control Actions
+      setAuthChecked: (checked) => {
+        console.log(`[UserStore] Auth checked: ${checked}`);
+        set({ authChecked: checked });
       },
 
       resetState: () => {
@@ -596,12 +597,21 @@ export const useUserStore = create<UserState>()(
           clearTimeout(state.fetchQuotesTimeout);
         }
         
-        set(initialState);
+        // Reset to initial state but keep critical app state flags
+        set({
+          ...initialState,
+          hydrated: state.hydrated, // Keep hydrated state
+          authChecked: true, // Keep auth as checked (we just processed a logout)
+        });
       },
 
       // Authentication helpers
       isAuthenticated: () => !!get().supabaseUser,
       isFullyOnboarded: () => get().hasCompletedOnboarding,
+      isAppReady: () => {
+        const state = get();
+        return state.hydrated && state.authChecked;
+      },
     }),
     {
       name: 'solace-user-storage',
@@ -650,12 +660,16 @@ export const useUserStore = create<UserState>()(
           state.quotes = [];
           state.isLoading = false;
           
+          // Mark as hydrated (CRITICAL for preventing welcome screen flash)
+          state.hydrated = true;
+          
           console.log('UserStore: Hydration complete, state:', {
             userName: state.userName,
             hasCompletedOnboarding: state.hasCompletedOnboarding,
             subscriptionTier: state.subscriptionTier,
             interestCategories: state.interestCategories,
             isWidgetCustomizing: state.isWidgetCustomizing,
+            hydrated: state.hydrated,
           });
         } else {
           console.log('UserStore: Hydration - no persisted state found, using initial state.');

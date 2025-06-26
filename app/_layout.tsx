@@ -18,6 +18,7 @@ import { fetchAndSetUserProfile } from '../services/profileService';
 import { ensurePostLoginSync, signOut } from '../services/authService';
 import { reviewService } from '../services/reviewService';
 import { networkService } from '../services/networkService';
+import { waitForStoreHydration } from '../utils';
 import { router } from 'expo-router';
 
 // This is a placeholder ThemeProvider until we create our own
@@ -26,71 +27,102 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{childr
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { supabaseUser, hasCompletedOnboarding, setSupabaseUser, resetState, updateStreakData } = useUserStore();
+  const { 
+    supabaseUser, 
+    hasCompletedOnboarding, 
+    setSupabaseUser, 
+    resetState, 
+    updateStreakData,
+    hydrated,
+    authChecked,
+    setAuthChecked,
+    isAppReady
+  } = useUserStore();
   const [pendingDeepLink, setPendingDeepLink] = React.useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = React.useState(false);
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('../Inter/static/Inter_18pt-Regular.ttf'),
     'Inter-SemiBold': require('../Inter/static/Inter_18pt-SemiBold.ttf'),
   });
 
-  // This effect runs only once on app startup
+  // Consolidated initialization - wait for ALL async operations before rendering
   useEffect(() => {
     const initializeApp = async () => {
+      console.time('[Startup] Total initialization time');
+      
       try {
-        console.log('[Startup] Starting app initialization...');
+        console.log('[Startup] Starting consolidated app initialization...');
         
-        // 1. Get the initial Supabase session FIRST
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('[Startup] Initial session fetched. User:', session?.user?.id || 'none');
-        
-        // 2. Configure Google Sign-In early
-        configureGoogleSignIn();
-        
-        // 3. Initialize network monitoring
-        await networkService.checkConnection();
-        console.log('[Startup] Network service initialized');
-        
-        // 3. Initialize RevenueCat BEFORE auth processing (critical for login flow)
-        console.log('[Startup] Initializing RevenueCat before auth processing...');
-        try {
-          await initRevenueCat(session?.user?.id ?? null);
+        // Wait for store hydration first (critical to prevent routing flashes)
+        await waitForStoreHydration();
+        console.log('[Startup] ✅ Store hydration complete');
+
+        // Now run all other initialization tasks in parallel
+        const [session] = await Promise.all([
+          // Core auth session
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            console.log('[Startup] ✅ Supabase session fetched:', session?.user?.id || 'none');
+            return session;
+          }),
           
-          // Verify setup for debugging (can be removed in production)
-          await verifyRevenueCatSetup();
+          // RevenueCat initialization
+          (async () => {
+            try {
+              console.log('[Startup] Initializing RevenueCat...');
+              const session = await supabase.auth.getSession().then(({ data: { session } }) => session);
+              await initRevenueCat(session?.user?.id ?? null);
+              await verifyRevenueCatSetup();
+              const { performInitialSubscriptionCheck } = await import('../services/revenueCatService');
+              await performInitialSubscriptionCheck();
+              console.log('[Startup] ✅ RevenueCat setup complete');
+            } catch (rcError) {
+              console.error('[Startup] RevenueCat initialization failed:', rcError);
+              useUserStore.getState().setSubscriptionTier('free');
+              console.log('[Startup] Set fallback subscription tier to free');
+            }
+          })(),
           
-          // Force an initial subscription check after initialization
-          const { performInitialSubscriptionCheck } = await import('../services/revenueCatService');
-          await performInitialSubscriptionCheck();
-          console.log('[Startup] RevenueCat setup and initial check complete');
-        } catch (rcError) {
-          console.error('[Startup] RevenueCat initialization failed:', rcError);
-          // Set a fallback tier so the app can still function
-          const { useUserStore } = await import('../store/userStore');
-          useUserStore.getState().setSubscriptionTier('free');
-          console.log('[Startup] Set fallback subscription tier to free');
-        }
-        
-        // 4. Set user in store immediately (don't wait for RevenueCat)
+          // Other services
+          (async () => {
+            configureGoogleSignIn();
+            await networkService.checkConnection();
+            console.log('[Startup] ✅ Additional services initialized');
+          })(),
+        ]);
+
+        // Set authentication state
         if (session?.user) {
           setSupabaseUser(session.user);
-          // Don't await these - let them happen in background
+          
+          // Background tasks (don't await)
           fetchAndSetUserProfile(session.user.id).catch(console.error);
           ensurePostLoginSync(session.user.id).catch(console.error);
-          
-          // 5. Track app open for streak and review service
           reviewService.trackAppOpen();
           updateStreakData();
+          
+          console.log('[Startup] ✅ User authenticated and background tasks started');
         } else {
           setSupabaseUser(null);
+          console.log('[Startup] ✅ No user session found');
         }
 
+        // Mark auth check as complete
+        setAuthChecked(true);
+        console.log('[Startup] ✅ Auth check complete');
 
       } catch (e) {
-        console.error("Error during app initialization:", e);
+        console.error('[Startup] Error during app initialization:', e);
+        // Ensure auth is marked as checked even on error
+        setAuthChecked(true);
       } finally {
+        console.timeEnd('[Startup] Total initialization time');
+        setIsInitialized(true);
+        
+        // Hide splash screen
         if (fontsLoaded || fontError) {
           await SplashScreen.hideAsync();
+          console.log('[Startup] ✅ Splash screen hidden, app ready');
         }
       }
     };
@@ -193,15 +225,36 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
+  // Don't render anything until fonts are loaded AND app is fully initialized
   if (!fontsLoaded && !fontError) {
     return null;
   }
 
+  // CRITICAL: Don't render stacks until everything is ready (prevents welcome screen flash)
+  // Exception: If user explicitly logged out, allow rendering even if not fully initialized
+  const hasExplicitlyLoggedOut = !supabaseUser && authChecked;
+  
+  if (!isInitialized || !hydrated || (!authChecked && !hasExplicitlyLoggedOut)) {
+    console.log('[Layout] Waiting for app readiness...', { 
+      isInitialized, 
+      hydrated, 
+      authChecked,
+      hasExplicitlyLoggedOut
+    });
+    return null; // Splash screen remains visible
+  }
+
   // Authentication Flow Logic:
-  // 1. If user hasn't completed onboarding, show onboarding (regardless of auth status)
+  // 1. If user hasn't completed onboarding, show onboarding (regardless of auth status)  
   // 2. If user completed onboarding but isn't authenticated, redirect back to onboarding
   // 3. Only show main app if both authenticated AND completed onboarding
   const showMainApp = supabaseUser && hasCompletedOnboarding;
+
+  console.log('[Layout] Rendering app stacks', { 
+    showMainApp, 
+    hasUser: !!supabaseUser, 
+    hasCompletedOnboarding 
+  });
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
