@@ -93,7 +93,7 @@ struct SolaceWidgetEntryView : View {
                 
                 VStack(alignment: .center, spacing: 0) {
                     Text(entry.quote)
-                        .font(.caption)
+                        .font(.footnote)
                         .fontWeight(.medium)
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
                         .multilineTextAlignment(.center)
@@ -119,7 +119,7 @@ struct SolaceWidgetEntryView : View {
                 
                 VStack(alignment: .center, spacing: 0) {
                     Text(entry.quote)
-                        .font(.body)
+                        .font(.callout)
                         .fontWeight(.medium)
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
                         .multilineTextAlignment(.center)

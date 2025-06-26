@@ -356,14 +356,7 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
     });
   }
 
-  const flatListData = [
-    {
-      type: 'section',
-      id: 'categories-section',
-      title: 'Choose Category',
-    },
-    ...categoryPairs
-  ];
+  const flatListData = categoryPairs;
 
   const renderItem = useCallback(({ item }: { item: any }) => {
     if (item.type === 'section') {
