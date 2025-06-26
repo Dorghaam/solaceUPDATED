@@ -294,61 +294,10 @@ export const useUserStore = create<UserState>()(
 
       fetchQuotes: async () => {
         const { supabase } = await import('../services/supabaseClient');
-        const { quoteCacheService } = await import('../services/quoteCacheService');
-        const { networkService } = await import('../services/networkService');
         const state = get();
         
-        set({ isLoading: true }); // Don't clear quotes immediately - show previous quotes while loading
-        
-        // Check network status first
-        const isOnline = await networkService.checkConnection();
-        
-        if (!isOnline) {
-          // OFFLINE MODE: Try to use cached quotes
-          console.log('[FetchQuotes] Device is offline, attempting to use cached quotes');
-          
-          try {
-            const cachedQuotes = await quoteCacheService.getCachedQuotes(
-              state.subscriptionTier,
-              state.interestCategories
-            );
-            
-            if (cachedQuotes && cachedQuotes.length > 0) {
-              // Shuffle cached quotes for variety
-              const shuffledCached = [...cachedQuotes].sort(() => Math.random() - 0.5);
-              console.log(`[FetchQuotes] Using ${shuffledCached.length} cached quotes (offline mode)`);
-              
-              set({ 
-                quotes: shuffledCached, 
-                isLoading: false 
-              });
-              return;
-            } else {
-              // No cached quotes available
-              console.log('[FetchQuotes] No cached quotes available for offline use');
-              set({ 
-                quotes: [{ 
-                  id: 'offline', 
-                  text: "You're offline and no quotes are cached yet. Please connect to the internet to load quotes." 
-                }], 
-                isLoading: false 
-              });
-              return;
-            }
-          } catch (error) {
-            console.error('[FetchQuotes] Error accessing cached quotes:', error);
-            set({ 
-              quotes: [{ 
-                id: 'cache-error', 
-                text: "Unable to load cached quotes. Please check your connection." 
-              }], 
-              isLoading: false 
-            });
-            return;
-          }
-        }
+        set({ isLoading: true });
 
-        // ONLINE MODE: Fetch from Supabase
         try {
           let query = supabase
             .from('quotes')
@@ -392,7 +341,20 @@ export const useUserStore = create<UserState>()(
           }
 
           console.log('[FetchQuotes] Executing Supabase query...');
-          const { data, error } = await query.limit(50);
+          
+          // Apply different limits based on fetch type
+          let queryWithLimit;
+          if (state.activeQuoteCategory && state.activeQuoteCategory !== 'favorites') {
+            // For specific categories, fetch ALL quotes available
+            console.log(`[FetchQuotes] Fetching ALL quotes for category: ${state.activeQuoteCategory}`);
+            queryWithLimit = query; // No limit for specific categories
+          } else {
+            // For "all categories" view, use a reasonable limit to avoid performance issues
+            console.log('[FetchQuotes] Fetching with limit for general view');
+            queryWithLimit = query.limit(100); // Increased from 50 to 100 for general view
+          }
+          
+          const { data, error } = await queryWithLimit;
 
           const logData: any = { dataCount: data?.length };
           if (error) {
@@ -429,45 +391,14 @@ export const useUserStore = create<UserState>()(
             console.log('[FetchQuotes] Successfully fetched and shuffled', finalQuotes.length, 'quotes');
           }
           
-          // CACHE THE QUOTES for offline use (but not favorites as they change frequently)
-          if (state.activeQuoteCategory !== 'favorites') {
-            quoteCacheService.cacheQuotes(
-              finalQuotes,
-              state.subscriptionTier,
-              state.interestCategories
-            ).catch(error => {
-              console.warn('[FetchQuotes] Failed to cache quotes:', error);
-            });
-          }
-          
           set({ quotes: finalQuotes, isLoading: false });
 
         } catch (error: any) {
           console.error('Failed to fetch quotes:', error.message);
           
-          // ON ERROR: Try to fallback to cached quotes
-          try {
-            const cachedQuotes = await quoteCacheService.getCachedQuotes(
-              state.subscriptionTier,
-              state.interestCategories
-            );
-            
-            if (cachedQuotes && cachedQuotes.length > 0) {
-              console.log('[FetchQuotes] Network failed, falling back to cached quotes');
-              const shuffledCached = [...cachedQuotes].sort(() => Math.random() - 0.5);
-              set({ 
-                quotes: shuffledCached, 
-                isLoading: false 
-              });
-              return;
-            }
-          } catch (cacheError) {
-            console.error('[FetchQuotes] Cache fallback also failed:', cacheError);
-          }
-          
-          // If everything fails, show error message
+          // Show error message
           set({ 
-            quotes: [{ id: 'error', text: "Could not load affirmations. Please try again." }], 
+            quotes: [{ id: 'error', text: "Could not load affirmations. Please check your internet connection and try again." }], 
             isLoading: false 
           });
         }
@@ -480,7 +411,7 @@ export const useUserStore = create<UserState>()(
         const state = get();
         
         // Prevent adding placeholder quotes to favorites
-        const placeholderIds = ['no-favorites', 'no-quotes', 'error', 'offline', 'cache-error'];
+        const placeholderIds = ['no-favorites', 'no-quotes', 'error'];
         if (placeholderIds.includes(quoteId)) {
           console.log(`[UserStore] Ignoring favorite action for placeholder quote: ${quoteId}`);
           return;

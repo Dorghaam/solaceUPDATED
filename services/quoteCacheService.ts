@@ -6,6 +6,7 @@ interface CachedQuoteData {
   timestamp: number;
   subscriptionTier: string;
   categories: string[];
+  activeCategory: string | null; // Track which specific category was cached
 }
 
 const CACHE_KEY = 'cached_quotes';
@@ -19,7 +20,8 @@ class QuoteCacheService {
   async cacheQuotes(
     quotes: Quote[], 
     subscriptionTier: string, 
-    activeCategories: string[]
+    activeCategories: string[],
+    activeCategory: string | null = null
   ): Promise<void> {
     try {
       // Only cache a reasonable amount to save storage
@@ -30,6 +32,7 @@ class QuoteCacheService {
         timestamp: Date.now(),
         subscriptionTier,
         categories: activeCategories,
+        activeCategory,
       };
 
       await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
@@ -44,7 +47,8 @@ class QuoteCacheService {
    */
   async getCachedQuotes(
     currentSubscriptionTier: string,
-    activeCategories: string[]
+    activeCategories: string[],
+    currentActiveCategory: string | null = null
   ): Promise<Quote[] | null> {
     try {
       const cachedData = await AsyncStorage.getItem(CACHE_KEY);
@@ -63,6 +67,12 @@ class QuoteCacheService {
         return null;
       }
 
+      // Check if the cached data matches the current viewing context
+      if (currentActiveCategory && parsed.activeCategory !== currentActiveCategory) {
+        console.log(`[QuoteCache] Cache mismatch: cached for '${parsed.activeCategory}', requested '${currentActiveCategory}'`);
+        return null; // Cache doesn't match current category selection
+      }
+
       // Filter quotes based on current subscription tier and categories
       let filteredQuotes = parsed.quotes;
       
@@ -73,7 +83,7 @@ class QuoteCacheService {
         console.log('[QuoteCache] Subscription tier downgraded, but returning cached quotes');
       }
 
-      console.log(`[QuoteCache] Retrieved ${filteredQuotes.length} cached quotes`);
+      console.log(`[QuoteCache] Retrieved ${filteredQuotes.length} cached quotes for context: ${currentActiveCategory || 'general'}`);
       return filteredQuotes;
     } catch (error) {
       console.error('[QuoteCache] Failed to retrieve cached quotes:', error);
