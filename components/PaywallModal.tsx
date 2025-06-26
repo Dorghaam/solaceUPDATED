@@ -104,6 +104,10 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
     console.log('[PaywallModal] Paywall dismissed. Checking current subscription status...');
     
     try {
+      // ✅ SYNC PURCHASES first to handle "already subscribed" scenarios
+      console.log('[PaywallModal] Syncing purchases on dismiss...');
+      await Purchases.syncPurchases();
+      
       // Get fresh customer info to check current subscription status
       const customerInfo = await Purchases.getCustomerInfo();
       const hasPremium = Object.values(customerInfo.entitlements.active).some((e: PurchasesEntitlementInfo) => e.isActive);
@@ -117,6 +121,11 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       }
     } catch (error) {
       console.warn('[PaywallModal] Failed to check subscription status on dismiss:', error);
+      // If we can't check RevenueCat, keep current tier unless it's unknown
+      const currentTier = useUserStore.getState().subscriptionTier;
+      if (currentTier === 'unknown') {
+        setSubscriptionTier('free');
+      }
     }
     
     handleClose();

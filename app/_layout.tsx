@@ -80,11 +80,22 @@ export default function RootLayout() {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           await initRevenueCat(session?.user?.id ?? null);
-          const { performInitialSubscriptionCheck } = await import('../services/revenueCatService');
-          await performInitialSubscriptionCheck();
+          
+          // ✅ Get initial tier from cache/persistence (don't depend on network)
+          const { getInitialSubscriptionTier } = await import('../services/revenueCatService');
+          const initialTier = await getInitialSubscriptionTier();
+          
+          if (initialTier !== 'unknown') {
+            console.log(`[Startup] Using initial tier: ${initialTier}`);
+          } else {
+            console.log('[Startup] Will wait for RevenueCat listener to determine tier');
+          }
+          
         } catch (rcError) {
           console.error('[Startup] RevenueCat error:', rcError);
-          useUserStore.getState().setSubscriptionTier('free');
+          // ✅ REMOVE AGGRESSIVE FALLBACK - Let persisted/cached state handle UI
+          console.warn('[RevenueCat] Will use cached/persisted subscription state');
+          // ❌ REMOVED: useUserStore.getState().setSubscriptionTier('free');
         }
 
         // Other services
@@ -101,7 +112,8 @@ export default function RootLayout() {
       } catch (e) {
         console.error('[Startup] Critical error:', e);
         setAuthChecked(true);
-        useUserStore.getState().setSubscriptionTier('free');
+        // ✅ REMOVE AGGRESSIVE FALLBACK - Let persisted/cached state handle UI
+        console.warn('[RevenueCat] Will use cached/persisted subscription state');
       } finally {
         setIsInitialized(true);
         if (fontsLoaded || fontError) {

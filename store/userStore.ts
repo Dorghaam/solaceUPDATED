@@ -638,7 +638,7 @@ export const useUserStore = create<UserState>()(
         streakData: state.streakData,
         widgetSettings: state.widgetSettings,
         isWidgetCustomizing: state.isWidgetCustomizing,
-        // REMOVED: subscriptionTier - Let RevenueCat be the single source of truth
+        subscriptionTier: state.subscriptionTier, // ✅ NOW PERSISTED - RevenueCat will update this via listener
         // activeQuoteCategory and targetQuote are typically transient
         // quotes and isLoading are also transient
       }),
@@ -653,8 +653,11 @@ export const useUserStore = create<UserState>()(
           state.interestCategories = state.interestCategories && state.interestCategories.length > 0 ? state.interestCategories : initialState.interestCategories;
           state.isWidgetCustomizing = state.isWidgetCustomizing !== undefined ? state.isWidgetCustomizing : initialState.isWidgetCustomizing;
           
-          // ALWAYS start with 'unknown' - RevenueCat will update this
-          state.subscriptionTier = 'unknown';
+          // ✅ KEEP PERSISTED SUBSCRIPTION TIER - Don't reset to 'unknown'
+          // Only reset to unknown if it was never set before
+          if (!state.subscriptionTier) {
+            state.subscriptionTier = 'unknown';
+          }
           
           // Reset transient quote state
           state.quotes = [];
@@ -663,7 +666,7 @@ export const useUserStore = create<UserState>()(
           // Mark as hydrated
           state.hydrated = true;
           
-          console.log('UserStore: Hydration complete');
+          console.log('UserStore: Hydration complete. Subscription tier:', state.subscriptionTier);
         } else {
           console.log('UserStore: No persisted state found');
         }

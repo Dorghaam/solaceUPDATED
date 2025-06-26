@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -17,6 +17,7 @@ import { SettingsModal } from './SettingsModal';
 import { theme } from '../constants/theme';
 import { SubscriptionTier } from '../store/userStore';
 import { getResponsiveDimensions, getResponsiveFontSize } from '../utils/responsive';
+import { useUserStore } from '../store/userStore';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -56,7 +57,7 @@ interface MainFeedScreenProps {
   subscriptionTier: SubscriptionTier;
 }
 
-export const MainFeedScreen = ({
+export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   quotes,
   isLoading,
   isFavorite,
@@ -79,10 +80,12 @@ export const MainFeedScreen = ({
   onPremiumPress,
   onBrushPress,
   subscriptionTier,
-}: MainFeedScreenProps) => {
+}) => {
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
   const responsiveDimensions = getResponsiveDimensions();
+  const [refreshing, setRefreshing] = useState(false);
+  const { fetchQuotes } = useUserStore();
 
   // Helper function to check if a quote is a placeholder
   const isPlaceholderQuote = (quoteId: string) => {
@@ -169,6 +172,29 @@ export const MainFeedScreen = ({
       });
     });
   };
+
+  // ✅ HANDLE THREE SUBSCRIPTION STATES PROPERLY
+  if (subscriptionTier === 'unknown') {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.loadingText}>Checking subscription status...</Text>
+      </View>
+    );
+  }
+
+  const isPremium = subscriptionTier === 'premium';
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchQuotes();
+    } catch (error) {
+      console.error('Error refreshing quotes:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchQuotes]);
 
   // Loading state
   if (isLoading && quotes.length === 0) {
@@ -381,12 +407,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  loadingText: {
-    fontSize: getResponsiveFontSize(16),
-    color: theme.colors.text,
-    marginTop: 16,
-    fontWeight: '500',
-  },
+
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -480,5 +501,14 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: 'transparent',
   },
-
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: getResponsiveFontSize(16),
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
 }); 

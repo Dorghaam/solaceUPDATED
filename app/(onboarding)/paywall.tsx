@@ -49,6 +49,10 @@ function PaywallContent() {
     console.log('[Paywall] Paywall dismissed. Checking current subscription status...');
     
     try {
+      // ✅ SYNC PURCHASES first to handle "already subscribed" scenarios
+      console.log('[Paywall] Syncing purchases on dismiss...');
+      await Purchases.syncPurchases();
+      
       // Get fresh customer info to check current subscription status
       const customerInfo = await Purchases.getCustomerInfo();
       const hasPremium = Object.values(customerInfo.entitlements.active).some((e: PurchasesEntitlementInfo) => e.isActive);
