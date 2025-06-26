@@ -93,13 +93,14 @@ struct SolaceWidgetEntryView : View {
                 
                 VStack(alignment: .leading, spacing: 0) {
                     Text(entry.quote)
-                        .font(.body)
+                        .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
                         .multilineTextAlignment(.leading)
-                        .lineLimit(5)
+                        .lineLimit(6)
+                        .minimumScaleFactor(0.7)
                 }
-                .padding()
+                .padding(8)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
             .widgetURL(URL(string: "solaceapp://"))
@@ -118,14 +119,15 @@ struct SolaceWidgetEntryView : View {
                 
                 VStack(alignment: .leading, spacing: 0) {
                     Text(entry.quote)
-                        .font(.title3)
+                        .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
                         .multilineTextAlignment(.leading)
-                        .lineLimit(4)
+                        .lineLimit(5)
+                        .minimumScaleFactor(0.8)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding()
+                .padding(12)
             }
             .widgetURL(URL(string: "solaceapp://"))
         default:
@@ -151,7 +153,16 @@ struct SolaceWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             SolaceWidgetEntryView(entry: entry)
-                .containerBackground(Color.clear, for: .widget)
+                .containerBackground(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 1.0, green: 0.94, blue: 0.96), // #FFF5F7
+                            Color(red: 1.0, green: 0.82, blue: 0.86)  // #FFD1DC
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ), for: .widget
+                )
         }
         .configurationDisplayName("Solace Affirmations")
         .description("Your daily dose of healing and motivation.")
