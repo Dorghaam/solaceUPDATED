@@ -91,17 +91,17 @@ struct SolaceWidgetEntryView : View {
                     endPoint: .bottomTrailing
                 )
                 
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .center, spacing: 0) {
                     Text(entry.quote)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
-                        .multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.center)
                         .lineLimit(6)
                         .minimumScaleFactor(0.7)
                 }
                 .padding(8)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
             .widgetURL(URL(string: "solaceapp://"))
         case .systemMedium:
@@ -117,16 +117,16 @@ struct SolaceWidgetEntryView : View {
                     endPoint: .bottomTrailing
                 )
                 
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .center, spacing: 0) {
                     Text(entry.quote)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
-                        .multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.center)
                         .lineLimit(5)
                         .minimumScaleFactor(0.8)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .padding(12)
             }
             .widgetURL(URL(string: "solaceapp://"))

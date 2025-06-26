@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,7 +6,7 @@ import {
   Pressable,
   Dimensions,
   Animated,
-  ScrollView,
+  FlatList,
   Alert,
   Image,
   Platform,
@@ -246,7 +246,162 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
     });
   };
 
+  // Memoized CategoryCard component
+  const CategoryCard = React.memo<{ category: Category; onPress: () => void; isSelected: boolean }>(({ category, onPress, isSelected }) => (
+    <Pressable
+      style={({ pressed }) => [
+        styles.categoryCard,
+        { opacity: pressed ? 0.8 : (category.locked ? 0.6 : 1) },
+        { transform: [{ scale: pressed ? 0.95 : 1 }] },
+        isSelected && styles.selectedCard
+      ]}
+      onPress={onPress}
+    >
+      {typeof category.icon === 'string' ? (
+        // Fallback for emoji - use solid background color
+        <View style={[styles.categoryBackground, { backgroundColor: category.color }]}>
+          <View style={styles.categoryOverlay}>
+            <Text style={[styles.categoryIcon, category.locked && styles.lockedIcon]}>
+              {category.icon}
+            </Text>
+          </View>
+        </View>
+      ) : (
+        // Use image as full background
+        <View style={styles.categoryImageBackground}>
+          <Image 
+            source={category.icon} 
+            style={[styles.categoryBackgroundImage, category.locked && styles.lockedIcon]}
+            resizeMode="cover"
+          />
+          <View style={styles.categoryOverlay} />
+        </View>
+      )}
+      
+      {/* Content overlay with icons and title */}
+      <View style={styles.categoryContentOverlay}>
+        <View style={styles.categoryTopRow}>
+          <View style={styles.iconContainer}>
+            {category.locked && (
+              <View style={styles.lockIcon}>
+                <Ionicons name="lock-closed" size={16} color="white" />
+              </View>
+            )}
+            {isSelected && !category.locked && (
+              <View style={styles.checkmarkIcon}>
+                <Ionicons name="checkmark-circle" size={20} color="white" />
+              </View>
+            )}
+          </View>
+        </View>
+        
+        <Text style={[styles.categoryTitle, category.locked && styles.lockedTitle]}>
+          {category.title}
+        </Text>
+      </View>
+    </Pressable>
+  ));
+
+  // Memoized FavoritesCard component
+  const FavoritesCard = React.memo<{ onPress: () => void; isSelected: boolean }>(({ onPress, isSelected }) => (
+    <Pressable
+      style={({ pressed }) => [
+        styles.categoryCard,
+        { opacity: pressed ? 0.8 : 1 },
+        { transform: [{ scale: pressed ? 0.95 : 1 }] },
+        isSelected && styles.selectedCard
+      ]}
+      onPress={onPress}
+    >
+      <View style={styles.categoryImageBackground}>
+        <Image 
+          source={require('../categoryImages/8271477.jpg')} 
+          style={styles.categoryBackgroundImage}
+          resizeMode="cover"
+        />
+        <View style={styles.categoryOverlay} />
+      </View>
+      
+      <View style={styles.categoryContentOverlay}>
+        <View style={styles.categoryTopRow}>
+          <View style={styles.iconContainer}>
+            {isSelected && (
+              <View style={styles.checkmarkIcon}>
+                <Ionicons name="checkmark-circle" size={20} color="white" />
+              </View>
+            )}
+          </View>
+        </View>
+        
+        <Text style={styles.categoryTitle}>My Favourites</Text>
+      </View>
+    </Pressable>
+  ));
+
   const categories = mapBreakupCategoriesToUI(breakupInterestCategories, subscriptionTier, activeQuoteCategory);
+
+  // Create data array for FlatList that includes both favorites and categories
+  // Add favorites as the first item, then pair up the regular categories
+  const allItems = [
+    { type: 'favorites', id: 'favorites', title: 'My Favourites' },
+    ...categories
+  ];
+  
+  const categoryPairs = [];
+  for (let i = 0; i < allItems.length; i += 2) {
+    categoryPairs.push({
+      type: 'category-pair',
+      id: `pair-${i}`,
+      categories: allItems.slice(i, i + 2),
+    });
+  }
+
+  const flatListData = [
+    {
+      type: 'section',
+      id: 'categories-section',
+      title: 'Choose Category',
+    },
+    ...categoryPairs
+  ];
+
+  const renderItem = useCallback(({ item }: { item: any }) => {
+    if (item.type === 'section') {
+      return (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{item.title}</Text>
+        </View>
+      );
+    }
+    
+    if (item.type === 'category-pair') {
+      return (
+        <View style={styles.categoryGrid}>
+          {item.categories.map((category: any) => {
+            if (category.type === 'favorites') {
+              return (
+                <FavoritesCard 
+                  key={category.id}
+                  onPress={handleFavoritesPress}
+                  isSelected={activeQuoteCategory === 'favorites'}
+                />
+              );
+            }
+            return (
+              <CategoryCard 
+                key={category.id}
+                category={category}
+                onPress={() => handleCategoryPress(category)}
+                isSelected={category.isSelected}
+              />
+            );
+          })}
+        </View>
+      );
+    }
+    
+    return null;
+  }, [activeQuoteCategory, handleFavoritesPress, handleCategoryPress]);
 
   return (
     <View style={[styles.overlay, !visible && { pointerEvents: 'none' }]}>
@@ -294,112 +449,14 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
             </View>
 
             {/* Categories content */}
-            <ScrollView 
+            <FlatList 
               style={styles.content}
-              showsVerticalScrollIndicator={false}
+              data={flatListData}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
               contentContainerStyle={styles.scrollContent}
-            >
-              {/* My Favourites Option */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>My Favourites</Text>
-                <View style={styles.categoryGrid}>
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.categoryCard,
-                      { opacity: pressed ? 0.8 : 1 },
-                      { transform: [{ scale: pressed ? 0.95 : 1 }] },
-                      activeQuoteCategory === 'favorites' && styles.selectedCard
-                    ]}
-                    onPress={handleFavoritesPress}
-                  >
-                    <View style={styles.categoryImageBackground}>
-                      <Image 
-                        source={require('../categoryImages/8271477.jpg')} 
-                        style={styles.categoryBackgroundImage}
-                        resizeMode="cover"
-                      />
-                      <View style={styles.categoryOverlay} />
-                    </View>
-                    
-                    <View style={styles.categoryContentOverlay}>
-                      <View style={styles.categoryTopRow}>
-                        <View style={styles.iconContainer}>
-                          {activeQuoteCategory === 'favorites' && (
-                            <View style={styles.checkmarkIcon}>
-                              <Ionicons name="checkmark-circle" size={20} color="white" />
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                      
-                      <Text style={styles.categoryTitle}>My Favourites</Text>
-                    </View>
-                  </Pressable>
-                </View>
-              </View>
-
-              {/* Individual Categories */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Choose Category</Text>
-                <View style={styles.categoryGrid}>
-                  {categories.map((category) => (
-                    <Pressable
-                      key={category.id}
-                      style={({ pressed }) => [
-                        styles.categoryCard,
-                        { opacity: pressed ? 0.8 : (category.locked ? 0.6 : 1) },
-                        { transform: [{ scale: pressed ? 0.95 : 1 }] },
-                        category.isSelected && styles.selectedCard
-                      ]}
-                      onPress={() => handleCategoryPress(category)}
-                    >
-                      {typeof category.icon === 'string' ? (
-                        // Fallback for emoji - use solid background color
-                        <View style={[styles.categoryBackground, { backgroundColor: category.color }]}>
-                          <View style={styles.categoryOverlay}>
-                            <Text style={[styles.categoryIcon, category.locked && styles.lockedIcon]}>
-                              {category.icon}
-                            </Text>
-                          </View>
-                        </View>
-                      ) : (
-                        // Use image as full background
-                        <View style={styles.categoryImageBackground}>
-                          <Image 
-                            source={category.icon} 
-                            style={[styles.categoryBackgroundImage, category.locked && styles.lockedIcon]}
-                            resizeMode="cover"
-                          />
-                          <View style={styles.categoryOverlay} />
-                        </View>
-                      )}
-                      
-                      {/* Content overlay with icons and title */}
-                      <View style={styles.categoryContentOverlay}>
-                        <View style={styles.categoryTopRow}>
-                          <View style={styles.iconContainer}>
-                            {category.locked && (
-                              <View style={styles.lockIcon}>
-                                <Ionicons name="lock-closed" size={16} color="white" />
-                              </View>
-                            )}
-                            {category.isSelected && !category.locked && (
-                              <View style={styles.checkmarkIcon}>
-                                <Ionicons name="checkmark-circle" size={20} color="white" />
-                              </View>
-                            )}
-                          </View>
-                        </View>
-                        
-                        <Text style={[styles.categoryTitle, category.locked && styles.lockedTitle]}>
-                          {category.title}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            </ScrollView>
+              showsVerticalScrollIndicator={false}
+            />
           </LinearGradient>
         </Animated.View>
       </PanGestureHandler>
@@ -621,5 +678,19 @@ const styles = StyleSheet.create({
   categoryTopRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+  },
+  sectionHeader: {
+    marginBottom: theme.spacing.m,
+    paddingHorizontal: theme.spacing.m,
+  },
+  categoryRow: {
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.m,
+    gap: theme.spacing.s,
+  },
+  favoritesRow: {
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.m,
+    marginBottom: theme.spacing.m,
   },
 }); 
