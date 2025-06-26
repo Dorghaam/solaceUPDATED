@@ -89,11 +89,12 @@ export default function RemindersPage() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     if (!notificationsEnabled) {
-      Alert.alert(
-        'Notifications Disabled',
-        'Please enable notifications to set up reminders.',
-        [{ text: 'OK' }]
-      );
+      // If notifications are disabled, just save the preference and continue
+      setNotificationSettings({
+        enabled: false,
+        frequency: `${selectedFrequency}x` as any,
+      });
+      router.push('/(onboarding)/lockscreenwidget');
       return;
     }
     
@@ -103,11 +104,12 @@ export default function RemindersPage() {
       // First, request permissions and enable notifications
       const token = await getPushTokenAndPermissionsAsync();
       if (!token) {
-        Alert.alert(
-          'Permission Required',  
-          'Please allow notifications to receive daily motivational reminders.',
-          [{ text: 'OK' }]
-        );
+        // If permission denied, continue anyway
+        setNotificationSettings({
+          enabled: false,
+          frequency: `${selectedFrequency}x` as any,
+        });
+        router.push('/(onboarding)/lockscreenwidget');
         setIsSchedulingNotifications(false);
         return;
       }
@@ -132,16 +134,12 @@ export default function RemindersPage() {
       router.push('/(onboarding)/lockscreenwidget');
     } catch (error) {
       console.error('Failed to schedule notifications:', error);
-      Alert.alert(
-        'Error',
-        'Failed to schedule notifications. You can set them up later in settings.',
-        [
-          { 
-            text: 'Continue', 
-            onPress: () => router.push('/(onboarding)/lockscreenwidget')
-          }
-        ]
-      );
+      // Continue regardless of notification setup failure
+      setNotificationSettings({
+        enabled: false,
+        frequency: `${selectedFrequency}x` as any,
+      });
+      router.push('/(onboarding)/lockscreenwidget');
     } finally {
       setIsSchedulingNotifications(false);
     }
@@ -219,15 +217,14 @@ export default function RemindersPage() {
               style={[
                 styles.allowButton,
                 { 
-                  opacity: isSchedulingNotifications ? 0.7 : (notificationsEnabled ? 1 : 0.5),
-                  backgroundColor: notificationsEnabled ? theme.colors.primary : theme.colors.textSecondary 
+                  opacity: isSchedulingNotifications ? 0.7 : 1
                 }
               ]} 
               onPress={handleAllowAndSave}
               disabled={isSchedulingNotifications}
             >
               <Text style={styles.allowButtonText}>
-                {isSchedulingNotifications ? 'Setting up...' : (notificationsEnabled ? 'Save and Continue' : 'Enable Notifications First')}
+                {isSchedulingNotifications ? 'Setting up...' : 'Continue'}
               </Text>
             </Pressable>
           </View>

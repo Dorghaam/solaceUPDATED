@@ -262,12 +262,15 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
   };
 
   const handleAllowAndSave = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
     if (!notificationsEnabled) {
-      Alert.alert(
-        'Notifications Disabled',
-        'Please enable notifications to set up reminders.',
-        [{ text: 'OK' }]
-      );
+      // If notifications are disabled, just save the preference and close
+      setNotificationSettings({
+        enabled: false,
+        frequency: `${selectedFrequency}x` as any,
+      });
+      handleClose();
       return;
     }
 
@@ -280,7 +283,6 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
       return;
     }
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsSchedulingNotifications(true);
 
     try {
@@ -457,6 +459,9 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
               <View style={styles.headerTextSection}>
                 <Text style={styles.mainTitle}>Stay Inspired{'\n'}Throughout the Day</Text>
                 <Text style={styles.subtitle}>A few powerful words at the right time{'\n'}can change your mindset.</Text>
+                <Text style={styles.settingsNote}>
+                  You can always change notification frequency, categories, and other settings in the app later.
+                </Text>
               </View>
 
               {/* Quote Card */}
@@ -529,18 +534,12 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
             {/* Allow and Save Button */}
             <View style={styles.bottomSection}>
               <Pressable 
-                style={[
-                  styles.allowButton, 
-                  { 
-                    opacity: notificationsEnabled ? 1 : 0.5,
-                    backgroundColor: notificationsEnabled ? theme.colors.primary : theme.colors.textSecondary 
-                  }
-                ]} 
+                style={styles.allowButton} 
                 onPress={handleAllowAndSave}
                 disabled={isSchedulingNotifications}
               >
                 <Text style={styles.allowButtonText}>
-                  {isSchedulingNotifications ? 'Scheduling...' : (notificationsEnabled ? 'Save Reminders' : 'Enable Notifications First')}
+                  {isSchedulingNotifications ? 'Scheduling...' : 'Continue'}
                 </Text>
               </Pressable>
             </View>
@@ -877,6 +876,14 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.text,
     flex: 1,
+  },
+  settingsNote: {
+    fontSize: theme.typography.fontSizes.s,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: theme.spacing.m,
+    lineHeight: 20,
   },
 
 }); 

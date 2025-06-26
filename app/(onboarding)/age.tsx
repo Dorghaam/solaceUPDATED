@@ -149,9 +149,9 @@ const styles = StyleSheet.create({
   ageButton: {
     backgroundColor: theme.colors.white,
     width: '100%',
-    paddingVertical: theme.spacing.l + theme.spacing.s,
+    paddingVertical: theme.spacing.m + 4,
     paddingHorizontal: theme.spacing.l,
-    borderRadius: theme.radii.l + theme.radii.s,
+    borderRadius: theme.radii.l,
     borderWidth: 2,
     borderColor: 'transparent',
     shadowColor: theme.colors.black,

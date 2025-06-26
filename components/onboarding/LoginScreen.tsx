@@ -18,11 +18,11 @@ export const LoginScreen = ({
   isAppleLoading,
 }: LoginScreenProps) => {
   const handlePrivacyPolicyPress = () => {
-    Linking.openURL('https://sites.google.com/view/solace-app/privacy-policy');
+    Linking.openURL('https://sites.google.com/view/solaceapp/home?authuser=0');
   };
 
   const handleTermsPress = () => {
-    Linking.openURL('https://sites.google.com/view/solace-app/home');
+    Linking.openURL('https://sites.google.com/view/solaceapp/terms-of-service?authuser=0');
   };
 
   return (
