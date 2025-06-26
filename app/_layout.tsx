@@ -147,6 +147,8 @@ export default function RootLayout() {
         isProcessing = true;
         try {
           console.log(`[AuthListener] Event: ${_event}`, session?.user?.id || 'No User');
+          
+          // Always update the user state first
           setSupabaseUser(session?.user ?? null);
 
           if (_event === 'SIGNED_IN' && session?.user) {
@@ -158,10 +160,22 @@ export default function RootLayout() {
             reviewService.trackAppOpen();
             updateStreakData();
           } else if (_event === 'SIGNED_OUT') {
-            // The signOut function already handles RC logout.
-            // resetState clears the zustand store for the next user.
-            resetState();
+            console.log('[AuthListener] Processing sign out...');
+            
+            // Add delay to prevent race conditions with navigation
+            setTimeout(() => {
+              try {
+                // The signOut function already handles RC logout.
+                // resetState clears the zustand store for the next user.
+                console.log('[AuthListener] Resetting state after sign out');
+                resetState();
+              } catch (resetError) {
+                console.error('[AuthListener] Error resetting state:', resetError);
+              }
+            }, 50);
           }
+        } catch (error) {
+          console.error(`[AuthListener] Error processing ${_event}:`, error);
         } finally {
           isProcessing = false;
         }

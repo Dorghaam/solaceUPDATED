@@ -64,21 +64,53 @@ export const loginWithGoogle = async () => {
 
 export const signOut = async () => {
   console.log('authService: Attempting full sign out...');
+  
+  let revenueCatLogoutSuccess = false;
+  let supabaseLogoutSuccess = false;
+  let googleLogoutSuccess = false;
+  
   try {
     // 1. Log out from RevenueCat FIRST to clear subscription cache
-    await logOutRevenueCat();
+    try {
+      await logOutRevenueCat();
+      revenueCatLogoutSuccess = true;
+      console.log('authService: RevenueCat signOut successful.');
+    } catch (rcError: any) {
+      console.error('authService: RevenueCat signOut error (non-fatal):', rcError.message);
+      // Don't throw - RevenueCat logout failure shouldn't prevent overall logout
+    }
 
     // 2. Sign out from Supabase
-    await supabase.auth.signOut();
-    console.log('authService: Supabase signOut successful.');
+    try {
+      await supabase.auth.signOut();
+      supabaseLogoutSuccess = true;
+      console.log('authService: Supabase signOut successful.');
+    } catch (supabaseError: any) {
+      console.error('authService: Supabase signOut error:', supabaseError.message);
+      // Supabase logout is critical, but we'll continue to clean up other services
+    }
     
     // 3. Sign out from Google (if applicable)
-    if (GoogleSignin.hasPreviousSignIn()) {
-      await GoogleSignin.signOut();
-      console.log('authService: Google signOut successful.');
+    try {
+      if (await GoogleSignin.hasPreviousSignIn()) {
+        await GoogleSignin.signOut();
+        googleLogoutSuccess = true;
+        console.log('authService: Google signOut successful.');
+      }
+    } catch (googleError: any) {
+      console.error('authService: Google signOut error (non-fatal):', googleError.message);
+      // Google logout failure is non-fatal
     }
+
+    console.log('authService: Sign out completed.', {
+      revenueCat: revenueCatLogoutSuccess,
+      supabase: supabaseLogoutSuccess,
+      google: googleLogoutSuccess
+    });
+
   } catch (error: any) {
-    console.error('authService: General signOut error:', error.message);
+    console.error('authService: Unexpected signOut error:', error.message);
+    // Don't throw - let the auth state change handle the cleanup
   }
 };
 

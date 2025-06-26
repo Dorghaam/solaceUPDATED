@@ -589,20 +589,46 @@ export const useUserStore = create<UserState>()(
       },
 
       resetState: () => {
-        console.log('UserStore: Resetting state to initial values.');
+        console.log('UserStore: Starting state reset...');
         
-        // Clear any pending fetchQuotes timeout
-        const state = get();
-        if (state.fetchQuotesTimeout) {
-          clearTimeout(state.fetchQuotesTimeout);
+        try {
+          // Clear any pending fetchQuotes timeout
+          const state = get();
+          if (state.fetchQuotesTimeout) {
+            clearTimeout(state.fetchQuotesTimeout);
+            console.log('UserStore: Cleared fetchQuotes timeout');
+          }
+          
+          // Reset to initial state but keep critical app state flags
+          const newState = {
+            ...initialState,
+            hydrated: state.hydrated, // Keep hydrated state
+            authChecked: true, // Keep auth as checked (we just processed a logout)
+          };
+          
+          console.log('UserStore: Applying state reset...');
+          set(newState);
+          console.log('UserStore: State reset completed successfully');
+          
+        } catch (error) {
+          console.error('UserStore: Error during state reset:', error);
+          
+          // Fallback: try to reset critical fields only
+          try {
+            console.log('UserStore: Attempting fallback state reset...');
+            set({
+              supabaseUser: null,
+              hasCompletedOnboarding: false,
+              subscriptionTier: 'unknown',
+              quotes: [],
+              favoriteQuoteIds: [],
+              authChecked: true,
+            });
+            console.log('UserStore: Fallback state reset completed');
+          } catch (fallbackError) {
+            console.error('UserStore: Fallback state reset failed:', fallbackError);
+          }
         }
-        
-        // Reset to initial state but keep critical app state flags
-        set({
-          ...initialState,
-          hydrated: state.hydrated, // Keep hydrated state
-          authChecked: true, // Keep auth as checked (we just processed a logout)
-        });
       },
 
       // Authentication helpers

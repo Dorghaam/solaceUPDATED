@@ -32,9 +32,23 @@ export default function SettingsScreen() {
             style: 'destructive',
             onPress: async () => {
               try {
+                console.log('Settings: Starting sign out process...');
+                
+                // Perform sign out
                 await signOut();
-                console.log('Settings: Sign out successful, redirecting to onboarding');
-                router.replace('/(onboarding)');
+                console.log('Settings: Sign out successful');
+                
+                // Small delay to ensure state changes are processed
+                setTimeout(() => {
+                  try {
+                    console.log('Settings: Navigating to onboarding...');
+                    router.replace('/(onboarding)');
+                  } catch (navError) {
+                    console.error('Settings: Navigation error:', navError);
+                    // The auth state change will handle the redirect
+                  }
+                }, 100);
+                
               } catch (error: any) {
                 console.error('Settings: Sign out error:', error);
                 Alert.alert('Error', 'Failed to sign out. Please try again.');

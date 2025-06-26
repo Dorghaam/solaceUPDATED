@@ -179,6 +179,8 @@ export const logInRevenueCat = async (appUserID: string) => {
  */
 export const logOutRevenueCat = async () => {
   try {
+    console.log('[RevenueCat] Starting logout process...');
+    
     // Check if SDK is configured before attempting logout
     const isConfigured = await Purchases.isConfigured();
     if (!isConfigured) {
@@ -189,10 +191,29 @@ export const logOutRevenueCat = async () => {
     console.log('[RevenueCat] Calling logOut...');
     const customerInfo = await Purchases.logOut();
     console.log('[RevenueCat] logOut successful.');
+    
+    // Reset flags and update state
     didSetInitialTier = false; // Reset for next user
-    updateLocalSubscriptionTier(customerInfo, 'logout');
+    
+    try {
+      updateLocalSubscriptionTier(customerInfo, 'logout');
+    } catch (updateError: any) {
+      console.error('[RevenueCat] Error updating subscription tier after logout (non-fatal):', updateError.message);
+    }
+    
   } catch (error: any) {
     console.error('[RevenueCat] logOut failed:', error.message);
+    
+    // Try to reset state even if logout failed
+    try {
+      didSetInitialTier = false;
+      console.log('[RevenueCat] Reset state despite logout failure');
+    } catch (resetError: any) {
+      console.error('[RevenueCat] Failed to reset state:', resetError.message);
+    }
+    
+    // Don't throw - logout failure shouldn't crash the app
+    console.warn('[RevenueCat] Continuing with logout despite RevenueCat error');
   }
 };
 

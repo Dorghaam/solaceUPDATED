@@ -159,14 +159,37 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             style: 'destructive',
             onPress: async () => {
               try {
+                console.log('ProfileScreen: Starting sign out process...');
+                
                 // First close the modal
                 handleClose();
-                // Then sign out and redirect
-                await signOut();
-                console.log('ProfileScreen: Sign out successful, redirecting to onboarding');
-                router.replace('/(onboarding)');
+                
+                // Small delay to let modal close animation complete
+                setTimeout(async () => {
+                  try {
+                    // Then sign out
+                    await signOut();
+                    console.log('ProfileScreen: Sign out successful');
+                    
+                    // Small delay to ensure state changes are processed
+                    setTimeout(() => {
+                      try {
+                        console.log('ProfileScreen: Navigating to onboarding...');
+                        router.replace('/(onboarding)');
+                      } catch (navError) {
+                        console.error('ProfileScreen: Navigation error:', navError);
+                        // The auth state change will handle the redirect
+                      }
+                    }, 100);
+                    
+                  } catch (error: any) {
+                    console.error('ProfileScreen: Sign out error:', error);
+                    Alert.alert('Error', 'Failed to sign out. Please try again.');
+                  }
+                }, 200);
+                
               } catch (error: any) {
-                console.error('ProfileScreen: Sign out error:', error);
+                console.error('ProfileScreen: Sign out process error:', error);
                 Alert.alert('Error', 'Failed to sign out. Please try again.');
               }
             },
