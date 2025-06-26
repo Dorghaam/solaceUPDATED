@@ -58,7 +58,9 @@ export const breakupInterestCategories: BreakupCategory[] = [
   { id: 'finding_closure', label: 'Finding Closure', premium: true },
   { id: 'finding_peace', label: 'Finding Peace', premium: true }, // matches DB
   { id: 'hope_future', label: 'Hope for the Future', premium: true }, // matches DB
+  { id: 'hope_for_future', label: 'Hope for Future', premium: true }, // Added missing DB category (10 quotes)
   { id: 'healing_from_betrayal', label: 'Healing from Betrayal (Cheating)', premium: true },
+  { id: 'healing_heartbreak', label: 'Healing Heartbreak', premium: true }, // Added missing DB category (23 quotes)
   { id: 'loss_of_partner_widow', label: 'Loss of a Partner (Widow/Widower)', premium: true },
   { id: 'navigating_divorce', label: 'Navigating Divorce', premium: true },
   { id: 'heartbreak_recovery', label: 'Heartbreak Recovery', premium: true },

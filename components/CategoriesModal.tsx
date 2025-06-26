@@ -25,7 +25,7 @@ const isTablet = screenWidth >= 768;
 // Preload images at module level
 const CATEGORY_IMAGES = {
   'general_healing': require('../categoryImages/6425304.jpg'),
-  'moving_on': require('../categoryImages/image copy.png'), 
+  'moving_on': require('../categoryImages/image copy.png'),
   'moving_forward': require('../categoryImages/image.png'),
   'self_love': require('../categoryImages/4038942.jpg'),
   'self_love_discovery': require('../categoryImages/Happy smiling woman admiring beautiful reflection in mirror.jpg'),
@@ -38,6 +38,7 @@ const CATEGORY_IMAGES = {
   'hope_for_future': require('../categoryImages/image copy 7.png'),
   'hope_future': require('../categoryImages/4365672.jpg'),
   'healing_from_betrayal': require('../categoryImages/image copy 8.png'),
+  'healing_heartbreak': require('../categoryImages/11646964.jpg'),
   'loss_of_partner_widow': require('../categoryImages/4590471.jpg'),
   'navigating_divorce': require('../categoryImages/3349694.jpg'),
   'heartbreak_recovery': require('../categoryImages/te07_qq4a_141122.jpg'),
