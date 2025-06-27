@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, Alert, Platform } from 'react-native
 import { router } from 'expo-router';
 import { theme } from '../../constants/theme';
 import { useAuthGuard } from '../../utils';
-import { signOut } from '../../services/authService';
+import { handleLogout } from '../../services/authService';
 import { hapticService } from '../../services/hapticService';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -16,50 +16,20 @@ export default function SettingsScreen() {
     return null;
   }
 
-  const handleSignOut = async () => {
-    try {
-      hapticService.light();
-      Alert.alert(
-        'Sign Out',
-        'Are you sure you want to sign out?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Sign Out',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                console.log('Settings: Starting sign out process...');
-                
-                // Perform sign out
-                await signOut();
-                console.log('Settings: Sign out successful');
-                
-                // Small delay to ensure state changes are processed
-                setTimeout(() => {
-                  try {
-                    console.log('Settings: Navigating to onboarding...');
-                    router.replace('/(onboarding)');
-                  } catch (navError) {
-                    console.error('Settings: Navigation error:', navError);
-                    // The auth state change will handle the redirect
-                  }
-                }, 100);
-                
-              } catch (error: any) {
-                console.error('Settings: Sign out error:', error);
-                Alert.alert('Error', 'Failed to sign out. Please try again.');
-              }
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('Settings: Error showing sign out alert:', error);
-    }
+  const handleSignOut = () => {
+    hapticService.light();
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Sign Out', 
+          style: 'destructive',
+          onPress: handleLogout,
+        },
+      ]
+    );
   };
 
   const handleWidgetConfig = () => {

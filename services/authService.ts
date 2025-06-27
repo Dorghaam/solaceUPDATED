@@ -7,6 +7,8 @@ import { useUserStore } from '../store/userStore';
 // Removed subscriptionSyncService import - now using simplified RevenueCat-only approach
 import { supabase } from './supabaseClient';
 import { logOut as revenueCatLogOut } from './revenueCatService';
+import { router } from 'expo-router';
+import Purchases from 'react-native-purchases';
 
 export const loginWithGoogle = async () => {
   try {
@@ -59,6 +61,38 @@ export const loginWithGoogle = async () => {
       // Forward the error from Supabase or another source
       throw new Error(error.message || 'An unknown error occurred during Google Sign-In.');
     }
+  }
+};
+
+export const handleLogout = async () => {
+  try {
+    console.log('[AuthService] Starting atomic logout...');
+
+    // Step 1: Clear remote sessions
+    await Promise.allSettled([
+      Purchases.logOut(),
+      supabase.auth.signOut(),
+    ]);
+    console.log('[AuthService] Remote sessions cleared.');
+
+    // Step 2: Clear the persisted local state from the device
+    await useUserStore.persist.clearStorage();
+    console.log('[AuthService] Persisted local storage cleared.');
+    
+    // Step 3: Reset the in-memory state to its initial values
+    useUserStore.getState().resetState();
+    console.log('[AuthService] In-memory state has been reset.');
+
+    // Step 4: Now it is safe to navigate
+    router.replace('/(onboarding)');
+    console.log('[AuthService] Logout complete. Navigating to onboarding.');
+
+  } catch (error: any) {
+    console.error('[AuthService] A critical error occurred during logout:', error.message);
+    // As a final fallback, attempt to clear and navigate
+    await useUserStore.persist.clearStorage();
+    useUserStore.getState().resetState();
+    router.replace('/(onboarding)');
   }
 };
 

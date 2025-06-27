@@ -1,5 +1,6 @@
 import Purchases, { LOG_LEVEL, PurchasesStoreProduct, CustomerInfo } from 'react-native-purchases';
 import { useUserStore } from '../store/userStore';
+import { supabase } from './supabaseClient'; // Ensure Supabase is imported
 
 const API_KEY = process.env.EXPO_PUBLIC_RC_API_KEY;
 
@@ -17,22 +18,32 @@ export const initRevenueCat = async () => {
   console.log('[RevenueCat] SDK configured successfully.');
 
   // Add a listener for real-time subscription updates
-  Purchases.addCustomerInfoUpdateListener((customerInfo: CustomerInfo) => {
-    const { entitlements } = customerInfo;
-    const hasPremium = entitlements.active.premium?.isActive || false;
+  Purchases.addCustomerInfoUpdateListener(async (customerInfo: CustomerInfo) => {
+    const hasPremium = customerInfo.entitlements.active.premium?.isActive || false;
     const newTier = hasPremium ? 'premium' : 'free';
-    const currentTier = useUserStore.getState().subscriptionTier;
+
+    const currentState = useUserStore.getState();
     
-    console.log('[RevenueCat] Subscription listener triggered:', {
-      previousTier: currentTier,
-      newTier: newTier,
-      activeEntitlements: Object.keys(entitlements.active),
-      premiumActive: entitlements.active.premium?.isActive,
-      userId: customerInfo.originalAppUserId
-    });
-    
-    useUserStore.getState().setSubscriptionTier(newTier);
-    console.log('[RevenueCat] ✅ Subscription tier updated:', currentTier, '->', newTier);
+    // Only update if the tier has actually changed
+    if (currentState.subscriptionTier !== newTier) {
+      console.log(`[RevenueCat] Tier changed: ${currentState.subscriptionTier} -> ${newTier}. Updating state and DB.`);
+      
+      // 1. Update UI state first for immediate feedback
+      currentState.setSubscriptionTier(newTier);
+
+      // 2. Asynchronously write the new tier to the database as a "shadow write"
+      if (currentState.supabaseUser?.id) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ subscription_tier: newTier })
+            .eq('id', currentState.supabaseUser.id);
+          console.log(`[RevenueCat] Successfully synced tier '${newTier}' to Supabase.`);
+        } catch (error: any) {
+          console.error('[RevenueCat] Failed to sync tier to Supabase:', error.message);
+        }
+      }
+    }
   });
 };
 

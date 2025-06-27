@@ -9,29 +9,20 @@ import { supabase } from './supabaseClient';
 export const fetchAndSetUserProfile = async (userId: string) => {
   console.log('profileService: Fetching profile for user ID:', userId);
   try {
-    const { data, error, status } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select(`username, subscription_tier`)
+      .select('full_name, avatar_url')
       .eq('id', userId)
       .single();
 
-    if (error && status !== 406) {
-      throw error;
-    }
+    if (error && error.code !== 'PGRST116') throw error;
 
     if (data) {
-      console.log('profileService: Profile found. Database tier:', data.subscription_tier);
+      console.log('profileService: Profile found.');
       
-      // Only update the username from database if user hasn't set one locally
-      // (i.e., if they haven't completed onboarding or entered a name)
-      const currentUserName = useUserStore.getState().userName;
-      if (data.username && !currentUserName) {
-        const { setUserName } = useUserStore.getState();
-        setUserName(data.username);
+      if (data.full_name) {
+        useUserStore.getState().setUserName(data.full_name);
       }
-      
-      // Note: subscription_tier is read-only on client now, managed by webhooks
-      console.log('profileService: Subscription tier from DB (read-only):', data.subscription_tier);
       
     } else {
         console.warn('profileService: No profile found for user.');

@@ -1,6 +1,18 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import MMKVStorage from 'react-native-mmkv-storage';
+
+// Initialize MMKV Storage
+const storage = new MMKVStorage.Loader().initialize();
+
+const zustandStorage = createJSONStorage(() => ({
+  setItem: (name, value) => storage.setString(name, value),
+  getItem: (name) => {
+    const value = storage.getString(name);
+    return value ?? null;
+  },
+  removeItem: (name) => storage.removeItem(name),
+}));
 
 // --- Types ---
 export type FamiliarityAffirmations = 'new' | 'occasional' | 'regular' | null;
@@ -641,7 +653,7 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'solace-user-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: zustandStorage,
       // Partialize to persist only specific parts of the state
       partialize: (state) => ({
         userName: state.userName,
