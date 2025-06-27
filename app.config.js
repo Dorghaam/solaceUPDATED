@@ -25,7 +25,7 @@ export default ({ config }) => ({
         isTabletOnly: false,
         requireFullScreen: true,
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
-        buildNumber: "12",
+        buildNumber: "13",
         googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
         storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
         entitlements: {
