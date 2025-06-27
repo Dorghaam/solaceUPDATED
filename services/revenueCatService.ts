@@ -1,6 +1,7 @@
 import Purchases, { LOG_LEVEL, PurchasesStoreProduct, CustomerInfo } from 'react-native-purchases';
 import { useUserStore } from '../store/userStore';
 import { supabase } from './supabaseClient'; // Ensure Supabase is imported
+import { isLoggingOut } from './authService'; // ✅ Import the flag
 
 const API_KEY = process.env.EXPO_PUBLIC_RC_API_KEY;
 
@@ -19,6 +20,12 @@ export const initRevenueCat = async () => {
 
   // Add a listener for real-time subscription updates
   Purchases.addCustomerInfoUpdateListener(async (customerInfo: CustomerInfo) => {
+    // ✅ Step 3: Check the flag before processing
+    if (isLoggingOut) {
+      console.log('[RevenueCat] Logout in progress, listener is skipping database write.');
+      return;
+    }
+
     const hasPremium = customerInfo.entitlements.active.premium?.isActive || false;
     const newTier = hasPremium ? 'premium' : 'free';
 
@@ -33,6 +40,7 @@ export const initRevenueCat = async () => {
 
       // 2. Asynchronously write the new tier to the database as a "shadow write"
       if (currentState.supabaseUser?.id) {
+        // This part is now safe and will not run during logout
         try {
           await supabase
             .from('profiles')
@@ -76,8 +84,6 @@ export const logIn = async (userId: string) => {
  */
 export const logOut = async () => {
   try {
-    console.log('[RevenueCat] Logging out user...');
-    
     // Check if RevenueCat is configured before attempting to log out
     const isConfigured = await Purchases.isConfigured();
     if (!isConfigured) {
@@ -85,16 +91,20 @@ export const logOut = async () => {
       useUserStore.getState().setSubscriptionTier('free');
       return;
     }
-    
+
+    // ✅ Check if the user is already anonymous
+    const isAnonymous = await Purchases.isAnonymous();
+    if (isAnonymous) {
+      console.log('[RevenueCat] User is already anonymous. Skipping logout call.');
+      return;
+    }
+
+    console.log('[RevenueCat] Logging out user...');
     await Purchases.logOut();
     useUserStore.getState().setSubscriptionTier('free');
-    console.log('[RevenueCat] User logged out successfully');
+    console.log('[RevenueCat] Logout successful.');
   } catch (e: any) {
-    if (e.message && e.message.includes('anonymous')) {
-      console.log('[RevenueCat] User was already anonymous, logout complete');
-    } else {
-      console.error('[RevenueCat] Logout error:', e.message);
-    }
+    console.error('[RevenueCat] Logout error:', e.message);
   }
 };
 

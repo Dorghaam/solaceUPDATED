@@ -10,6 +10,9 @@ import { logOut as revenueCatLogOut } from './revenueCatService';
 import { router } from 'expo-router';
 import Purchases from 'react-native-purchases';
 
+// ✅ Step 1: Create and export the flag
+export let isLoggingOut = false;
+
 export const loginWithGoogle = async () => {
   try {
     console.log('authService: Attempting loginWithGoogle with OIDC nonce flow...');
@@ -66,30 +69,31 @@ export const loginWithGoogle = async () => {
 
 export const handleLogout = async () => {
   try {
-    console.log('[AuthService] Starting atomic logout...');
+    // ✅ Step 2: Set the flag to true at the very beginning
+    isLoggingOut = true;
+    console.log('[AuthService] Starting atomic logout (isLoggingOut = true)...');
 
-    // Step 1: Clear remote sessions
     await Promise.allSettled([
       Purchases.logOut(),
       supabase.auth.signOut(),
     ]);
     console.log('[AuthService] Remote sessions cleared.');
-
-    // Step 2: Clear the persisted local state from the device
+    
     await useUserStore.persist.clearStorage();
     console.log('[AuthService] Persisted local storage cleared.');
-    
-    // Step 3: Reset the in-memory state to its initial values
+
     useUserStore.getState().resetState();
     console.log('[AuthService] In-memory state has been reset.');
 
-    // Step 4: Now it is safe to navigate
     router.replace('/(onboarding)');
     console.log('[AuthService] Logout complete. Navigating to onboarding.');
 
+    // Optional: Reset flag after a delay in case of navigation issues.
+    setTimeout(() => { isLoggingOut = false; }, 3000);
+
   } catch (error: any) {
     console.error('[AuthService] A critical error occurred during logout:', error.message);
-    // As a final fallback, attempt to clear and navigate
+    isLoggingOut = false; // Reset on error
     await useUserStore.persist.clearStorage();
     useUserStore.getState().resetState();
     router.replace('/(onboarding)');
