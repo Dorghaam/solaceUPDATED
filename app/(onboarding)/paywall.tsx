@@ -39,41 +39,41 @@ function PaywallContent() {
   }, [setHasCompletedOnboarding, supabaseUser]);
 
   const handleSuccess = useCallback(async (customerInfo: CustomerInfo) => {
-    console.log('[Paywall] Purchase/Restore success:', customerInfo.entitlements.active);
-    const hasPremium = Object.values(customerInfo.entitlements.active).some((e: PurchasesEntitlementInfo) => e.isActive);
-    setSubscriptionTier(hasPremium ? 'premium' : 'free');
+    console.log('[Paywall] Purchase/Restore successful. Processing entitlements...');
+
+    // ✅ Explicitly check for the 'premium' entitlement from the event.
+    const hasPremium = customerInfo.entitlements.active.premium?.isActive || false;
+
+    if (hasPremium) {
+      console.log('[Paywall] "premium" entitlement found. Granting premium access.');
+      setSubscriptionTier('premium');
+    } else {
+      console.warn('[Paywall] Purchase success event fired, but no active "premium" entitlement was found. Defaulting to free.');
+      setSubscriptionTier('free');
+    }
+    
+    // Sync purchases to ensure everything is up-to-date with the server.
+    try {
+      await Purchases.syncPurchases();
+    } catch (e) {
+      console.error('[Paywall] Error syncing purchases after success:', e);
+    }
+
+    // Complete the onboarding process and navigate to the main app.
     completeOnboardingAndNavigate();
   }, [setSubscriptionTier, completeOnboardingAndNavigate]);
 
-  const handleDismiss = useCallback(async () => {
-    console.log('[Paywall] Paywall dismissed. Checking current subscription status...');
+  const handleDismiss = useCallback(() => {
+    // ✅ CORRECT LOGIC: If the paywall is dismissed, the user is NOT premium.
+    // No need to check anything. Just set their status to free and proceed.
+    console.log('[Paywall] Paywall dismissed by user. Setting tier to free.');
     
-    try {
-      // ✅ SYNC PURCHASES first to handle "already subscribed" scenarios
-      console.log('[Paywall] Syncing purchases on dismiss...');
-      await Purchases.syncPurchases();
-      
-      // Get fresh customer info to check current subscription status
-      const customerInfo = await Purchases.getCustomerInfo();
-      const hasPremium = Object.values(customerInfo.entitlements.active).some((e: PurchasesEntitlementInfo) => e.isActive);
-      
-      if (hasPremium) {
-        console.log('[Paywall] User is premium despite dismissing paywall. Completing onboarding as premium.');
-        setSubscriptionTier('premium');
-      } else {
-        console.log('[Paywall] User dismissed paywall and has no active premium subscription. Completing onboarding as free user.');
-        setSubscriptionTier('free');
-      }
-    } catch (error) {
-      console.warn('[Paywall] Failed to check subscription status on dismiss, defaulting to current tier:', subscriptionTier);
-      // If we can't check RevenueCat, keep current tier unless it's unknown
-      if (subscriptionTier === 'unknown') {
-        setSubscriptionTier('free');
-      }
-    }
+    // Set the subscription tier to 'free' in the global state.
+    setSubscriptionTier('free');
     
+    // Navigate the user into the main app experience.
     completeOnboardingAndNavigate();
-  }, [setSubscriptionTier, completeOnboardingAndNavigate, subscriptionTier]);
+  }, [setSubscriptionTier, completeOnboardingAndNavigate]);
 
   // If user is not authenticated, don't render the paywall
   if (!supabaseUser) {
