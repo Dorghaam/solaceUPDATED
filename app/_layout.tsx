@@ -10,10 +10,11 @@ import * as Linking from 'expo-linking';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppState } from 'react-native';
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../services/supabaseClient';
 import { configureGoogleSignIn } from '../services/googleAuthService';
-import { initRevenueCat, getInitialSubscriptionTier, logIn, logOut } from '../services/revenueCatService';
+import { initRevenueCat, getInitialSubscriptionTier, logIn, logOut, refreshCustomerInfo } from '../services/revenueCatService';
 import { fetchAndSetUserProfile } from '../services/profileService';
 import { ensurePostLoginSync, signOut } from '../services/authService';
 import { reviewService } from '../services/reviewService';
@@ -240,6 +241,20 @@ export default function RootLayout() {
       }
     }
   }, [pendingDeepLink, supabaseUser, hasCompletedOnboarding]);
+
+  // Add AppState listener to refresh subscription status when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        console.log('[AppState] App has come to the foreground, refreshing subscription status.');
+        refreshCustomerInfo();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {

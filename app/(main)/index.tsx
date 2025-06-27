@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Share } from 'react-native';
 import { router } from 'expo-router';
-import { useUserStore, BreakupCategory } from '../../store/userStore';
+import { useUserStore, BreakupCategory, useSubscription } from '../../store/userStore';
 import { hapticService } from '../../services/hapticService';
 import { reviewService } from '../../services/reviewService';
 import { MainFeedScreen } from '../../components/MainFeedScreen';
@@ -14,6 +14,7 @@ export default function FeedPage() {
   const { shouldRender } = useAuthGuard();
 
   // Connect to the Zustand store to get state and actions
+  const subscriptionTier = useSubscription(); // ✅ USE THE HOOK
   const {
     quotes,
     isLoading,
@@ -24,7 +25,6 @@ export default function FeedPage() {
     setActiveQuoteCategory,
     supabaseUser,
     hasCompletedOnboarding,
-    subscriptionTier,
     updateStreakData,
   } = useUserStore();
 

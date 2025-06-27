@@ -19,6 +19,7 @@ import { theme } from '../constants/theme';
 import { signOut } from '../services/authService';
 import * as Haptics from 'expo-haptics';
 import { useUserStore } from '@/store/userStore';
+import { useSubscription } from '@/store/userStore';
 import { RemindersScreen } from './RemindersScreen';
 import { ProfileScreen } from './ProfileScreen';
 import { WidgetSettingsScreen } from './WidgetSettingsScreen';
@@ -93,8 +94,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [showFavorites, setShowFavorites] = useState(false);
   
   // Get data from store
+  const subscriptionTier = useSubscription(); // ✅ USE THE HOOK
   const { 
-    subscriptionTier,
     userName,
     streakData
   } = useUserStore();

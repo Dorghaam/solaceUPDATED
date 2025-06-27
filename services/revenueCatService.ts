@@ -26,31 +26,28 @@ export const initRevenueCat = async () => {
       return;
     }
 
-    const hasPremium = customerInfo.entitlements.active.premium?.isActive || false;
+    const { entitlements } = customerInfo;
+    const hasPremium = entitlements.active.premium?.isActive || false;
     const newTier = hasPremium ? 'premium' : 'free';
 
-    const currentState = useUserStore.getState();
-    
-    // Only update if the tier has actually changed
-    if (currentState.subscriptionTier !== newTier) {
-      console.log(`[RevenueCat] Tier changed: ${currentState.subscriptionTier} -> ${newTier}. Updating state and DB.`);
-      
-      // 1. Update UI state first for immediate feedback
-      currentState.setSubscriptionTier(newTier);
+    useUserStore.getState().setSubscriptionTier(newTier);
+    console.log(`[RevenueCat] Listener updated subscription tier to: ${newTier}`);
 
-      // 2. Asynchronously write the new tier to the database as a "shadow write"
-      if (currentState.supabaseUser?.id) {
-        // This part is now safe and will not run during logout
-        try {
-          await supabase
-            .from('profiles')
-            .update({ subscription_tier: newTier })
-            .eq('id', currentState.supabaseUser.id);
-          console.log(`[RevenueCat] Successfully synced tier '${newTier}' to Supabase.`);
-        } catch (error: any) {
-          console.error('[RevenueCat] Failed to sync tier to Supabase:', error.message);
-        }
+    // ✅ THE NEW GUARD
+    const userId = useUserStore.getState().supabaseUser?.id;
+    if (userId && !customerInfo.originalAppUserId.startsWith('$RCAnonymousID:')) {
+      try {
+        console.log(`[RevenueCat] Syncing tier '${newTier}' to Supabase for user ${userId}`);
+        await supabase
+          .from('profiles')
+          .update({ subscription_tier: newTier })
+          .eq('id', userId);
+        console.log(`[RevenueCat] Successfully synced tier to Supabase.`);
+      } catch (error: any) {
+        console.error('[RevenueCat] Error updating subscription tier in Supabase:', error.message);
       }
+    } else {
+      console.log('[RevenueCat] Skipping Supabase sync: User is anonymous or logged out.');
     }
   });
 };
@@ -128,5 +125,22 @@ export const getInitialSubscriptionTier = async () => {
   } catch (e) {
     console.warn('[RevenueCat] Could not get initial customer info. Defaulting to unknown.', e);
     return 'unknown';
+  }
+};
+
+/**
+ * Forces a refresh of the customer info from the network if the cache is stale.
+ * This is ideal for when the app comes to the foreground.
+ */
+export const refreshCustomerInfo = async () => {
+  try {
+    console.log('[RevenueCat] Refreshing customer info...');
+    // 'FETCH_CURRENT' is the modern equivalent of 'cachedOrFetched'
+    const customerInfo = await Purchases.getCustomerInfo(); 
+    
+    // The listener will automatically handle the update
+    console.log('[RevenueCat] Refresh complete. Listener will handle any updates.');
+  } catch (e: any) {
+    console.warn('[RevenueCat] Customer info refresh failed:', e.message);
   }
 }; 

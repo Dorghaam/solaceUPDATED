@@ -714,6 +714,14 @@ export const useUserStore = create<UserState>()(
 );
 
 // --- Hooks for easy access ---
+/**
+ * A reactive hook to get the current user's subscription tier.
+ * This should be the ONLY way UI components access subscription status.
+ */
+export const useSubscription = () => {
+  return useUserStore(s => s.subscriptionTier);
+};
+
 // export const useUserName = () => useUserStore((state) => state.userName);
 // export const useIsOnboardingComplete = () => useUserStore((state) => state.hasCompletedOnboarding);
 // ... add more specific hooks if needed for performance critical components
