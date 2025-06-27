@@ -136,6 +136,7 @@ interface UserState {
 
   // Monetization
   subscriptionTier: SubscriptionTier; // Added subscriptionTier
+  loggingOut: boolean; // Added loggingOut flag
 
   // Actions
   setUserName: (name: string) => void;
@@ -177,6 +178,7 @@ interface UserState {
   setIsWidgetCustomizing: (isCustomizing: boolean) => void;
 
   setSubscriptionTier: (tier: SubscriptionTier) => void; // Added action for subscription tier
+  setLoggingOut: (loggingOut: boolean) => void; // Added action for loggingOut flag
 
   // App State Control Actions
   setAuthChecked: (checked: boolean) => void;
@@ -243,6 +245,7 @@ const initialState = {
 
   // Monetization - SAFE: Start as unknown, will be determined by RevenueCat
   subscriptionTier: 'unknown' as SubscriptionTier, // Safe default until RC confirms
+  loggingOut: false, // Added loggingOut flag
 };
 
 export const useUserStore = create<UserState>()(
@@ -462,10 +465,13 @@ export const useUserStore = create<UserState>()(
           });
         }
 
-        // Refresh quotes if currently viewing favorites
-        if (state.activeQuoteCategory === 'favorites') {
-          setTimeout(() => get().fetchQuotes(), 100);
-        }
+        // ✅ No fetchQuotes call. UI can get favourites
+        //    by filtering quotes from state or via selector
+        
+        // Optional: If you genuinely need to refresh from Supabase, use debounced refresh:
+        // import debounce from 'lodash.debounce';
+        // const refreshFavorites = debounce(() => get().fetchQuotes(), 1000);
+        // if (state.activeQuoteCategory === 'favorites') refreshFavorites();
       },
       
       removeFavorite: (quoteId) => {
@@ -486,10 +492,7 @@ export const useUserStore = create<UserState>()(
           });
         }
 
-        // Refresh quotes if currently viewing favorites
-        if (state.activeQuoteCategory === 'favorites') {
-          setTimeout(() => get().fetchQuotes(), 100);
-        }
+        // ✅ Still no fetchQuotes call
       },
 
       loadFavoritesFromDatabase: async () => {
@@ -593,6 +596,8 @@ export const useUserStore = create<UserState>()(
         // Note: Quote fetching will now be handled by consolidated initialization
         // Remove auto-refetch to prevent duplicate calls during startup
       },
+
+      setLoggingOut: (loggingOut) => set({ loggingOut }),
 
       // App State Control Actions
       setAuthChecked: (checked) => {

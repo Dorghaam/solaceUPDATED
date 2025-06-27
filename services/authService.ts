@@ -10,8 +10,7 @@ import { logOut as revenueCatLogOut } from './revenueCatService';
 import { router } from 'expo-router';
 import Purchases from 'react-native-purchases';
 
-// ✅ Step 1: Create and export the flag
-export let isLoggingOut = false;
+// ✅ Removed module flag - now using store's loggingOut flag
 
 export const loginWithGoogle = async () => {
   try {
@@ -69,9 +68,9 @@ export const loginWithGoogle = async () => {
 
 export const handleLogout = async () => {
   try {
-    // ✅ Step 2: Set the flag to true at the very beginning
-    isLoggingOut = true;
-    console.log('[AuthService] Starting atomic logout (isLoggingOut = true)...');
+    // ✅ Set the store's loggingOut flag to true at the very beginning
+    useUserStore.getState().setLoggingOut(true);
+    console.log('[AuthService] Starting atomic logout (loggingOut = true)...');
 
     await Promise.allSettled([
       Purchases.logOut(),
@@ -89,11 +88,11 @@ export const handleLogout = async () => {
     console.log('[AuthService] Logout complete. Navigating to onboarding.');
 
     // Optional: Reset flag after a delay in case of navigation issues.
-    setTimeout(() => { isLoggingOut = false; }, 3000);
+    setTimeout(() => { useUserStore.getState().setLoggingOut(false); }, 3000);
 
   } catch (error: any) {
     console.error('[AuthService] A critical error occurred during logout:', error.message);
-    isLoggingOut = false; // Reset on error
+    useUserStore.getState().setLoggingOut(false); // Reset on error
     await useUserStore.persist.clearStorage();
     useUserStore.getState().resetState();
     router.replace('/(onboarding)');
@@ -101,8 +100,12 @@ export const handleLogout = async () => {
 };
 
 export const signOut = async () => {
+  const { setLoggingOut } = useUserStore.getState();
+  
   try {
     console.log('[Auth] Signing out user...');
+    // ✅ Set the flag to true
+    setLoggingOut(true);
     
     // ✅ Log out from RevenueCat first to clear the user identity
     await revenueCatLogOut();
@@ -118,6 +121,9 @@ export const signOut = async () => {
   } catch (error: any) {
     console.error('[Auth] Error during sign out:', error.message);
     throw error;
+  } finally {
+    // ✅ Always reset the flag
+    setLoggingOut(false);
   }
 };
 

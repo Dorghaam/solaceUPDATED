@@ -19,7 +19,6 @@ export default function FeedPage() {
     quotes,
     isLoading,
     favoriteQuoteIds,
-    fetchQuotes,
     addFavorite,
     removeFavorite,
     setActiveQuoteCategory,
@@ -27,6 +26,11 @@ export default function FeedPage() {
     hasCompletedOnboarding,
     updateStreakData,
   } = useUserStore();
+
+  // ✅ Stabilise fetchQuotes so useEffect doesn't thrash
+  const fetchQuotes = useCallback(() => {
+    useUserStore.getState().fetchQuotes(); // <-- calls the action in Zustand
+  }, []);                                   // stable reference
 
   // Local state for UI interactions
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -44,7 +48,7 @@ export default function FeedPage() {
     
     // Track that user opened the main app for streak (only once)
     updateStreakData();
-  }, []);
+  }, [fetchQuotes, subscriptionTier, supabaseUser, updateStreakData]);
 
   // Fetch quotes when subscription tier is determined (but only once per tier change)
   useEffect(() => {
@@ -52,7 +56,7 @@ export default function FeedPage() {
       console.log('[FeedPage] Fetching quotes for determined tier:', subscriptionTier);
       fetchQuotes();
     }
-  }, [subscriptionTier, supabaseUser]);
+  }, [subscriptionTier, supabaseUser, fetchQuotes]);  // ✅ stable now
 
   // Update like count when favorites change
   useEffect(() => {

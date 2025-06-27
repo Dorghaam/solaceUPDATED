@@ -60,8 +60,10 @@ export default function RootLayout() {
         console.log('[Startup] Store hydrated');
 
         // Initialize core services with error handling
+        let currentSession = null;
         try {
           const { data: { session } } = await supabase.auth.getSession();
+          currentSession = session;
           console.log('[Startup] Session check complete');
           
           if (session?.user) {
@@ -81,8 +83,8 @@ export default function RootLayout() {
 
         // Initialize RevenueCat and get subscription tier
         try {
-          // ✅ Initialize RevenueCat without a user ID
-          await initRevenueCat();
+          // ✅ Initialize RevenueCat - it will check if already configured
+          await initRevenueCat(currentSession?.user?.id);
 
           // Then get the initial subscription state from the cache
           const initialTier = await getInitialSubscriptionTier();
@@ -103,7 +105,6 @@ export default function RootLayout() {
 
         // Pre-load quotes in background if user is authenticated and subscription is ready
         try {
-          const { data: { session: currentSession } } = await supabase.auth.getSession();
           if (currentSession?.user && subscriptionTier !== 'unknown') {
             console.log('[Startup] Pre-loading quotes...');
             await fetchQuotes();
