@@ -198,15 +198,20 @@ export default function RootLayout() {
     const handleDeepLink = (url: string) => {
       console.log('[DeepLink] Received:', url);
       
-      // For now, just open the main app - no special widget navigation
       if (url.includes('solaceapp://')) {
+        // Always ensure the app initializes properly when opened from widget
+        if (!isInitialized || !authChecked) {
+          console.log('[DeepLink] App not ready, storing pending deep link');
+          setPendingDeepLink(url);
+          return;
+        }
+
         if (supabaseUser && hasCompletedOnboarding) {
           console.log('[DeepLink] Opening main app');
-          // Just ensure we're in the main app - no special navigation needed
           router.replace('/(main)');
         } else {
-          console.log('[DeepLink] User not ready, storing pending deep link');
-          setPendingDeepLink(url);
+          console.log('[DeepLink] User not authenticated/onboarded, opening onboarding');
+          router.replace('/(onboarding)');
         }
       }
     };
@@ -227,20 +232,25 @@ export default function RootLayout() {
     return () => {
       subscription?.remove();
     };
-  }, [supabaseUser, hasCompletedOnboarding]);
+  }, [supabaseUser, hasCompletedOnboarding, isInitialized, authChecked]);
 
-  // Handle pending deep link when user becomes ready
+  // Handle pending deep link when app becomes ready
   useEffect(() => {
-    if (pendingDeepLink && supabaseUser && hasCompletedOnboarding) {
+    if (pendingDeepLink && isInitialized && authChecked) {
       console.log('[DeepLink] Processing pending deep link:', pendingDeepLink);
       
       if (pendingDeepLink.includes('solaceapp://')) {
-        // Just open the main app
-        router.replace('/(main)');
+        if (supabaseUser && hasCompletedOnboarding) {
+          console.log('[DeepLink] Navigating to main app');
+          router.replace('/(main)');
+        } else {
+          console.log('[DeepLink] Navigating to onboarding');
+          router.replace('/(onboarding)');
+        }
         setPendingDeepLink(null);
       }
     }
-  }, [pendingDeepLink, supabaseUser, hasCompletedOnboarding]);
+  }, [pendingDeepLink, supabaseUser, hasCompletedOnboarding, isInitialized, authChecked]);
 
   // Add AppState listener to refresh subscription status when app comes to foreground
   useEffect(() => {
