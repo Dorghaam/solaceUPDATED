@@ -214,10 +214,11 @@ export default function RemindersPage() {
           {/* Allow and Save Button */}
           <View style={styles.bottomSection}>
             <Pressable 
-              style={[
+              style={({ pressed }) => [
                 styles.allowButton,
                 { 
-                  opacity: isSchedulingNotifications ? 0.7 : 1
+                  opacity: isSchedulingNotifications ? 0.7 : (pressed ? 0.9 : 1),
+                  transform: [{ scale: pressed ? 0.98 : 1 }]
                 }
               ]} 
               onPress={handleAllowAndSave}

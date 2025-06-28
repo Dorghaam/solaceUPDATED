@@ -45,7 +45,15 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
   
   // State for all reminder settings
   const [notificationsEnabled, setNotificationsEnabled] = useState(notificationSettings?.enabled || false);
-  const [selectedFrequency, setSelectedFrequency] = useState(3); // Default to 3x
+  const [selectedFrequency, setSelectedFrequency] = useState(() => {
+    // Parse frequency from store (e.g., '8x' -> 8, '3x' -> 3)
+    const storedFrequency = notificationSettings?.frequency;
+    if (storedFrequency) {
+      const numericFreq = parseInt(storedFrequency.replace('x', ''), 10);
+      return !isNaN(numericFreq) && numericFreq >= 1 && numericFreq <= 10 ? numericFreq : 3;
+    }
+    return 3; // Default to 3x
+  });
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showCategoriesList, setShowCategoriesList] = useState(false);
   const [isSchedulingNotifications, setIsSchedulingNotifications] = useState(false);
@@ -53,6 +61,22 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
   // Animation refs for categories list
   const categoriesSlideAnim = useRef(new Animated.Value(screenHeight)).current;
   const categoriesBackgroundOpacity = useRef(new Animated.Value(0)).current;
+
+  // Sync state with store values when they change
+  useEffect(() => {
+    if (notificationSettings) {
+      setNotificationsEnabled(notificationSettings.enabled);
+      
+      // Parse and update frequency from store
+      const storedFrequency = notificationSettings.frequency;
+      if (storedFrequency) {
+        const numericFreq = parseInt(storedFrequency.replace('x', ''), 10);
+        if (!isNaN(numericFreq) && numericFreq >= 1 && numericFreq <= 10) {
+          setSelectedFrequency(numericFreq);
+        }
+      }
+    }
+  }, [notificationSettings]);
 
   useEffect(() => {
     if (visible) {
