@@ -1,10 +1,11 @@
 import { SubscriptionTier, useUserStore } from '@/store/userStore';
 import Constants from 'expo-constants';
-import { AppState, AppStateStatus } from 'react-native';
-import Purchases, { CustomerInfo, PurchasesError, PurchasesOfferings, PurchasesPackage } from 'react-native-purchases';
+import { AppState, AppStateStatus, Platform } from 'react-native';
+import Purchases, { CustomerInfo, PurchasesError, PurchasesOfferings, PurchasesPackage, LOG_LEVEL } from 'react-native-purchases';
 
 // 1. CONFIGURE CONSTANTS AND LISTENERS
 const RC_API_KEY = Constants.expoConfig?.extra?.RC_API_KEY as string;
+
 let appStateListener: { remove: () => void } | null = null;
 let configurePromise: Promise<void> | null = null;
 
@@ -39,10 +40,21 @@ function updateTierFromInfo(info: CustomerInfo) {
 export function initRevenueCat(appUserID?: string | null): Promise<void> {
   if (configurePromise) return configurePromise; // already started
   
-  configurePromise = new Promise<void>(async (resolve) => {
+  configurePromise = new Promise<void>(async (resolve, reject) => {
     try {
+      // Set debug logging in development
+      if (__DEV__) {
+        Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+      }
+      
       // Configure with appUserID from the start to prevent anonymous user flicker.
-      await Purchases.configure({ apiKey: RC_API_KEY, appUserID: appUserID || undefined });
+      // FIXED: Removed unnecessary await - configure() is synchronous
+      Purchases.configure({ 
+        apiKey: RC_API_KEY, 
+        appUserID: appUserID || undefined,
+        useAmazon: false
+      });
+      
       console.log(`[RevenueCat] ✅ SDK configured for user: ${appUserID ? appUserID.substring(0, 8) + '...' : 'Anonymous'}`);
       
       // Add the listener that will react to all subscription changes.
@@ -62,7 +74,7 @@ export function initRevenueCat(appUserID?: string | null): Promise<void> {
       resolve(); // SDK is ready
     } catch (error) {
       console.error('[RevenueCat] Configuration failed:', error);
-      resolve(); // Still resolve to prevent hanging
+      reject(error); // FIXED: Reject on error instead of resolving
     }
   });
   
@@ -75,13 +87,14 @@ export function initRevenueCat(appUserID?: string | null): Promise<void> {
  * @param newUserID - The new Supabase user ID, or null if logged out.
  */
 export async function syncIdentity(newUserID: string | null) {
-  // ① WAIT for configure to complete before any SDK calls
-  await configurePromise;
-  
+  // FIXED: Move guard BEFORE await to prevent awaiting null
   if (!configurePromise) {
     console.warn('[RevenueCat] SDK not configured yet, skipping identity sync');
     return;
   }
+  
+  // ① WAIT for configure to complete before any SDK calls
+  await configurePromise;
   
   try {
     const { originalAppUserId } = await Purchases.getCustomerInfo();
@@ -111,9 +124,13 @@ export async function syncIdentity(newUserID: string | null) {
  * Waits for SDK to be configured first.
  */
 export async function getOfferings(): Promise<PurchasesOfferings> {
-    await configurePromise; // Wait for SDK
-    console.log('[RevenueCat] Fetching offerings...');
-    return await Purchases.getOfferings();
+  if (!configurePromise) {
+    throw new Error('[RevenueCat] SDK not configured yet');
+  }
+  
+  await configurePromise; // Wait for SDK
+  console.log('[RevenueCat] Fetching offerings...');
+  return await Purchases.getOfferings();
 }
 
 /**
@@ -122,9 +139,20 @@ export async function getOfferings(): Promise<PurchasesOfferings> {
  * @param packageToPurchase - The RevenueCat package object to purchase.
  */
 export async function purchasePackage(packageToPurchase: PurchasesPackage) {
-    await configurePromise; // Wait for SDK
-    console.log(`[RevenueCat] Purchasing package: ${packageToPurchase.identifier}`);
+  if (!configurePromise) {
+    throw new Error('[RevenueCat] SDK not configured yet');
+  }
+  
+  await configurePromise; // Wait for SDK
+  console.log(`[RevenueCat] Purchasing package: ${packageToPurchase.identifier}`);
+  
+  try {
+    // FIXED: Added proper error handling
     return await Purchases.purchasePackage(packageToPurchase);
+  } catch (error) {
+    console.error(`[RevenueCat] Purchase failed for ${packageToPurchase.identifier}:`, error);
+    throw error; // Re-throw for UI to handle
+  }
 }
 
 /**
@@ -133,11 +161,22 @@ export async function purchasePackage(packageToPurchase: PurchasesPackage) {
  * Waits for SDK to be configured first.
  */
 export async function restorePurchases(): Promise<CustomerInfo> {
+  if (!configurePromise) {
+    throw new Error('[RevenueCat] SDK not configured yet');
+  }
+  
   await configurePromise; // Wait for SDK
   console.log('[RevenueCat] Attempting to restore purchases...');
-  // The listener will automatically handle the tier update.
-  await Purchases.syncPurchases();
-  return await Purchases.getCustomerInfo();
+  
+  try {
+    // FIXED: Added proper error handling
+    // The listener will automatically handle the tier update.
+    await Purchases.syncPurchases();
+    return await Purchases.getCustomerInfo();
+  } catch (error) {
+    console.error('[RevenueCat] Restore purchases failed:', error);
+    throw error; // Re-throw for UI to handle
+  }
 }
 
 /**
@@ -145,6 +184,10 @@ export async function restorePurchases(): Promise<CustomerInfo> {
  * Waits for SDK to be configured first.
  */
 export async function logOut(): Promise<void> {
+  if (!configurePromise) {
+    throw new Error('[RevenueCat] SDK not configured yet');
+  }
+  
   await configurePromise; // Wait for SDK
   console.log('[RevenueCat] Logging out user...');
   try {
@@ -175,4 +218,28 @@ function startForegroundRefreshListener() {
       });
     }
   });
+}
+
+/**
+ * FIXED: Added cleanup function to prevent memory leaks
+ * Stops the foreground refresh listener and cleans up resources.
+ * Call this when the app unmounts or during logout.
+ */
+export function stopForegroundRefreshListener() {
+  if (appStateListener) {
+    appStateListener.remove();
+    appStateListener = null;
+    console.log('[RevenueCat] Foreground refresh listener stopped');
+  }
+}
+
+/**
+ * FIXED: Added cleanup function for complete RevenueCat cleanup
+ * Cleans up all listeners and resets the configuration state.
+ * Use this during app shutdown or when completely resetting the SDK.
+ */
+export function cleanupRevenueCat() {
+  stopForegroundRefreshListener();
+  configurePromise = null;
+  console.log('[RevenueCat] Complete cleanup performed');
 } 

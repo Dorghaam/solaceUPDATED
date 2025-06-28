@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { Share } from 'react-native';
 import { router } from 'expo-router';
 import { useUserStore, BreakupCategory, useSubscription } from '../../store/userStore';
@@ -27,6 +27,9 @@ export default function FeedPage() {
     updateStreakData,
   } = useUserStore();
 
+  // ✅ Gate first-run side-effects to prevent React 18 Strict Mode double-mounting
+  const didInitialFetch = useRef(false);
+
   // ✅ Stabilise fetchQuotes so useEffect doesn't thrash
   const fetchQuotes = useCallback(() => {
     useUserStore.getState().fetchQuotes(); // <-- calls the action in Zustand
@@ -38,27 +41,26 @@ export default function FeedPage() {
   const [showCategories, setShowCategories] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Load quotes only once when component mounts with proper guards
+  // ✅ Consolidated effect - load quotes only once when component mounts with proper guards
   useEffect(() => {
+    // ⛔ Skip on second Strict-Mode mount in development
+    if (__DEV__ && didInitialFetch.current) {
+      console.log('[FeedPage] Skipping duplicate fetch due to Strict Mode');
+      return;
+    }
+
     // Only fetch if we have a determined subscription tier and user is authenticated
     if (subscriptionTier !== 'unknown' && supabaseUser) {
       console.log('[FeedPage] Initial quote fetch with tier:', subscriptionTier);
+      didInitialFetch.current = true;
       fetchQuotes();
+      
+      // Track that user opened the main app for streak (only once)
+      updateStreakData();
     }
-    
-    // Track that user opened the main app for streak (only once)
-    updateStreakData();
-  }, [fetchQuotes, subscriptionTier, supabaseUser, updateStreakData]);
+  }, [subscriptionTier, supabaseUser, fetchQuotes, updateStreakData]); // ✅ favorites removed from deps
 
-  // Fetch quotes when subscription tier is determined (but only once per tier change)
-  useEffect(() => {
-    if (subscriptionTier !== 'unknown' && supabaseUser && quotes.length === 0) {
-      console.log('[FeedPage] Fetching quotes for determined tier:', subscriptionTier);
-      fetchQuotes();
-    }
-  }, [subscriptionTier, supabaseUser, fetchQuotes]);  // ✅ stable now
-
-  // Update like count when favorites change
+  // ✅ Separate effect for like count updates (no refetch needed)
   useEffect(() => {
     setLikeCount(favoriteQuoteIds.length);
   }, [favoriteQuoteIds]);

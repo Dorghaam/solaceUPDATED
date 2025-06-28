@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -87,10 +87,15 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   const [refreshing, setRefreshing] = useState(false);
   const { fetchQuotes } = useUserStore();
 
+  // ✅ Memoize current quote to prevent unnecessary re-renders
+  const currentQuote = useMemo(() => {
+    return quotes[currentQuoteIndex] || quotes[0];
+  }, [quotes, currentQuoteIndex]);
+
   // Helper function to check if a quote is a placeholder
-  const isPlaceholderQuote = (quoteId: string) => {
+  const isPlaceholderQuote = useCallback((quoteId: string) => {
     return ['no-favorites', 'no-quotes', 'error'].includes(quoteId);
-  };
+  }, []);
 
   const handleGestureEvent = Animated.event(
     [{ nativeEvent: { translationY: translateY } }],
@@ -234,8 +239,6 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
       </GestureHandlerRootView>
     );
   }
-
-  const currentQuote = quotes[currentQuoteIndex] || quotes[0];
 
   return (
     <GestureHandlerRootView style={styles.fullScreenContainer}>
