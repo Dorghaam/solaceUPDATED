@@ -55,10 +55,10 @@ const getSettingsItems = (subscriptionTier: string): SettingsMenuItem[] => [
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-// Helper function to get the last 7 days
+// Helper function to get the last 7 days (today first, then backwards)
 const getLastSevenDays = () => {
   const days = [];
-  for (let i = 6; i >= 0; i--) {
+  for (let i = 0; i <= 6; i++) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     days.push({
