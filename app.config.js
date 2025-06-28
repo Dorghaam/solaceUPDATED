@@ -51,6 +51,7 @@ export default ({ config }) => ({
       "expo-dev-client",
       "expo-router",
       "expo-font",
+      "expo-notifications",
       [
         "expo-build-properties",
         {
@@ -75,6 +76,7 @@ export default ({ config }) => ({
     ],
     extra: {
       ...config.expo?.extra,
+      RC_API_KEY: process.env.EXPO_PUBLIC_RC_API_KEY,
       eas: {
         projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || "3492a16b-5ccf-47a1-bbb5-e1ed0d2d1181"
       }

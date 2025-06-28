@@ -1,26 +1,24 @@
-// app/_layout.tsx - REPLACED
+// app/_layout.tsx - FINAL VERSION
 
 import 'react-native-get-random-values';
 import 'react-native-reanimated';
 
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Linking from 'expo-linking';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AppState } from 'react-native';
+
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../services/supabaseClient';
-import { configureGoogleSignIn } from '../services/googleAuthService';
-import { initRevenueCat, getInitialSubscriptionTier, logIn, logOut, refreshCustomerInfo } from '../services/revenueCatService';
+import { initRevenueCat, syncIdentity } from '../services/revenueCatService';
 import { fetchAndSetUserProfile } from '../services/profileService';
-import { ensurePostLoginSync, signOut } from '../services/authService';
+import { ensurePostLoginSync } from '../services/authService';
 import { reviewService } from '../services/reviewService';
 import { networkService } from '../services/networkService';
 import { waitForStoreHydration } from '../utils';
-import { router } from 'expo-router';
 
 // This is a placeholder ThemeProvider until we create our own
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>; 
@@ -29,170 +27,112 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { 
-    supabaseUser, 
-    hasCompletedOnboarding, 
+    supabaseUser,
+    hasCompletedOnboarding,
+    hydrated,
+    authChecked,
     setSupabaseUser, 
     resetState, 
     updateStreakData,
-    hydrated,
-    authChecked,
     setAuthChecked,
     isAppReady,
-    subscriptionTier,
-    fetchQuotes
   } = useUserStore();
   const [pendingDeepLink, setPendingDeepLink] = React.useState<string | null>(null);
   const [isInitialized, setIsInitialized] = React.useState(false);
+  
+  // Block React 18 Strict Mode double-mounting in dev
+  const didInit = useRef(false);
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('../Inter/static/Inter_18pt-Regular.ttf'),
     'Inter-SemiBold': require('../Inter/static/Inter_18pt-SemiBold.ttf'),
   });
 
-  // Initialize app with splash screen logic - keep splash visible while loading
+  // Initialize app with splash screen logic - prevent double mounting
   useEffect(() => {
-    const initializeApp = async () => {
+    if (didInit.current) return; // skip second mount in dev
+    didInit.current = true;
+    
+    let cancelled = false;
+    
+    const start = async () => {
       try {
         console.log('[Startup] Starting app initialization...');
-        
-        // Wait for basic store hydration
         await waitForStoreHydration();
         console.log('[Startup] Store hydrated');
 
-        // Initialize core services with error handling
-        let currentSession = null;
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          currentSession = session;
-          console.log('[Startup] Session check complete');
-          
-          if (session?.user) {
-            setSupabaseUser(session.user);
-            // Background tasks
-            fetchAndSetUserProfile(session.user.id).catch(console.error);
-            ensurePostLoginSync(session.user.id).catch(console.error);
-            reviewService.trackAppOpen();
-            updateStreakData();
-          } else {
-            setSupabaseUser(null);
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('[Startup] Session check complete');
+        
+        // ① Configure RevenueCat FIRST before setting up auth listener
+        await initRevenueCat(session?.user?.id);
+        if (cancelled) return;
+        
+        // ② THEN set up auth listener (which calls syncIdentity)
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+          async (_event, session) => {
+            console.log(`[AuthListener] Event: ${_event}`, session?.user?.id || 'No User');
+            setSupabaseUser(session?.user ?? null);
+            
+            // syncIdentity will await configurePromise internally
+            await syncIdentity(session?.user?.id ?? null);
+
+            if (_event === 'SIGNED_IN' && session?.user) {
+              // Other background tasks
+              fetchAndSetUserProfile(session.user.id).catch(console.error);
+              reviewService.trackAppOpen();
+              updateStreakData();
+            } else if (_event === 'SIGNED_OUT') {
+              setTimeout(() => {
+                  resetState();
+                  console.log('[AuthListener] State reset after sign out.');
+              }, 50);
+            }
           }
-        } catch (authError) {
-          console.error('[Startup] Auth error:', authError);
+        );
+        
+        if (session?.user) {
+          setSupabaseUser(session.user);
+          // Background tasks
+          fetchAndSetUserProfile(session.user.id).catch(console.error);
+          ensurePostLoginSync(session.user.id).catch(console.error);
+          reviewService.trackAppOpen();
+          updateStreakData();
+        } else {
           setSupabaseUser(null);
         }
 
-        // Initialize RevenueCat and get subscription tier
-        try {
-          // ✅ Initialize RevenueCat - it will check if already configured
-          await initRevenueCat(currentSession?.user?.id);
-
-          // Then get the initial subscription state from the cache
-          const initialTier = await getInitialSubscriptionTier();
-          console.log(`[Startup] Initial subscription tier from cache: ${initialTier}`);
-          
-        } catch (rcError) {
-          console.error('[Startup] RevenueCat error:', rcError);
-          console.warn('[RevenueCat] Will use cached/persisted subscription state');
-        }
-
-        // Other services
-        try {
-          configureGoogleSignIn();
-          await networkService.checkConnection();
-        } catch (servicesError) {
-          console.error('[Startup] Services error:', servicesError);
-        }
-
-        // Pre-load quotes in background if user is authenticated and subscription is ready
-        try {
-          if (currentSession?.user && subscriptionTier !== 'unknown') {
-            console.log('[Startup] Pre-loading quotes...');
-            await fetchQuotes();
-            console.log('[Startup] Quotes pre-loaded');
-          }
-        } catch (quotesError) {
-          console.error('[Startup] Failed to pre-load quotes:', quotesError);
-        }
-
+        await networkService.checkConnection();
         setAuthChecked(true);
         console.log('[Startup] Initialization complete');
+        
+        // Cleanup function for auth listener
+        return () => {
+          authListener?.subscription?.unsubscribe();
+        };
 
       } catch (e) {
         console.error('[Startup] Critical error:', e);
         setAuthChecked(true);
-        console.warn('[RevenueCat] Will use cached/persisted subscription state');
       } finally {
-        setIsInitialized(true);
-        // Hide splash screen after everything is loaded
-        if (fontsLoaded || fontError) {
-          setTimeout(() => {
-            SplashScreen.hideAsync().catch(console.error);
-          }, 1000); // 1 second delay to show splash screen
-        }
-      }
-    };
-    
-    initializeApp();
-  }, []);
-
-  // This effect listens for auth changes AFTER initial startup
-  useEffect(() => {
-    let isProcessing = false; // Prevent race condition on rapid events
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (isProcessing) {
-          console.log(`[AuthListener] Event: ${_event} - Already processing, skipping`);
-          return;
-        }
-        
-        isProcessing = true;
-        try {
-          console.log(`[AuthListener] Event: ${_event}`, session?.user?.id || 'No User');
-          
-          // Always update the user state first
-          setSupabaseUser(session?.user ?? null);
-
-          if (_event === 'SIGNED_IN' && session?.user) {
-            // ✅ Log the user into RevenueCat with their Supabase ID
-            await logIn(session.user.id);
-            
-            // Other background tasks
-            ensurePostLoginSync(session.user.id).catch(console.error);
-            fetchAndSetUserProfile(session.user.id).catch(console.error);
-            
-            // Track app open on sign in
-            reviewService.trackAppOpen();
-            updateStreakData();
-          } else if (_event === 'SIGNED_OUT') {
-            // ✅ Log the user out of RevenueCat
-            await logOut();
-            console.log('[AuthListener] Processing sign out...');
-            
-            // Add delay to prevent race conditions with navigation
+        if (!cancelled) {
+          setIsInitialized(true);
+          if (fontsLoaded || fontError) {
             setTimeout(() => {
-              try {
-                // The signOut function already handles RC logout.
-                // resetState clears the zustand store for the next user.
-                console.log('[AuthListener] Resetting state after sign out');
-                resetState();
-              } catch (resetError) {
-                console.error('[AuthListener] Error resetting state:', resetError);
-              }
-            }, 50);
+              SplashScreen.hideAsync().catch(console.error);
+            }, 1000);
           }
-        } catch (error) {
-          console.error(`[AuthListener] Error processing ${_event}:`, error);
-        } finally {
-          isProcessing = false;
         }
       }
-    );
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
     };
-  }, [setSupabaseUser, resetState]);
+    
+    const cleanupPromise = start();
+    
+    return () => {
+      cancelled = true;
+      cleanupPromise.then(cleanup => cleanup?.());
+    };
+  }, []); // empty dependency array – run once
 
   // Handle deep links for widget navigation
   useEffect(() => {
@@ -200,13 +140,13 @@ export default function RootLayout() {
       console.log('[DeepLink] Received:', url);
       
       if (url.includes('solaceapp://')) {
-        // Always ensure the app initializes properly when opened from widget
         if (!isInitialized || !authChecked) {
           console.log('[DeepLink] App not ready, storing pending deep link');
           setPendingDeepLink(url);
           return;
         }
 
+        const { supabaseUser, hasCompletedOnboarding } = useUserStore.getState();
         if (supabaseUser && hasCompletedOnboarding) {
           console.log('[DeepLink] Opening main app');
           router.replace('/(main)');
@@ -217,7 +157,6 @@ export default function RootLayout() {
       }
     };
 
-    // Handle initial URL if app was opened from widget
     Linking.getInitialURL().then((url) => {
       if (url) {
         console.log('[DeepLink] Initial URL:', url);
@@ -225,7 +164,6 @@ export default function RootLayout() {
       }
     });
 
-    // Listen for subsequent deep links
     const subscription = Linking.addEventListener('url', ({ url }) => {
       handleDeepLink(url);
     });
@@ -233,7 +171,7 @@ export default function RootLayout() {
     return () => {
       subscription?.remove();
     };
-  }, [supabaseUser, hasCompletedOnboarding, isInitialized, authChecked]);
+  }, [isInitialized, authChecked]);
 
   // Handle pending deep link when app becomes ready
   useEffect(() => {
@@ -241,6 +179,7 @@ export default function RootLayout() {
       console.log('[DeepLink] Processing pending deep link:', pendingDeepLink);
       
       if (pendingDeepLink.includes('solaceapp://')) {
+        const { supabaseUser, hasCompletedOnboarding } = useUserStore.getState();
         if (supabaseUser && hasCompletedOnboarding) {
           console.log('[DeepLink] Navigating to main app');
           router.replace('/(main)');
@@ -251,52 +190,20 @@ export default function RootLayout() {
         setPendingDeepLink(null);
       }
     }
-  }, [pendingDeepLink, supabaseUser, hasCompletedOnboarding, isInitialized, authChecked]);
-
-  // Add AppState listener to refresh subscription status when app comes to foreground
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'active') {
-        console.log('[AppState] App has come to the foreground, refreshing subscription status.');
-        refreshCustomerInfo();
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
+  }, [pendingDeepLink, isInitialized, authChecked]);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      // Don't hide splash immediately - let initialization complete
       if (isInitialized) {
         SplashScreen.hideAsync().catch(console.error);
       }
     }
   }, [fontsLoaded, fontError, isInitialized]);
 
-  // Don't render anything until fonts are loaded AND app is initialized
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
-
-  // Wait for basic initialization to complete
-  if (!isInitialized || !hydrated) {
-    return null; // Keep splash screen visible
-  }
-
-  // Authentication Flow Logic:
-  // 1. If user hasn't completed onboarding, show onboarding (regardless of auth status)  
-  // 2. If user completed onboarding but isn't authenticated, redirect back to onboarding
-  // 3. Only show main app if both authenticated AND completed onboarding
   const showMainApp = supabaseUser && hasCompletedOnboarding;
 
-  console.log('[Layout] Rendering app stacks', { 
-    showMainApp, 
-    hasUser: !!supabaseUser, 
-    hasCompletedOnboarding 
-  });
+  if (!fontsLoaded && !fontError) return null;
+  if (!hydrated) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

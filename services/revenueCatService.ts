@@ -1,180 +1,162 @@
-import Purchases, { LOG_LEVEL, PurchasesStoreProduct, CustomerInfo } from 'react-native-purchases';
-import { useUserStore } from '../store/userStore';
-import { supabase } from './supabaseClient'; // Ensure Supabase is imported
+import { SubscriptionTier, useUserStore } from '@/store/userStore';
+import Constants from 'expo-constants';
+import { AppState, AppStateStatus } from 'react-native';
+import Purchases, { CustomerInfo, PurchasesError, PurchasesOfferings, PurchasesPackage } from 'react-native-purchases';
 
-const API_KEY = process.env.EXPO_PUBLIC_RC_API_KEY;
+// 1. CONFIGURE CONSTANTS AND LISTENERS
+const RC_API_KEY = Constants.expoConfig?.extra?.RC_API_KEY as string;
+let appStateListener: { remove: () => void } | null = null;
+let configurePromise: Promise<void> | null = null;
+
+// Quality gate - exit early if SDK not configured
+if (!RC_API_KEY) {
+  throw new Error('Missing EXPO_PUBLIC_RC_API_KEY - check your .env file');
+}
 
 /**
- * Initializes the RevenueCat SDK at app startup.
- * Now prevents duplicate configuration and optionally takes a user ID.
- * @param uid Optional user ID to configure with (prevents anonymous ID creation)
+ * Updates the global user store with the latest subscription tier.
+ * This is the SINGLE SOURCE OF TRUTH for subscription status in the app.
+ * @param info - The CustomerInfo object from RevenueCat.
  */
-export const initRevenueCat = async (uid?: string) => {
-  if (!API_KEY) {
-    console.warn('[RevenueCat] API key is missing.');
-    return;
-  }
+function updateTierFromInfo(info: CustomerInfo) {
+  const tier: SubscriptionTier = info.entitlements.active['premium']?.isActive ? 'premium' : 'free';
   
-  // ✅ Check if already configured to prevent duplication
-  const isConfigured = await Purchases.isConfigured();
-  if (isConfigured) {
-    console.log('[RevenueCat] SDK already configured, skipping initialization.');
-    return;
+  // Update Zustand store
+  const currentTier = useUserStore.getState().subscriptionTier;
+  if (currentTier !== tier) {
+    console.log(`[RevenueCat] Tier updated via listener: ${currentTier} -> ${tier}`);
+    useUserStore.getState().setSubscriptionTier(tier);
   }
+}
+
+// 2. CORE LIFECYCLE FUNCTIONS
+
+/**
+ * Initializes the RevenueCat SDK. Call this once at app startup.
+ * Uses a promise gate to prevent race conditions.
+ * @param appUserID - The Supabase user ID, if available.
+ */
+export function initRevenueCat(appUserID?: string | null): Promise<void> {
+  if (configurePromise) return configurePromise; // already started
   
-  // Configure with optional user ID to prevent unnecessary anonymous ID creation
-  await Purchases.configure({ 
-    apiKey: API_KEY, 
-    appUserID: uid 
+  configurePromise = new Promise<void>(async (resolve) => {
+    try {
+      // Configure with appUserID from the start to prevent anonymous user flicker.
+      await Purchases.configure({ apiKey: RC_API_KEY, appUserID: appUserID || undefined });
+      console.log(`[RevenueCat] ✅ SDK configured for user: ${appUserID ? appUserID.substring(0, 8) + '...' : 'Anonymous'}`);
+      
+      // Add the listener that will react to all subscription changes.
+      Purchases.addCustomerInfoUpdateListener(updateTierFromInfo);
+      
+      // Add a listener to refresh data when the app comes to the foreground.
+      startForegroundRefreshListener();
+
+      // Perform an initial check to populate the tier from cached data.
+      try {
+        const customerInfo = await Purchases.getCustomerInfo();
+        updateTierFromInfo(customerInfo);
+      } catch (error) {
+        console.warn('[RevenueCat] Initial getCustomerInfo failed:', error);
+      }
+      
+      resolve(); // SDK is ready
+    } catch (error) {
+      console.error('[RevenueCat] Configuration failed:', error);
+      resolve(); // Still resolve to prevent hanging
+    }
   });
   
-  // Set appropriate log level
-  Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.DEBUG : LOG_LEVEL.ERROR);
-  
-  console.log('[RevenueCat] SDK configured successfully.');
-
-  // Add a listener for real-time subscription updates
-  Purchases.addCustomerInfoUpdateListener(updateSubscriptionTier);
-};
+  return configurePromise;
+}
 
 /**
- * Consolidated subscription tier update function
- * Uses store's loggingOut flag and upsert for Supabase
+ * Syncs the RevenueCat identity when the Supabase user logs in or out.
+ * WAITS for configure promise to ensure SDK is ready before proceeding.
+ * @param newUserID - The new Supabase user ID, or null if logged out.
  */
-const updateSubscriptionTier = async (customerInfo: CustomerInfo) => {
-  // ✅ Check the store's loggingOut flag instead of module flag
-  const { loggingOut } = useUserStore.getState();
-  if (loggingOut) {
-    console.log('[RevenueCat] Logout in progress, listener is skipping database write.');
+export async function syncIdentity(newUserID: string | null) {
+  // ① WAIT for configure to complete before any SDK calls
+  await configurePromise;
+  
+  if (!configurePromise) {
+    console.warn('[RevenueCat] SDK not configured yet, skipping identity sync');
     return;
   }
-
-  const { entitlements } = customerInfo;
-  const hasPremium = entitlements.active.premium?.isActive || false;
-  const newTier = hasPremium ? 'premium' : 'free';
-
-  useUserStore.getState().setSubscriptionTier(newTier);
-  console.log(`[RevenueCat] Listener updated subscription tier to: ${newTier}`);
-
-  // ✅ Background sync to Supabase with upsert
-  const userId = useUserStore.getState().supabaseUser?.id;
-  if (userId && !customerInfo.originalAppUserId.startsWith('$RCAnonymousID:')) {
-    try {
-      console.log(`[RevenueCat] Syncing tier '${newTier}' to Supabase for user ${userId}`);
-      await supabase
-        .from('profiles')
-        .upsert({ 
-          id: userId, 
-          subscription_tier: newTier,
-          updated_at: new Date().toISOString()
-        });
-      console.log(`[RevenueCat] Successfully synced tier to Supabase.`);
-    } catch (error: any) {
-      console.error('[RevenueCat] Error updating subscription tier in Supabase:', error.message);
-    }
-  } else {
-    console.log('[RevenueCat] Skipping Supabase sync: User is anonymous or logged out.');
-  }
-};
-
-/**
- * Associates the current RevenueCat user with your app's user ID.
- * Now includes immediate refresh to ensure UI consistency.
- * @param userId The unique user ID from your system (e.g., Supabase user ID).
- */
-export const logIn = async (userId: string) => {
+  
   try {
-    console.log(`[RevenueCat] Identifying user: ${userId}`);
+    const { originalAppUserId } = await Purchases.getCustomerInfo();
     
-    // Ensure RevenueCat is configured before attempting to log in
-    const isConfigured = await Purchases.isConfigured();
-    if (!isConfigured) {
-      console.log('[RevenueCat] SDK not configured, initializing with user ID...');
-      await initRevenueCat(userId);
-      return; // initRevenueCat with userId already handles the login
-    }
-    
-    await Purchases.logIn(userId);
-    
-    // ✅ Force immediate refresh to prevent stale UI
-    await Purchases.getCustomerInfo();
-    
-    console.log('[RevenueCat] User logged in successfully with immediate refresh');
-  } catch (e: any) {
-    console.error('[RevenueCat] Login error:', e.message);
-  }
-};
-
-/**
- * Consolidated logout function that safely handles anonymous users.
- * Uses store's loggingOut flag instead of module flag.
- */
-export const logOut = async () => {
-  try {
-    // Check if RevenueCat is configured before attempting to log out
-    const isConfigured = await Purchases.isConfigured();
-    if (!isConfigured) {
-      console.log('[RevenueCat] SDK not configured, skipping logout');
-      useUserStore.getState().setSubscriptionTier('free');
+    // Case 1: Logging out.
+    if (!newUserID) {
+      if (!originalAppUserId.startsWith('$RCAnonymousID:')) {
+        console.log('[RevenueCat] User logged out, resetting to anonymous.');
+        await Purchases.logOut();
+      }
       return;
     }
-
-    // ✅ Check if the user is already anonymous to prevent errors
-    const isAnonymous = await Purchases.isAnonymous();
-    if (isAnonymous) {
-      console.log('[RevenueCat] User is already anonymous. Skipping logout call.');
-      useUserStore.getState().setSubscriptionTier('free');
-      return;
+    
+    // Case 2: Logging in or switching users.
+    if (originalAppUserId !== newUserID) {
+      console.log(`[RevenueCat] Logging in user: ${newUserID.substring(0, 8)}...`);
+      // No need for logout first, logIn handles the identity switch.
+      await Purchases.logIn(newUserID);
     }
-
-    console.log('[RevenueCat] Logging out user...');
-    await Purchases.logOut();
-    useUserStore.getState().setSubscriptionTier('free');
-    console.log('[RevenueCat] Logout successful.');
-  } catch (e: any) {
-    console.error('[RevenueCat] Logout error:', e.message);
-    // Ensure tier is set to free even on error
-    useUserStore.getState().setSubscriptionTier('free');
+  } catch (error) {
+    console.error('[RevenueCat] Identity sync failed:', error);
   }
-};
+}
 
 /**
- * Gets the subscription tier from the latest cached CustomerInfo.
+ * Fetches the available offerings (e.g., "default") from RevenueCat.
+ * Waits for SDK to be configured first.
  */
-export const getInitialSubscriptionTier = async () => {
-  try {
-    // Check if RevenueCat is configured before attempting to get customer info
-    const isConfigured = await Purchases.isConfigured();
-    if (!isConfigured) {
-      console.log('[RevenueCat] SDK not configured, initializing first...');
-      await initRevenueCat();
-    }
-    
-    // ✅ Use cached customer info to avoid unnecessary network calls
-    const customerInfo = await Purchases.getCustomerInfo();
-    const hasPremium = customerInfo.entitlements.active.premium?.isActive || false;
-    const tier = hasPremium ? 'premium' : 'free';
-    useUserStore.getState().setSubscriptionTier(tier);
-    return tier;
-  } catch (e) {
-    console.warn('[RevenueCat] Could not get initial customer info. Defaulting to unknown.', e);
-    return 'unknown';
-  }
-};
+export async function getOfferings(): Promise<PurchasesOfferings> {
+    await configurePromise; // Wait for SDK
+    console.log('[RevenueCat] Fetching offerings...');
+    return await Purchases.getOfferings();
+}
 
 /**
- * Forces a refresh of the customer info from the network if the cache is stale.
- * Now uses cachedOrFetched policy for better performance.
+ * Purchases a specific package from an offering.
+ * Waits for SDK to be configured first.
+ * @param packageToPurchase - The RevenueCat package object to purchase.
  */
-export const refreshCustomerInfo = async () => {
-  try {
-    console.log('[RevenueCat] Refreshing customer info...');
-    // ✅ Use cached customer info when available
-    const customerInfo = await Purchases.getCustomerInfo(); 
-    
-    // The listener will automatically handle the update
-    console.log('[RevenueCat] Refresh complete. Listener will handle any updates.');
-  } catch (e: any) {
-    console.warn('[RevenueCat] Customer info refresh failed:', e.message);
+export async function purchasePackage(packageToPurchase: PurchasesPackage) {
+    await configurePromise; // Wait for SDK
+    console.log(`[RevenueCat] Purchasing package: ${packageToPurchase.identifier}`);
+    return await Purchases.purchasePackage(packageToPurchase);
+}
+
+/**
+ * Manually triggers a refresh of purchases from the App Store/Play Store.
+ * Primarily used for a "Restore Purchases" button.
+ * Waits for SDK to be configured first.
+ */
+export async function restorePurchases(): Promise<CustomerInfo> {
+  await configurePromise; // Wait for SDK
+  console.log('[RevenueCat] Attempting to restore purchases...');
+  // The listener will automatically handle the tier update.
+  await Purchases.syncPurchases();
+  return await Purchases.getCustomerInfo();
+}
+
+// 3. HELPER FUNCTIONS
+
+/**
+ * Listens for app state changes to refresh customer info when the app
+ * becomes active. RevenueCat's SDK automatically caches this, so it's a cheap call.
+ */
+function startForegroundRefreshListener() {
+  if (appStateListener) {
+    appStateListener.remove();
   }
-}; 
+  
+  appStateListener = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+    if (nextAppState === 'active') {
+      console.log('[RevenueCat] App is active, refreshing customer info.');
+      Purchases.getCustomerInfo().catch(error => {
+        console.warn('[RevenueCat] Foreground refresh failed:', error);
+      });
+    }
+  });
+} 

@@ -1,115 +1,213 @@
-import { useUserStore } from '@/store/userStore';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Alert, ScrollView, SafeAreaView } from 'react-native';
 import { router } from 'expo-router';
-import React, { useCallback, useEffect } from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
-import RevenueCatUI from 'react-native-purchases-ui';
-import Purchases, { PurchasesEntitlementInfo, CustomerInfo } from 'react-native-purchases';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import Purchases, { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
+import { useUserStore } from '@/store/userStore';
+import { getOfferings, purchasePackage, restorePurchases } from '@/services/revenueCatService';
+import { theme } from '@/constants/theme';
+import * as Haptics from 'expo-haptics';
 
-function PaywallContent() {
-  const { setHasCompletedOnboarding, setSubscriptionTier, supabaseUser, subscriptionTier } = useUserStore();
+// A reusable component to display a purchase option
+const PackageCard = ({ item, isSelected, onPress }: { item: PurchasesPackage, isSelected: boolean, onPress: () => void }) => (
+  <Pressable
+    style={[styles.packageButton, isSelected && styles.selectedPackage]}
+    onPress={onPress}
+  >
+    <View style={styles.packageDetails}>
+        <Text style={styles.packagePeriod}>{item.product.title}</Text>
+        <Text style={styles.packagePrice}>{item.product.priceString}</Text>
+    </View>
+  </Pressable>
+);
 
-  // Authentication guard - only authenticated users can access paywall
+export default function PaywallScreen() {
+  const { setHasCompletedOnboarding, supabaseUser } = useUserStore();
+  const [offering, setOffering] = useState<PurchasesOffering | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<PurchasesPackage | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
   useEffect(() => {
+    // Redirect if user is not logged in
     if (!supabaseUser) {
-      console.log('[Paywall] User not authenticated, redirecting to login...');
       router.replace('/(onboarding)/login');
       return;
     }
+    
+    // Fetch offerings from RevenueCat
+    const fetchInitialOfferings = async () => {
+      try {
+        const offerings = await getOfferings();
+        if (offerings.current) {
+          setOffering(offerings.current);
+          // Pre-select the annual package if available
+          const annualPackage = offerings.current.availablePackages.find(p => p.packageType === 'ANNUAL');
+          setSelectedPackage(annualPackage || offerings.current.availablePackages[0]);
+        }
+      } catch (e) {
+        console.error("Error fetching offerings:", e);
+        Alert.alert("Error", "Could not load subscription options. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInitialOfferings();
   }, [supabaseUser]);
 
-  // Check if user is already premium and complete onboarding immediately
-  useEffect(() => {
-    if (subscriptionTier === 'premium') {
-      console.log('[Paywall] User is already premium, completing onboarding directly...');
-      completeOnboardingAndNavigate();
-    }
-  }, [subscriptionTier]);
-
-  const completeOnboardingAndNavigate = useCallback(() => {
-    // Double check authentication before completing onboarding
-    if (!supabaseUser) {
-      console.log('[Paywall] User not authenticated during onboarding completion, redirecting to login...');
-      router.replace('/(onboarding)/login');
-      return;
-    }
-    
-    console.log('[Paywall] Completing onboarding and navigating to main app...');
+  const completeOnboardingAndNavigate = () => {
     setHasCompletedOnboarding(true);
     router.replace('/(main)');
-  }, [setHasCompletedOnboarding, supabaseUser]);
+  };
 
-  const handleSuccess = useCallback(async (customerInfo: CustomerInfo) => {
-    console.log('[Paywall] Purchase/Restore successful. Processing entitlements...');
-
-    // ✅ Explicitly check for the 'premium' entitlement from the event.
-    const hasPremium = customerInfo.entitlements.active.premium?.isActive || false;
-
-    if (hasPremium) {
-      console.log('[Paywall] "premium" entitlement found. Granting premium access.');
-      setSubscriptionTier('premium');
-    } else {
-      console.warn('[Paywall] Purchase success event fired, but no active "premium" entitlement was found. Defaulting to free.');
-      setSubscriptionTier('free');
+  const handlePurchase = async () => {
+    if (!selectedPackage) {
+      Alert.alert("No Selection", "Please select a subscription package.");
+      return;
     }
-    
-    // Sync purchases to ensure everything is up-to-date with the server.
+
+    setIsPurchasing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
     try {
-      await Purchases.syncPurchases();
-    } catch (e) {
-      console.error('[Paywall] Error syncing purchases after success:', e);
+      const { customerInfo } = await purchasePackage(selectedPackage);
+      // The listener in revenueCatService will handle the tier update automatically.
+      // We just need to complete the onboarding flow.
+      if (customerInfo.entitlements.active['premium']?.isActive) {
+        console.log("[Paywall] Purchase successful, user has premium.");
+        Alert.alert("Success!", "You are now a premium member.");
+        completeOnboardingAndNavigate();
+      }
+    } catch (e: any) {
+      if (!e.userCancelled) {
+        console.error("Purchase error:", e);
+        Alert.alert("Error", "An error occurred during the purchase.");
+      }
+    } finally {
+      setIsPurchasing(false);
     }
+  };
 
-    // Complete the onboarding process and navigate to the main app.
+  const handleRestore = async () => {
+    setIsPurchasing(true);
+    try {
+      const customerInfo = await restorePurchases();
+      if (customerInfo.entitlements.active['premium']?.isActive) {
+        Alert.alert("Restore Successful", "Your premium access has been restored.");
+        completeOnboardingAndNavigate();
+      } else {
+        Alert.alert("No Purchase Found", "We couldn't find an active subscription to restore.");
+      }
+    } catch (e) {
+        console.error("Restore error:", e);
+        Alert.alert("Error", "Could not restore purchases at this time.");
+    } finally {
+        setIsPurchasing(false);
+    }
+  };
+
+  const handleSkip = () => {
+    // If user skips, we still mark onboarding as complete so they can enter the app.
+    // The revenueCatService listener will have already set their tier to 'free'.
     completeOnboardingAndNavigate();
-  }, [setSubscriptionTier, completeOnboardingAndNavigate]);
-
-  const handleDismiss = useCallback(() => {
-    // ✅ CORRECT LOGIC: If the paywall is dismissed, the user is NOT premium.
-    // No need to check anything. Just set their status to free and proceed.
-    console.log('[Paywall] Paywall dismissed by user. Setting tier to free.');
-    
-    // Set the subscription tier to 'free' in the global state.
-    setSubscriptionTier('free');
-    
-    // Navigate the user into the main app experience.
-    completeOnboardingAndNavigate();
-  }, [setSubscriptionTier, completeOnboardingAndNavigate]);
-
-  // If user is not authenticated, don't render the paywall
-  if (!supabaseUser) {
-    return null;
-  }
-
-  // If user is already premium, show loading while we complete onboarding
-  if (subscriptionTier === 'premium') {
+  };
+  
+  if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 16 }}>Completing setup...</Text>
+        <Text style={styles.loadingText}>Loading Offers...</Text>
       </View>
     );
   }
 
   return (
-    <RevenueCatUI.Paywall
-      onPurchaseCompleted={({ customerInfo }) => handleSuccess(customerInfo)}
-      onRestoreCompleted={({ customerInfo }) => handleSuccess(customerInfo)}
-      onDismiss={handleDismiss}
-    />
+    <LinearGradient
+      colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light, theme.colors.lightPink.medium]}
+      style={styles.container}
+    >
+      <SafeAreaView style={{flex: 1}}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.title}>Unlock Your Full Potential</Text>
+          <Text style={styles.subtitle}>Join Solace Premium to access all features and accelerate your healing journey.</Text>
+          
+          <View style={styles.featuresList}>
+             <Text style={styles.featureItem}><Ionicons name="star" size={16} /> Access all quote categories</Text>
+             <Text style={styles.featureItem}><Ionicons name="star" size={16} /> Unlimited favorites</Text>
+             <Text style={styles.featureItem}><Ionicons name="star" size={16} /> Advanced widget customization</Text>
+          </View>
+          
+          {offering?.availablePackages.map((pkg) => (
+            <PackageCard 
+              key={pkg.identifier}
+              item={pkg}
+              isSelected={selectedPackage?.identifier === pkg.identifier}
+              onPress={() => setSelectedPackage(pkg)}
+            />
+          ))}
+
+        </ScrollView>
+        <View style={styles.footer}>
+            <Pressable
+                style={[styles.purchaseButton, isPurchasing && { opacity: 0.7 }]}
+                onPress={handlePurchase}
+                disabled={isPurchasing}
+            >
+                <Text style={styles.purchaseButtonText}>
+                    {isPurchasing ? 'Processing...' : 'Start Free Trial & Subscribe'}
+                </Text>
+            </Pressable>
+            <View style={styles.footerLinks}>
+                <Pressable onPress={handleRestore} disabled={isPurchasing}><Text style={styles.footerLink}>Restore Purchase</Text></Pressable>
+                <Pressable onPress={handleSkip} disabled={isPurchasing}><Text style={styles.footerLink}>Skip for Now</Text></Pressable>
+            </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
-export default function PaywallScreen() {
-  return (
-    <React.Suspense
-      fallback={
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" />
-          <Text style={{ marginTop: 16 }}>Loading Offers...</Text>
-        </View>
-      }
-    >
-      <PaywallContent />
-    </React.Suspense>
-  );
-} 
+// Add a full stylesheet for the custom paywall
+const styles = StyleSheet.create({
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 16, fontSize: 16 },
+  container: { flex: 1 },
+  scrollContent: { padding: 24, alignItems: 'center' },
+  title: { fontSize: 32, fontWeight: 'bold', textAlign: 'center', color: '#333', marginBottom: 16, marginTop: 40 },
+  subtitle: { fontSize: 18, textAlign: 'center', color: '#555', marginBottom: 32, lineHeight: 26 },
+  featuresList: { alignSelf: 'stretch', marginBottom: 24, paddingHorizontal: 20 },
+  featureItem: { fontSize: 16, color: '#444', marginBottom: 8 },
+  packageButton: {
+    width: '100%',
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    borderRadius: 16,
+    marginBottom: 16,
+    backgroundColor: 'rgba(255,255,255,0.5)'
+  },
+  selectedPackage: {
+    borderColor: theme.colors.primary,
+    backgroundColor: 'rgba(255, 232, 239, 0.8)'
+  },
+  packageDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  packagePeriod: { fontSize: 18, fontWeight: '600', color: '#333' },
+  packagePrice: { fontSize: 18, fontWeight: 'bold', color: theme.colors.primary },
+  footer: { padding: 24, paddingTop: 12, borderTopColor: '#eee', borderTopWidth: 1 },
+  purchaseButton: {
+    backgroundColor: theme.colors.primary,
+    padding: 16,
+    borderRadius: 24,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  purchaseButtonText: { fontSize: 18, color: 'white', fontWeight: 'bold' },
+  footerLinks: { flexDirection: 'row', justifyContent: 'space-around' },
+  footerLink: { color: '#555', textDecorationLine: 'underline' },
+}); 
