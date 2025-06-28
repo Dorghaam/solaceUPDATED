@@ -13,7 +13,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import { router } from 'expo-router';
 import { theme } from '../constants/theme';
 import { signOut, deleteCurrentUserAccount } from '../services/authService';
 import { useUserStore } from '../store/userStore';
@@ -171,16 +170,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     await signOut();
                     console.log('ProfileScreen: Sign out successful');
                     
+                    // ❌ Remove explicit navigation - let the layout handle it automatically
                     // Small delay to ensure state changes are processed
-                    setTimeout(() => {
-                      try {
-                        console.log('ProfileScreen: Navigating to onboarding...');
-                        router.replace('/(onboarding)');
-                      } catch (navError) {
-                        console.error('ProfileScreen: Navigation error:', navError);
-                        // The auth state change will handle the redirect
-                      }
-                    }, 100);
+                    // setTimeout(() => {
+                    //   try {
+                    //     console.log('ProfileScreen: Navigating to onboarding...');
+                    //     router.replace('/(onboarding)');
+                    //   } catch (navError) {
+                    //     console.error('ProfileScreen: Navigation error:', navError);
+                    //     // The auth state change will handle the redirect
+                    //   }
+                    // }, 100);
                     
                   } catch (error: any) {
                     console.error('ProfileScreen: Sign out error:', error);
@@ -239,8 +239,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                         // Call the delete function which handles both Supabase and RevenueCat cleanup
                         await deleteCurrentUserAccount();
                         
-                        console.log('ProfileScreen: Account deletion successful, redirecting to onboarding');
-                        router.replace('/(onboarding)');
+                        console.log('ProfileScreen: Account deletion successful');
+                        // ❌ Remove explicit navigation - let the layout handle it automatically
+                        // router.replace('/(onboarding)');
                         
                         // Show success message
                         setTimeout(() => {

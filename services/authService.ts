@@ -7,7 +7,6 @@ import { useUserStore } from '../store/userStore';
 // Removed subscriptionSyncService import - now using simplified RevenueCat-only approach
 import { supabase } from './supabaseClient';
 import { logOut as revenueCatLogOut } from './revenueCatService';
-import { router } from 'expo-router';
 import Purchases from 'react-native-purchases';
 
 // ✅ Removed module flag - now using store's loggingOut flag
@@ -84,8 +83,9 @@ export const handleLogout = async () => {
     useUserStore.getState().resetState();
     console.log('[AuthService] In-memory state has been reset.');
 
-    router.replace('/(onboarding)');
-    console.log('[AuthService] Logout complete. Navigating to onboarding.');
+    // ❌ Remove explicit navigation - let the layout handle it automatically
+    // router.replace('/(onboarding)');
+    console.log('[AuthService] Logout complete. Navigation will be handled by layout.');
 
     // Optional: Reset flag after a delay in case of navigation issues.
     setTimeout(() => { useUserStore.getState().setLoggingOut(false); }, 3000);
@@ -95,7 +95,8 @@ export const handleLogout = async () => {
     useUserStore.getState().setLoggingOut(false); // Reset on error
     await useUserStore.persist.clearStorage();
     useUserStore.getState().resetState();
-    router.replace('/(onboarding)');
+    // ❌ Remove explicit navigation here too
+    // router.replace('/(onboarding)');
   }
 };
 
