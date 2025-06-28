@@ -17,6 +17,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { theme } from '../constants/theme';
 import { signOut } from '../services/authService';
+import { restorePurchases } from '../services/revenueCatService';
 import * as Haptics from 'expo-haptics';
 import { useUserStore } from '@/store/userStore';
 import { useSubscription } from '@/store/userStore';
@@ -164,6 +165,49 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       handleClose(); // Close settings modal first
       router.push('/(onboarding)/paywall');
     }
+  };
+
+  const handleRestorePurchases = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    Alert.alert(
+      'Restore Purchases',
+      'This will check for any previous purchases and restore your subscription if found.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Restore',
+          onPress: async () => {
+            try {
+              const loadingAlert = Alert.alert(
+                'Restoring Purchases',
+                'Please wait while we check for your previous purchases...',
+                [],
+                { cancelable: false }
+              );
+              
+              await restorePurchases();
+              
+              Alert.alert(
+                'Restore Complete',
+                'Your purchases have been restored successfully!',
+                [{ text: 'OK' }]
+              );
+            } catch (error) {
+              console.error('Restore purchases failed:', error);
+              Alert.alert(
+                'Restore Failed',
+                'We couldn\'t find any previous purchases to restore. If you believe this is an error, please contact support.',
+                [{ text: 'OK' }]
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleSettingPress = (setting: SettingsMenuItem) => {
@@ -361,6 +405,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </Pressable>
                 ))}
               </View>
+              
+              {/* Restore Purchases Button */}
+              <Pressable 
+                style={styles.restoreButton} 
+                onPress={handleRestorePurchases}
+              >
+                <Text style={styles.restoreButtonText}>Restore Purchases</Text>
+              </Pressable>
             </ScrollView>
           </LinearGradient>
         </Animated.View>
@@ -625,5 +677,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
+  },
+  restoreButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.m,
+    marginTop: theme.spacing.l,
+  },
+  restoreButtonText: {
+    fontSize: theme.typography.fontSizes.s,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textSecondary,
+    textDecorationLine: 'underline',
   },
 }); 

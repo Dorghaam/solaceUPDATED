@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { theme } from '../constants/theme';
 import { useUserStore } from '@/store/userStore';
+import { restorePurchases } from '../services/revenueCatService';
 import * as Haptics from 'expo-haptics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -141,6 +142,34 @@ export const ContactSupportScreen: React.FC<ContactSupportScreenProps> = ({
     }
   };
 
+  const handleRestorePurchases = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    try {
+      Alert.alert(
+        'Restoring Purchases',
+        'Please wait while we check for your previous purchases...',
+        [],
+        { cancelable: false }
+      );
+      
+      await restorePurchases();
+      
+      Alert.alert(
+        'Restore Complete',
+        'Your purchases have been restored successfully!',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Restore purchases failed:', error);
+      Alert.alert(
+        'Restore Failed',
+        'We couldn\'t find any previous purchases to restore. If you believe this is an error, please contact support.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   if (!visible) {
     return null;
   }
@@ -205,6 +234,14 @@ export const ContactSupportScreen: React.FC<ContactSupportScreenProps> = ({
               <Pressable style={styles.button} onPress={() => handlePress('support')}>
                 <Ionicons name="help-circle-outline" size={24} color="white" />
                 <Text style={styles.buttonText}>Get Support</Text>
+              </Pressable>
+              
+              {/* Restore Purchases Link */}
+              <Pressable 
+                style={styles.restoreButton} 
+                onPress={handleRestorePurchases}
+              >
+                <Text style={styles.restoreButtonText}>Restore Purchases</Text>
               </Pressable>
             </View>
           </LinearGradient>
@@ -336,5 +373,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 12,
+  },
+  restoreButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    marginTop: 20,
+  },
+  restoreButtonText: {
+    fontSize: 14,
+    color: '#666',
+    textDecorationLine: 'underline',
   },
 }); 
