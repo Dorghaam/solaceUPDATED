@@ -140,6 +140,22 @@ export async function restorePurchases(): Promise<CustomerInfo> {
   return await Purchases.getCustomerInfo();
 }
 
+/**
+ * Logs out the current user from RevenueCat.
+ * Waits for SDK to be configured first.
+ */
+export async function logOut(): Promise<void> {
+  await configurePromise; // Wait for SDK
+  console.log('[RevenueCat] Logging out user...');
+  try {
+    await Purchases.logOut();
+    console.log('[RevenueCat] User logged out successfully');
+  } catch (error) {
+    console.error('[RevenueCat] Error during logout:', error);
+    throw error;
+  }
+}
+
 // 3. HELPER FUNCTIONS
 
 /**

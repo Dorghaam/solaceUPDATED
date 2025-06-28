@@ -1,19 +1,35 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import Constants from 'expo-constants';
+
+// This flag ensures we only configure it once.
+let isGoogleSignInConfigured = false;
 
 export function configureGoogleSignIn() {
-  try {
-    const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-    if (!webClientId) {
-      console.warn('Google Sign-In: webClientId is missing from environment variables.');
-      return;
-    }
+  if (isGoogleSignInConfigured) {
+    return;
+  }
 
+  // Retrieve the Web Client ID from your environment variables.
+  // This is the most critical piece of the configuration.
+  const webClientId = Constants.expoConfig?.extra?.GOOGLE_WEB_CLIENT_ID as string;
+
+  if (!webClientId) {
+    console.error("Google Sign-In Error: Missing GOOGLE_WEB_CLIENT_ID in app.config.js extra section. Sign-in will fail.");
+    return;
+  }
+
+  try {
     GoogleSignin.configure({
-      webClientId,
-      offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+      // webClientId is required for Google Sign-In to work on both platforms
+      webClientId: webClientId,
+      // offlineAccess is required for getting an idToken
+      offlineAccess: true, 
     });
-    console.log('Google Sign-In configured successfully.');
+    
+    console.log('[GoogleAuth] Google Sign-In configured successfully.');
+    isGoogleSignInConfigured = true;
+
   } catch (error) {
-    console.warn(`Google Sign-In configuration failed. This is expected in Expo Go. Error: ${error.message}`);
+    console.error('[GoogleAuth] Error configuring Google Sign-In:', error);
   }
 } 

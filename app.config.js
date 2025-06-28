@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-const GOOGLE_IOS_REVERSED_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_REVERSED_CLIENT_ID || 'com.googleusercontent.apps.791966352436-ds9guvagr07rk1fhr5dua5feob3i16vc';
+const GOOGLE_IOS_REVERSED_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_REVERSED_CLIENT_ID || 'com.googleusercontent.apps.791966352436-ugqtn590d44kqa3uphtu4dgrk4vtkv8o';
 
 export default ({ config }) => ({
   ...config,
@@ -76,6 +76,7 @@ export default ({ config }) => ({
     ],
     extra: {
       ...config.expo?.extra,
+      GOOGLE_WEB_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
       RC_API_KEY: process.env.EXPO_PUBLIC_RC_API_KEY,
       eas: {
         projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || "3492a16b-5ccf-47a1-bbb5-e1ed0d2d1181"

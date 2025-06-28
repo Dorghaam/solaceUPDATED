@@ -19,6 +19,7 @@ import { ensurePostLoginSync } from '../services/authService';
 import { reviewService } from '../services/reviewService';
 import { networkService } from '../services/networkService';
 import { waitForStoreHydration } from '../utils';
+import { configureGoogleSignIn } from '../services/googleAuthService';
 
 // This is a placeholder ThemeProvider until we create our own
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>; 
@@ -60,6 +61,10 @@ export default function RootLayout() {
         console.log('[Startup] Starting app initialization...');
         await waitForStoreHydration();
         console.log('[Startup] Store hydrated');
+
+        // *** CONFIGURE GOOGLE SIGN-IN EARLY ***
+        // This ensures Google Sign-In is ready before anything else happens.
+        configureGoogleSignIn();
 
         const { data: { session } } = await supabase.auth.getSession();
         console.log('[Startup] Session check complete');
