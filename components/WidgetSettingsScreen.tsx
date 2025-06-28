@@ -262,106 +262,107 @@ export const WidgetSettingsScreen: React.FC<WidgetSettingsScreenProps> = ({
             </View>
 
             {/* Content */}
-            <ScrollView 
-              style={styles.content}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              {/* Preview Box */}
-              <View style={styles.previewSection}>
-                <View style={styles.previewBox}>
-                  <View style={styles.previewWidget}>
-                    <View style={styles.previewHeader}>
-                      <Ionicons name="heart" size={16} color="#FF69B4" />
-                      <Text style={styles.previewAppName}>Solace</Text>
+            <View style={styles.content}>
+              <ScrollView 
+                style={styles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+              >
+                {/* Preview Box */}
+                <View style={styles.previewSection}>
+                  <View style={styles.previewBox}>
+                    <View style={styles.previewWidget}>
+                      <View style={styles.previewHeader}>
+                        <Ionicons name="heart" size={16} color="#FF69B4" />
+                        <Text style={styles.previewAppName}>Solace</Text>
+                      </View>
+                      <Text style={styles.previewQuote}>
+                        {selectedCategory ? `${selectedCategory.label} affirmations` : 'Select a category'}
+                      </Text>
+                      <Text style={styles.previewUser}>Hello, {userName || 'User'}</Text>
                     </View>
-                    <Text style={styles.previewQuote}>
-                      {selectedCategory ? `${selectedCategory.label} affirmations` : 'Select a category'}
-                    </Text>
-                    <Text style={styles.previewUser}>Hello, {userName || 'User'}</Text>
+                  </View>
+                  <Text style={styles.previewLabel}>Widget Preview</Text>
+                </View>
+
+                {/* Category Selection */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Affirmation Topic</Text>
+                  <Text style={styles.sectionSubtitle}>Choose what type of affirmations to show</Text>
+                  
+                  <View style={styles.optionsList}>
+                    {/* Favorites Option */}
+                    <Pressable 
+                      style={[styles.option, widgetSettings.category === 'favorites' && styles.selectedOption]}
+                      onPress={() => handleCategoryChange('favorites')}
+                    >
+                      <View style={styles.optionContent}>
+                        <Text style={[styles.optionText, widgetSettings.category === 'favorites' && styles.selectedOptionText]}>
+                          My Favorites
+                        </Text>
+                        <Text style={styles.optionDescription}>
+                          Your saved affirmations ({favoriteQuoteIds.length} saved)
+                        </Text>
+                      </View>
+                      {widgetSettings.category === 'favorites' && (
+                        <Ionicons name="checkmark-circle" size={20} color="#FF69B4" />
+                      )}
+                    </Pressable>
+
+                    {/* Category Options */}
+                    {breakupInterestCategories.map(category => {
+                      const isLocked = category.premium && subscriptionTier === 'free';
+                      const isSelected = widgetSettings.category === category.id;
+                      
+                      return (
+                        <Pressable 
+                          key={category.id}
+                          style={[
+                            styles.option, 
+                            isSelected && styles.selectedOption,
+                            isLocked && styles.lockedOption
+                          ]}
+                          onPress={() => handleCategoryChange(category.id)}
+                          disabled={isLocked}
+                        >
+                          <View style={styles.optionContent}>
+                            <View style={styles.optionTitleRow}>
+                              <Text style={[
+                                styles.optionText, 
+                                isSelected && styles.selectedOptionText,
+                                isLocked && styles.lockedOptionText
+                              ]}>
+                                {category.label}
+                              </Text>
+                              {isLocked && <Ionicons name="lock-closed" size={16} color="#999" />}
+                            </View>
+                            {category.premium && (
+                              <Text style={styles.premiumBadge}>Premium</Text>
+                            )}
+                          </View>
+                          {isSelected && (
+                            <Ionicons name="checkmark-circle" size={20} color="#FF69B4" />
+                          )}
+                        </Pressable>
+                      );
+                    })}
                   </View>
                 </View>
-                <Text style={styles.previewLabel}>Widget Preview</Text>
+              </ScrollView>
+
+              {/* Sticky Update Button */}
+              <View style={styles.stickyButtonContainer}>
+                <Pressable 
+                  style={[styles.updateButton, isUpdating && styles.updatingButton]}
+                  onPress={updateWidgetData}
+                  disabled={isUpdating}
+                >
+                  <Text style={styles.updateButtonText}>
+                    {isUpdating ? 'Updating Widget...' : 'Apply to Widget & Refresh'}
+                  </Text>
+                </Pressable>
               </View>
-
-              {/* Category Selection */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Affirmation Topic</Text>
-                <Text style={styles.sectionSubtitle}>Choose what type of affirmations to show</Text>
-                
-                <View style={styles.optionsList}>
-                  
-
-
-                  {/* Favorites Option */}
-                  <Pressable 
-                    style={[styles.option, widgetSettings.category === 'favorites' && styles.selectedOption]}
-                    onPress={() => handleCategoryChange('favorites')}
-                  >
-                    <View style={styles.optionContent}>
-                      <Text style={[styles.optionText, widgetSettings.category === 'favorites' && styles.selectedOptionText]}>
-                        My Favorites
-                      </Text>
-                      <Text style={styles.optionDescription}>
-                        Your saved affirmations ({favoriteQuoteIds.length} saved)
-                      </Text>
-                    </View>
-                    {widgetSettings.category === 'favorites' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#FF69B4" />
-                    )}
-                  </Pressable>
-
-                  {/* Category Options */}
-                  {breakupInterestCategories.map(category => {
-                    const isLocked = category.premium && subscriptionTier === 'free';
-                    const isSelected = widgetSettings.category === category.id;
-                    
-                    return (
-                      <Pressable 
-                        key={category.id}
-                        style={[
-                          styles.option, 
-                          isSelected && styles.selectedOption,
-                          isLocked && styles.lockedOption
-                        ]}
-                        onPress={() => handleCategoryChange(category.id)}
-                        disabled={isLocked}
-                      >
-                        <View style={styles.optionContent}>
-                          <View style={styles.optionTitleRow}>
-                            <Text style={[
-                              styles.optionText, 
-                              isSelected && styles.selectedOptionText,
-                              isLocked && styles.lockedOptionText
-                            ]}>
-                              {category.label}
-                            </Text>
-                            {isLocked && <Ionicons name="lock-closed" size={16} color="#999" />}
-                          </View>
-                          {category.premium && (
-                            <Text style={styles.premiumBadge}>Premium</Text>
-                          )}
-                        </View>
-                        {isSelected && (
-                          <Ionicons name="checkmark-circle" size={20} color="#FF69B4" />
-                        )}
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Update Button */}
-              <Pressable 
-                style={[styles.updateButton, isUpdating && styles.updatingButton]}
-                onPress={updateWidgetData}
-                disabled={isUpdating}
-              >
-                <Text style={styles.updateButtonText}>
-                  {isUpdating ? 'Updating Widget...' : 'Apply to Widget & Refresh'}
-                </Text>
-              </Pressable>
-            </ScrollView>
+            </View>
           </LinearGradient>
         </Animated.View>
       </PanGestureHandler>
@@ -450,9 +451,20 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
     paddingHorizontal: theme.spacing.m,
+    paddingBottom: theme.spacing.m,
+  },
+  stickyButtonContainer: {
+    paddingHorizontal: theme.spacing.m,
     paddingBottom: theme.spacing.xl,
+    paddingTop: theme.spacing.m,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
   },
   previewSection: {
     alignItems: 'center',
