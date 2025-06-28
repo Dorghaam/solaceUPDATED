@@ -24,6 +24,7 @@ import { RemindersScreen } from './RemindersScreen';
 import { ProfileScreen } from './ProfileScreen';
 import { WidgetSettingsScreen } from './WidgetSettingsScreen';
 import { FavoritesScreen } from './FavoritesScreen';
+import { ContactSupportScreen } from './ContactSupportScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -48,6 +49,7 @@ const getSettingsItems = (subscriptionTier: string): SettingsMenuItem[] => [
   { id: '5', title: 'My Profile', icon: 'person' },
   { id: '7', title: 'Reminders', icon: 'time' },
   { id: '8', title: 'Widget Settings', icon: 'phone-portrait' },
+  { id: '9', title: 'Contact & Support', icon: 'mail' },
 ];
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -92,6 +94,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [showProfile, setShowProfile] = useState(false);
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [showContactSupport, setShowContactSupport] = useState(false);
   
   // Get data from store
   const subscriptionTier = useSubscription(); // ✅ USE THE HOOK
@@ -174,6 +177,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       setShowWidgetSettings(true);
     } else if (setting.title === 'My Favorites') {
       setShowFavorites(true);
+    } else if (setting.title === 'Contact & Support') {
+      setShowContactSupport(true);
     } else if (setting.id === '1') { // Subscription management item
       handleSubscriptionManagement();
     } else {
@@ -383,6 +388,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <FavoritesScreen
         visible={showFavorites}
         onClose={() => setShowFavorites(false)}
+      />
+      
+      {/* Contact Support Screen */}
+      <ContactSupportScreen
+        visible={showContactSupport}
+        onClose={() => setShowContactSupport(false)}
       />
     </View>
   );
