@@ -55,10 +55,10 @@ const getSettingsItems = (subscriptionTier: string): SettingsMenuItem[] => [
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-// Helper function to get the last 7 days (today first, then backwards)
+// Helper function to get the last 7 days (oldest first, progressing to today)
 const getLastSevenDays = () => {
   const days = [];
-  for (let i = 0; i <= 6; i++) {
+  for (let i = 6; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     days.push({
@@ -339,13 +339,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 
                 <View style={styles.streakContainer}>
                   {getLastSevenDays().map((day, index) => {
-                    const isActive = streakData.dailyActivity[day.date] || false;
-                    const isToday = day.date === new Date().toISOString().split('T')[0];
+                    // Fill hearts from left to right based on streak count
+                    // index 0 = leftmost, if streak >= 1, fill index 0
+                    // if streak >= 2, fill index 0 and 1, etc.
+                    const isStreakHeart = index < streakData.currentStreak;
                     
                     return (
                       <View key={day.date} style={styles.streakItem}>
                         <View style={styles.streakDay}>
-                          {isActive ? (
+                          {isStreakHeart ? (
                             <View style={styles.heartContainer}>
                               <Ionicons name="heart" size={28} color={theme.colors.primary} />
                               <View style={styles.checkmarkContainer}>
