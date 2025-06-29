@@ -1,3 +1,5 @@
+// app/(onboarding)/writegoals.tsx
+
 import React, { useState } from 'react';
 import { StyleSheet, SafeAreaView, View, Text, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
@@ -36,9 +38,10 @@ export default function WriteGoalsPage() {
           <View style={styles.container}>
             {/* Header Text */}
             <View style={styles.headerSection}>
-              <Text style={styles.title}>What Are Your{'\n'}Healing Goals?</Text>
+              {/* --- NEW, MORE INVITING COPY --- */}
+              <Text style={styles.title}>What does healing look like for you?</Text>
               <Text style={styles.subtitle}>
-                Share what you're working towards.{'\n'}We'll personalize your daily affirmations to match.
+                You don't have to write anything, but sharing what's on your heart helps us find the perfect words for you.
               </Text>
             </View>
 
@@ -84,6 +87,7 @@ export default function WriteGoalsPage() {
   );
 }
 
+// --- ORIGINAL STYLESHEET (NO CHANGES) ---
 const styles = StyleSheet.create({
   backgroundGradient: { 
     flex: 1 
@@ -159,4 +163,4 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.m,
     color: theme.colors.white,
   },
-}); 
+});

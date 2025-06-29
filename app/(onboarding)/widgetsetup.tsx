@@ -235,6 +235,7 @@ const createStyles = () => {
   headerSection: {
     alignItems: 'center',
     marginBottom: theme.spacing.xl,
+    paddingTop: theme.spacing.m,
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,

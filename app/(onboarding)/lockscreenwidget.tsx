@@ -20,6 +20,8 @@ export default function LockscreenWidgetPage() {
     router.push('/(onboarding)/growth');
   };
 
+
+
   return (
     <LinearGradient
       colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light, theme.colors.lightPink.medium]}
@@ -29,11 +31,13 @@ export default function LockscreenWidgetPage() {
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Back Button */}
-          <Pressable style={styles.backButton} onPress={handleSkip}>
-            <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
-            <Text style={styles.backText}>Skip</Text>
-          </Pressable>
+          {/* Skip Button */}
+          <View style={styles.topRow}>
+            <View style={styles.spacerFlex} />
+            <Pressable style={styles.skipButton} onPress={handleSkip}>
+              <Text style={styles.skipText}>Skip</Text>
+            </Pressable>
+          </View>
 
           {/* Header Text */}
           <View style={styles.headerSection}>
@@ -112,21 +116,29 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: theme.spacing.l,
   },
-  backButton: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: theme.spacing.m,
-    paddingBottom: theme.spacing.m,
+    paddingBottom: theme.spacing.s,
   },
-  backText: {
+  spacerFlex: {
+    flex: 1,
+  },
+  skipButton: {
+    paddingVertical: theme.spacing.s,
+    paddingHorizontal: theme.spacing.m,
+  },
+  skipText: {
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.text,
-    marginLeft: theme.spacing.xs,
   },
+
   headerSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.l,
+    paddingTop: theme.spacing.m,
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,

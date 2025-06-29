@@ -1,3 +1,5 @@
+// app/(onboarding)/growth.tsx
+
 import React, { useState } from 'react';
 import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
@@ -6,13 +8,14 @@ import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 
+// --- NEW, DATA-DRIVEN CHOICES from our analysis ---
 const growthOptions = [
-  'Healing & Moving On',
-  'Self Love & Worth',
-  'Overcoming Heartbreak',
-  'Building Confidence',
-  'Letting Go & Acceptance',
-  'Finding Inner Peace'
+  'Letting go and finding peace',
+  'Healing my heart & stopping the pain',
+  'Rebuilding my confidence & self-worth',
+  'Learning to love being on my own',
+  'Overcoming overthinking & anxiety',
+  'Feeling hopeful about the future again'
 ];
 
 export default function GrowthPage() {
@@ -26,12 +29,11 @@ export default function GrowthPage() {
 
   const handleContinue = async () => {
     if (!selectedGrowth) {
-      return; // Don't continue if nothing is selected
+      return; 
     }
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    // Save locally (will sync to database after authentication)
     setGrowthFocus(selectedGrowth);
     
     router.push('/(onboarding)/writegoals');
@@ -48,9 +50,10 @@ export default function GrowthPage() {
         <View style={styles.container}>
           {/* Header Text */}
           <View style={styles.headerSection}>
-            <Text style={styles.title}>Where Do You Want to{'\n'}Grow?</Text>
+            {/* --- NEW, MORE EMPATHETIC COPY --- */}
+            <Text style={styles.title}>What feels heaviest right now?</Text>
             <Text style={styles.subtitle}>
-              Choose your focus so we can send you{'\n'}exactly what your heart needs to heal.
+              Choose your main focus. We’ll tailor your first affirmations to what you need most.
             </Text>
           </View>
 
@@ -104,6 +107,7 @@ export default function GrowthPage() {
   );
 }
 
+// --- ORIGINAL STYLESHEET (NO CHANGES) ---
 const styles = StyleSheet.create({
   backgroundGradient: { 
     flex: 1 
@@ -188,4 +192,4 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.m,
     color: theme.colors.white,
   },
-}); 
+});

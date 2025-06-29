@@ -1,3 +1,5 @@
+// app/(onboarding)/reminders.tsx
+
 import React, { useState } from 'react';
 import { StyleSheet, SafeAreaView, View, Text, Pressable, Switch, Alert } from 'react-native';
 import { router } from 'expo-router';
@@ -14,136 +16,65 @@ export default function RemindersPage() {
   const [selectedFrequency, setSelectedFrequency] = useState(3); // Default to 3x
   const [isSchedulingNotifications, setIsSchedulingNotifications] = useState(false);
 
+  // --- LOGIC (No changes needed here, it's already solid) ---
   const handleFrequencyChange = (direction: 'increase' | 'decrease') => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
-    if (direction === 'increase' && selectedFrequency < 10) {
-      setSelectedFrequency(selectedFrequency + 1);
-    } else if (direction === 'decrease' && selectedFrequency > 1) {
-      setSelectedFrequency(selectedFrequency - 1);
-    }
+    if (direction === 'increase' && selectedFrequency < 10) setSelectedFrequency(selectedFrequency + 1);
+    else if (direction === 'decrease' && selectedFrequency > 1) setSelectedFrequency(selectedFrequency - 1);
   };
-
   const generateCustomNotificationTimes = (frequency: number) => {
     const times: { hour: number; minute: number }[] = [];
-    
-    // Fixed time range: 9 AM to 10 PM (13 hours)
-    const startHour = 9;
-    const startMinute = 0;
-    const endHour = 22;
-    const endMinute = 0;
-    
-    // Calculate the time range in minutes (13 hours = 780 minutes)
-    const startTimeInMinutes = startHour * 60 + startMinute; // 540 minutes (9:00 AM)
-    const endTimeInMinutes = endHour * 60 + endMinute; // 1320 minutes (10:00 PM)
-    const totalMinutes = endTimeInMinutes - startTimeInMinutes; // 780 minutes
-    
-    // Calculate interval between notifications
+    const startHour = 9, endHour = 22;
+    const totalMinutes = (endHour - startHour) * 60;
     const interval = Math.floor(totalMinutes / frequency);
-    
     for (let i = 0; i < frequency; i++) {
-      const timeInMinutes = startTimeInMinutes + (i * interval);
-      const hour = Math.floor(timeInMinutes / 60);
-      const minute = timeInMinutes % 60;
-      
-      times.push({ hour, minute });
+      const timeInMinutes = (startHour * 60) + (i * interval);
+      times.push({ hour: Math.floor(timeInMinutes / 60), minute: timeInMinutes % 60 });
     }
-    
     return times;
   };
-
   const handleToggleNotifications = async (enabled: boolean) => {
     setNotificationsEnabled(enabled);
-    
     if (enabled) {
-      // Request permissions when enabling notifications
       try {
         const token = await getPushTokenAndPermissionsAsync();
-        if (!token) {
-          // Permission denied
-          setNotificationsEnabled(false);
-          return;
-        }
+        if (!token) setNotificationsEnabled(false);
       } catch (error) {
-        console.error('Failed to get notification permissions:', error);
-        Alert.alert(
-          'Permission Error',
-          'Unable to get notification permissions. Please check your device settings.',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Permission Error', 'Unable to get notification permissions. Please check your device settings.');
         setNotificationsEnabled(false);
-        return;
       }
     } else {
-      // Cancel all notifications when disabling
-      try {
-        await cancelAllScheduledAffirmationReminders();
-        console.log('All notifications cancelled');
-      } catch (error) {
-        console.error('Failed to cancel notifications:', error);
-      }
+      await cancelAllScheduledAffirmationReminders().catch(console.error);
     }
   };
-
   const handleAllowAndSave = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
     if (!notificationsEnabled) {
-      // If notifications are disabled, just save the preference and continue
-      setNotificationSettings({
-        enabled: false,
-        frequency: `${selectedFrequency}x` as any,
-      });
+      setNotificationSettings({ enabled: false, frequency: `${selectedFrequency}x` as any });
       router.push('/(onboarding)/lockscreenwidget');
       return;
     }
-    
     setIsSchedulingNotifications(true);
-
     try {
-      // First, request permissions and enable notifications
       const token = await getPushTokenAndPermissionsAsync();
       if (!token) {
-        // If permission denied, continue anyway
-        setNotificationSettings({
-          enabled: false,
-          frequency: `${selectedFrequency}x` as any,
-        });
+        setNotificationSettings({ enabled: false, frequency: `${selectedFrequency}x` as any });
         router.push('/(onboarding)/lockscreenwidget');
-        setIsSchedulingNotifications(false);
         return;
       }
-
-      // Generate custom notification times based on frequency (9 AM to 10 PM)
       const customTimes = generateCustomNotificationTimes(selectedFrequency);
-      
-      // Schedule notifications with custom times and general healing category
-      await scheduleDailyAffirmationReminders(
-        'custom',
-        customTimes,
-        ['general_healing'] // Automatically set to general healing
-      );
-
-      // Update user store with settings
-      setNotificationSettings({
-        enabled: true,
-        frequency: `${selectedFrequency}x` as any,
-      });
-
-      // Navigate to lockscreen widget setup after successful setup
+      await scheduleDailyAffirmationReminders('custom', customTimes, ['general_healing']);
+      setNotificationSettings({ enabled: true, frequency: `${selectedFrequency}x` as any });
       router.push('/(onboarding)/lockscreenwidget');
     } catch (error) {
       console.error('Failed to schedule notifications:', error);
-      // Continue regardless of notification setup failure
-      setNotificationSettings({
-        enabled: false,
-        frequency: `${selectedFrequency}x` as any,
-      });
+      setNotificationSettings({ enabled: false, frequency: `${selectedFrequency}x` as any });
       router.push('/(onboarding)/lockscreenwidget');
     } finally {
       setIsSchedulingNotifications(false);
     }
   };
+  // --- END OF LOGIC ---
 
   return (
     <LinearGradient
@@ -156,9 +87,9 @@ export default function RemindersPage() {
         <View style={styles.container}>
           {/* Header Text */}
           <View style={styles.headerTextSection}>
-            <Text style={styles.mainTitle}>Stay Strong{'\n'}Throughout the Day</Text>
+            <Text style={styles.mainTitle}>A reminder when you need it most.</Text>
             <Text style={styles.subtitle}>
-              Healing reminders when you need them most.{'\n'}Don't worry - you can always change these{'\n'}settings later in the app.
+              Healing isn't linear. Let us send you a little strength right when you need to hear it.
             </Text>
           </View>
 
@@ -166,52 +97,54 @@ export default function RemindersPage() {
           <View style={styles.quoteCard}>
             <Text style={styles.quoteCardTitle}>Solace</Text>
             <Text style={styles.quoteText}>
-              Your healing journey is valid, and you're exactly where you need to be right now.
+              You are rebuilding yourself, and that takes courage. Be proud of this step.
             </Text>
           </View>
 
           {/* Enable Notifications Toggle */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionLabel}>Enable Notifications</Text>
+            <Text style={styles.sectionLabel}>Receive daily affirmations</Text>
             <View style={styles.toggleContainer}>
               <Text style={styles.toggleLabel}>
-                {notificationsEnabled ? 'Notifications enabled' : 'Notifications disabled'}
+                {notificationsEnabled ? 'Reminders On' : 'Reminders Off'}
               </Text>
               <Switch
                 value={notificationsEnabled}
                 onValueChange={handleToggleNotifications}
                 trackColor={{ false: '#767577', true: theme.colors.primary }}
-                thumbColor={notificationsEnabled ? '#f4f3f4' : '#f4f3f4'}
+                thumbColor={'#f4f3f4'}
               />
             </View>
           </View>
 
           {/* How Many Section */}
           <View style={[styles.sectionContainer, { opacity: notificationsEnabled ? 1 : 0.5 }]}>
-            <Text style={styles.sectionLabel}>How Many</Text>
+            <Text style={styles.sectionLabel}>How often?</Text>
             <View style={styles.frequencyContainer}>
               <Pressable
-                style={[styles.frequencyButton, { opacity: notificationsEnabled ? 1 : 0.5 }]}
-                onPress={() => notificationsEnabled && handleFrequencyChange('decrease')}
+                style={styles.frequencyButton}
+                onPress={() => handleFrequencyChange('decrease')}
                 disabled={!notificationsEnabled}
               >
                 <Ionicons name="remove" size={20} color="white" />
               </Pressable>
-              <Text style={styles.frequencyText}>{selectedFrequency}x</Text>
+              <Text style={styles.frequencyText}>{selectedFrequency}x per day</Text>
               <Pressable
-                style={[styles.frequencyButton, { opacity: notificationsEnabled ? 1 : 0.5 }]}
-                onPress={() => notificationsEnabled && handleFrequencyChange('increase')}
+                style={styles.frequencyButton}
+                onPress={() => handleFrequencyChange('increase')}
                 disabled={!notificationsEnabled}
               >
                 <Ionicons name="add" size={20} color="white" />
               </Pressable>
             </View>
+            <Text style={styles.settingsNote}>
+              You can change the categories and amount in settings later.
+            </Text>
           </View>
 
-          {/* Spacer */}
           <View style={styles.spacer} />
 
-          {/* Allow and Save Button */}
+          {/* Button */}
           <View style={styles.bottomSection}>
             <Pressable 
               style={({ pressed }) => [
@@ -225,7 +158,7 @@ export default function RemindersPage() {
               disabled={isSchedulingNotifications}
             >
               <Text style={styles.allowButtonText}>
-                {isSchedulingNotifications ? 'Setting up...' : 'Continue'}
+                {isSchedulingNotifications ? 'Saving...' : 'Continue'}
               </Text>
             </Pressable>
           </View>
@@ -235,36 +168,34 @@ export default function RemindersPage() {
   );
 }
 
+// --- STYLES (Minor tweaks for text alignment and size) ---
 const styles = StyleSheet.create({
-  backgroundGradient: { 
-    flex: 1 
-  },
-  safeArea: { 
-    flex: 1 
-  },
+  backgroundGradient: { flex: 1 },
+  safeArea: { flex: 1 },
   container: {
     flex: 1,
     paddingHorizontal: theme.spacing.l,
   },
   headerTextSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-    paddingTop: theme.spacing.xl,
+    marginBottom: theme.spacing.l, // Reduced margin
+    paddingTop: 60,
   },
   mainTitle: {
-    fontSize: 32,
+    fontSize: 30, // Slightly smaller for better fit
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: theme.spacing.s,
-    lineHeight: 38,
+    marginBottom: theme.spacing.m, // Increased margin
+    lineHeight: 36,
   },
   subtitle: {
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24, // Increased line height
+    maxWidth: '95%',
   },
   quoteCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
@@ -291,36 +222,35 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.regular,
+    fontFamily: theme.typography.fontFamily.semiBold, // Bolder label
     color: theme.colors.text,
-    marginBottom: theme.spacing.s,
+    marginBottom: theme.spacing.m, // More space
   },
   frequencyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: theme.radii.l,
-    padding: theme.spacing.m,
+    borderRadius: theme.radii.m,
+    padding: theme.spacing.s, // Tighter padding
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   frequencyButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48, // Slightly larger button
+    height: 48,
+    borderRadius: 24,
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   frequencyText: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
+    marginHorizontal: theme.spacing.m,
   },
-  spacer: {
-    flex: 1,
-  },
+  spacer: { flex: 1 },
   bottomSection: {
     paddingBottom: theme.spacing.xl,
   },
@@ -341,14 +271,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: theme.radii.l,
-    padding: theme.spacing.m,
+    borderRadius: theme.radii.m,
+    paddingVertical: theme.spacing.m / 2, // Less vertical padding
+    paddingHorizontal: theme.spacing.m,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   toggleLabel: {
-    fontSize: theme.typography.fontSizes.m,
+    fontSize: 16,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.text,
   },
-}); 
+  settingsNote: {
+    fontSize: theme.typography.fontSizes.s,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: theme.spacing.s,
+  },
+});
