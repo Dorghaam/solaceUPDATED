@@ -26,6 +26,7 @@ import { ProfileScreen } from './ProfileScreen';
 import { WidgetSettingsScreen } from './WidgetSettingsScreen';
 import { FavoritesScreen } from './FavoritesScreen';
 import { ContactSupportScreen } from './ContactSupportScreen';
+import { MyAffirmationsScreen } from './MyAffirmationsScreen';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -47,6 +48,7 @@ const getSettingsItems = (subscriptionTier: string): SettingsMenuItem[] => [
     isPremium: true 
   },
   { id: '4', title: 'My Favorites', icon: 'heart' },
+  { id: '10', title: 'Write Your Own Affirmations', icon: 'create' },
   { id: '5', title: 'My Profile', icon: 'person' },
   { id: '7', title: 'Reminders', icon: 'time' },
   { id: '8', title: 'Widget Settings', icon: 'phone-portrait' },
@@ -96,6 +98,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [showContactSupport, setShowContactSupport] = useState(false);
+  const [showMyAffirmations, setShowMyAffirmations] = useState(false);
   
   // Get data from store
   const subscriptionTier = useSubscription(); // ✅ USE THE HOOK
@@ -223,6 +226,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       setShowFavorites(true);
     } else if (setting.title === 'Contact & Support') {
       setShowContactSupport(true);
+    } else if (setting.title === 'Write Your Own Affirmations') {
+      setShowMyAffirmations(true);
     } else if (setting.id === '1') { // Subscription management item
       handleSubscriptionManagement();
     } else {
@@ -448,6 +453,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <ContactSupportScreen
         visible={showContactSupport}
         onClose={() => setShowContactSupport(false)}
+      />
+      
+      {/* My Affirmations Screen */}
+      <MyAffirmationsScreen
+        visible={showMyAffirmations}
+        onClose={() => setShowMyAffirmations(false)}
       />
     </View>
   );
