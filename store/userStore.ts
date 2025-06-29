@@ -94,9 +94,10 @@ export type WidgetTheme = 'light' | 'dark' | 'pink_text_on_white' | 'dark_text_o
 
 // --- State ---
 interface UserState {
-  // App State Control
+  // ✅ FIX: Enhanced app state control for flicker prevention
   hydrated: boolean;
   authChecked: boolean;
+  subscriptionInitialized: boolean; // New flag to track when subscription state is reliable
   
   // Onboarding & Profile
   userName: string | null;
@@ -182,6 +183,7 @@ interface UserState {
 
   // App State Control Actions
   setAuthChecked: (checked: boolean) => void;
+  setSubscriptionInitialized: (initialized: boolean) => void; // ✅ FIX: New action for subscription initialization
 
   resetState: () => void;
   
@@ -193,9 +195,10 @@ interface UserState {
 
 // --- Store ---
 const initialState = {
-  // App State Control
+  // ✅ FIX: Enhanced app state control for flicker prevention
   hydrated: false,
   authChecked: false,
+  subscriptionInitialized: false, // Start as false until RevenueCat provides reliable data
   
   // Onboarding & Profile
   userName: null,
@@ -354,9 +357,17 @@ export const useUserStore = create<UserState>()(
             console.log('No active category. Fetching default quotes based on subscription tier.');
             console.log('[FetchQuotes] Current subscription tier:', state.subscriptionTier);
             
-            // Treat 'unknown' as 'free' until RevenueCat confirms otherwise
-            const effectiveTier = state.subscriptionTier === 'premium' ? 'premium' : 'free';
-            console.log('[FetchQuotes] Effective tier for fetching:', effectiveTier);
+            // ✅ FIX: Enhanced tier logic with subscription initialization guard
+            let effectiveTier: 'free' | 'premium';
+            if (!state.subscriptionInitialized) {
+              // If subscription not initialized, be conservative and assume free
+              effectiveTier = 'free';
+              console.log('[FetchQuotes] Subscription not initialized, using conservative free tier');
+            } else {
+              // Use actual tier once subscription is initialized
+              effectiveTier = state.subscriptionTier === 'premium' ? 'premium' : 'free';
+              console.log('[FetchQuotes] Using initialized tier:', effectiveTier);
+            }
             
             if (effectiveTier === 'free') {
               const freeCategoryIds = breakupInterestCategories
@@ -605,6 +616,11 @@ export const useUserStore = create<UserState>()(
         set({ authChecked: checked });
       },
 
+      setSubscriptionInitialized: (initialized) => {
+        console.log(`[UserStore] Subscription initialized: ${initialized}`);
+        set({ subscriptionInitialized: initialized });
+      },
+
       resetState: () => {
         console.log('UserStore: Starting state reset...');
         
@@ -621,6 +637,7 @@ export const useUserStore = create<UserState>()(
             ...initialState,
             hydrated: state.hydrated, // Keep hydrated state
             authChecked: true, // Keep auth as checked (we just processed a logout)
+            subscriptionInitialized: false, // Reset subscription state on logout
           };
           
           console.log('UserStore: Applying state reset...');
@@ -640,6 +657,7 @@ export const useUserStore = create<UserState>()(
               quotes: [],
               favoriteQuoteIds: [],
               authChecked: true,
+              subscriptionInitialized: false, // Reset subscription initialization
             });
             console.log('UserStore: Fallback state reset completed');
           } catch (fallbackError) {
@@ -682,6 +700,7 @@ export const useUserStore = create<UserState>()(
         widgetSettings: state.widgetSettings,
         isWidgetCustomizing: state.isWidgetCustomizing,
         subscriptionTier: state.subscriptionTier, // ✅ NOW PERSISTED - RevenueCat will update this via listener
+        // subscriptionInitialized is NOT persisted - should reset on each app launch for fresh RevenueCat data
         // activeQuoteCategory and targetQuote are typically transient
         // quotes and isLoading are also transient
       }),
@@ -701,6 +720,9 @@ export const useUserStore = create<UserState>()(
           if (!state.subscriptionTier) {
             state.subscriptionTier = 'unknown';
           }
+
+          // ✅ FIX: subscriptionInitialized always starts false to ensure fresh RevenueCat validation
+          state.subscriptionInitialized = false;
           
           // Reset transient quote state
           state.quotes = [];
@@ -725,6 +747,22 @@ export const useUserStore = create<UserState>()(
  */
 export const useSubscription = () => {
   return useUserStore(s => s.subscriptionTier);
+};
+
+/**
+ * ✅ FIX: Hydration guard hook to prevent flicker during app initialization
+ * Ensures UI waits for proper hydration + subscription initialization before rendering
+ */
+export const useHydrationGuard = () => {
+  const { hydrated, subscriptionInitialized, authChecked } = useUserStore();
+  
+  return {
+    hydrated,
+    subscriptionInitialized,
+    authChecked,
+    isAppReady: hydrated && authChecked, // Basic app readiness
+    isSubscriptionReady: hydrated && subscriptionInitialized, // Subscription-aware readiness
+  };
 };
 
 // export const useUserName = () => useUserStore((state) => state.userName);

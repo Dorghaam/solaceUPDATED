@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { Share } from 'react-native';
 import { router } from 'expo-router';
-import { useUserStore, BreakupCategory, useSubscription } from '../../store/userStore';
+import { useUserStore, BreakupCategory, useSubscription, useHydrationGuard } from '../../store/userStore';
 import { hapticService } from '../../services/hapticService';
 import { reviewService } from '../../services/reviewService';
 import { MainFeedScreen } from '../../components/MainFeedScreen';
@@ -12,6 +12,9 @@ import { useAuthGuard } from '../../utils';
 export default function FeedPage() {
   // Authentication guard - redirects to onboarding if not authenticated
   const { shouldRender } = useAuthGuard();
+
+  // ✅ FIX: Hydration guard to prevent flicker during subscription state resolution
+  const { isSubscriptionReady } = useHydrationGuard();
 
   // Connect to the Zustand store to get state and actions
   const subscriptionTier = useSubscription(); // ✅ USE THE HOOK
@@ -41,7 +44,7 @@ export default function FeedPage() {
   const [showCategories, setShowCategories] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // ✅ Consolidated effect - load quotes only once when component mounts with proper guards
+  // ✅ FIX: Enhanced consolidated effect with hydration guard to prevent flicker
   useEffect(() => {
     // ⛔ Skip on second Strict-Mode mount in development
     if (__DEV__ && didInitialFetch.current) {
@@ -49,16 +52,16 @@ export default function FeedPage() {
       return;
     }
 
-    // Only fetch if we have a determined subscription tier and user is authenticated
-    if (subscriptionTier !== 'unknown' && supabaseUser) {
-      console.log('[FeedPage] Initial quote fetch with tier:', subscriptionTier);
+    // ✅ FIX: Wait for subscription readiness AND authentication to prevent stale data flicker
+    if (isSubscriptionReady && subscriptionTier !== 'unknown' && supabaseUser) {
+      console.log('[FeedPage] Safe initial quote fetch with tier:', subscriptionTier);
       didInitialFetch.current = true;
       fetchQuotes();
       
       // Track that user opened the main app for streak (only once)
       updateStreakData();
     }
-  }, [subscriptionTier, supabaseUser, fetchQuotes, updateStreakData]); // ✅ favorites removed from deps
+  }, [isSubscriptionReady, subscriptionTier, supabaseUser, fetchQuotes, updateStreakData]); // ✅ Enhanced deps with hydration guard
 
   // ✅ Separate effect for like count updates (no refetch needed)
   useEffect(() => {
@@ -193,6 +196,11 @@ export default function FeedPage() {
   // If user is not authenticated, don't render anything (useAuthGuard handles redirect)
   if (!shouldRender) {
     return null;
+  }
+
+  // ✅ FIX: Don't render until subscription state is reliable to prevent flicker
+  if (!isSubscriptionReady) {
+    return null; // Could also return a loading spinner here
   }
 
   return (

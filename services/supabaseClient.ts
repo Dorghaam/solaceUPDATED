@@ -13,11 +13,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
   // throw new Error("Supabase credentials are not configured.");
 }
 
+// ✅ FIX: Hardened Supabase auth hydration to prevent anonymous state on cold start
 export const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
   auth: {
     storage: AsyncStorage, // Use AsyncStorage for session persistence in React Native
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false, // Important for React Native, disable URL session detection
+    // ✅ FIX: Additional persistence settings to prevent session loss
+    storageKey: 'supabase.auth.token', // Explicit storage key
+    flowType: 'pkce', // Use PKCE flow for better security
   },
 }); 
