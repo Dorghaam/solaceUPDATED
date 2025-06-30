@@ -338,7 +338,7 @@ export const useUserStore = create<UserState>()(
           // --- EXISTING LOGIC ---
           if (state.activeQuoteCategory === 'favorites') {
             // Special handling for favorites category
-            console.log('Fetching favorite quotes');
+            console.log('Fetching favorite quotes and user affirmations');
             if (state.favoriteQuoteIds.length === 0) {
               console.log('No favorite quotes found');
               set({ 
@@ -347,7 +347,54 @@ export const useUserStore = create<UserState>()(
               });
               return;
             }
-            query = query.in('id', state.favoriteQuoteIds);
+            
+            // Fetch both regular quotes and user affirmations for favorites
+            const [quotesResponse, affirmationsResponse] = await Promise.all([
+              supabase
+                .from('quotes')
+                .select('id, text, category')
+                .in('id', state.favoriteQuoteIds),
+              supabase
+                .from('user_affirmations')
+                .select('id, text, created_at')
+                .in('id', state.favoriteQuoteIds)
+            ]);
+
+            if (quotesResponse.error) {
+              console.error('Error fetching favorite quotes:', quotesResponse.error);
+            }
+            if (affirmationsResponse.error) {
+              console.error('Error fetching favorite user affirmations:', affirmationsResponse.error);
+            }
+
+            // Combine results
+            const mappedAffirmations = (affirmationsResponse.data || []).map(item => ({
+              id: item.id,
+              text: item.text,
+              category: 'My Affirmations'
+            }));
+            
+            const allFavorites = (quotesResponse.data || []).concat(mappedAffirmations);
+
+            if (allFavorites.length === 0) {
+              console.warn('No favorite content found');
+              set({ 
+                quotes: [{ id: 'no-favorites', text: "Your favorites will appear here once you heart some quotes or affirmations!" }], 
+                isLoading: false 
+              });
+              return;
+            }
+
+            // Sort to maintain order based on favoriteQuoteIds (most recent first)
+            const sortedFavorites = allFavorites.sort((a, b) => {
+              const aIndex = state.favoriteQuoteIds.indexOf(a.id);
+              const bIndex = state.favoriteQuoteIds.indexOf(b.id);
+              return aIndex - bIndex;
+            });
+
+            console.log('[FetchQuotes] Successfully fetched', sortedFavorites.length, 'favorite items (quotes + affirmations)');
+            set({ quotes: sortedFavorites, isLoading: false });
+            return;
           } else if (state.activeQuoteCategory) {
             // If a category is selected, fetch ONLY from that category.
             console.log(`Fetching quotes for single active category: ${state.activeQuoteCategory}`);

@@ -40,7 +40,7 @@ export const MyAffirmationsScreen: React.FC<MyAffirmationsScreenProps> = ({
   const [showAddAffirmation, setShowAddAffirmation] = useState<boolean>(false);
   const [editingAffirmationId, setEditingAffirmationId] = useState<string | undefined>(undefined);
   
-  const { supabaseUser } = useUserStore();
+  const { supabaseUser, favoriteQuoteIds, addFavorite, removeFavorite } = useUserStore();
 
   useEffect(() => {
     if (visible) {
@@ -140,10 +140,18 @@ export const MyAffirmationsScreen: React.FC<MyAffirmationsScreenProps> = ({
     setShowAddAffirmation(true);
   };
 
-  const handleEdit = (affirmation: UserAffirmation) => {
+  const handleToggleFavorite = (affirmation: UserAffirmation) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setEditingAffirmationId(affirmation.id);
-    setShowAddAffirmation(true);
+    
+    const isCurrentlyFavorited = favoriteQuoteIds.includes(affirmation.id);
+    
+    if (isCurrentlyFavorited) {
+      // Remove from favorites
+      removeFavorite(affirmation.id);
+    } else {
+      // Add to favorites
+      addFavorite(affirmation.id);
+    }
   };
 
   const handleCloseAddAffirmation = () => {
@@ -230,9 +238,13 @@ export const MyAffirmationsScreen: React.FC<MyAffirmationsScreenProps> = ({
             styles.actionButton,
             { opacity: pressed ? 0.7 : 1 }
           ]}
-          onPress={() => handleEdit(affirmation)}
+          onPress={() => handleToggleFavorite(affirmation)}
         >
-          <Ionicons name="pencil" size={18} color={theme.colors.primary} />
+          <Ionicons 
+            name={favoriteQuoteIds.includes(affirmation.id) ? "heart" : "heart-outline"} 
+            size={18} 
+            color={theme.colors.primary} 
+          />
         </Pressable>
         
         <Pressable
@@ -299,11 +311,6 @@ export const MyAffirmationsScreen: React.FC<MyAffirmationsScreenProps> = ({
               <View style={styles.titleContainer}>
                 <Text style={styles.headerTitle}>My Affirmations</Text>
               </View>
-              {affirmations.length > 0 && (
-                <Pressable style={styles.addHeaderButton} onPress={handleAddNew}>
-                  <Ionicons name="add" size={24} color={theme.colors.primary} />
-                </Pressable>
-              )}
             </View>
 
             {/* Content */}
@@ -324,6 +331,24 @@ export const MyAffirmationsScreen: React.FC<MyAffirmationsScreenProps> = ({
                 </View>
               )}
             </ScrollView>
+            
+            {/* Sticky Add Affirmations Button - Only shown when there are affirmations */}
+            {affirmations.length > 0 && (
+              <View style={styles.stickyButtonContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.bottomAddButton,
+                    { 
+                      opacity: pressed ? 0.9 : 1,
+                      transform: [{ scale: pressed ? 0.98 : 1 }]
+                    }
+                  ]}
+                  onPress={handleAddNew}
+                >
+                  <Text style={styles.bottomAddButtonText}>Add affirmations</Text>
+                </Pressable>
+              </View>
+            )}
           </LinearGradient>
         </Animated.View>
       </PanGestureHandler>
@@ -416,17 +441,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: theme.colors.text,
   },
-  addHeaderButton: {
-    position: 'absolute',
-    top: -10,
-    right: 0,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
   content: {
     flex: 1,
   },
@@ -488,7 +502,7 @@ const styles = StyleSheet.create({
   affirmationCard: {
     backgroundColor: theme.colors.white,
     borderRadius: theme.radii.l,
-    padding: theme.spacing.l,
+    padding: theme.spacing.m,
     flexDirection: 'row',
     shadowColor: theme.colors.black,
     shadowOffset: {
@@ -510,7 +524,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   cardActions: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     gap: theme.spacing.s,
   },
   actionButton: {
@@ -519,5 +533,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  stickyButtonContainer: {
+    paddingHorizontal: theme.spacing.l,
+    paddingVertical: theme.spacing.l,
+    paddingBottom: theme.spacing.xl,
+    backgroundColor: 'transparent',
+  },
+  bottomAddButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.m,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.radii.l,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  bottomAddButtonText: {
+    fontFamily: theme.typography.fontFamily.semiBold,
+    fontSize: theme.typography.fontSizes.m,
+    color: theme.colors.white,
   },
 }); 

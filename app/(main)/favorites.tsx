@@ -35,7 +35,7 @@ export default function FavoritesScreen() {
   const [favoriteQuotes, setFavoriteQuotes] = useState<FavoriteQuote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch favorite quotes from Supabase
+  // Fetch favorite quotes from Supabase (both regular quotes and user affirmations)
   const fetchFavoriteQuotes = useCallback(async () => {
     if (!favoriteQuoteIds.length) {
       setFavoriteQuotes([]);
@@ -45,23 +45,45 @@ export default function FavoritesScreen() {
 
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch regular quotes
+      const { data: quotesData, error: quotesError } = await supabase
         .from('quotes')
         .select('id, text, category, created_at')
         .in('id', favoriteQuoteIds);
 
-      if (error) {
-        console.error('Error fetching favorite quotes:', error);
-        setFavoriteQuotes([]);
-      } else {
-        // Sort quotes to maintain consistent order (most recently added first)
-        const sortedQuotes = (data || []).sort((a, b) => {
-          const aIndex = favoriteQuoteIds.indexOf(a.id);
-          const bIndex = favoriteQuoteIds.indexOf(b.id);
-          return aIndex - bIndex;
-        });
-        setFavoriteQuotes(sortedQuotes);
+      if (quotesError) {
+        console.error('Error fetching favorite quotes:', quotesError);
       }
+
+      // Fetch user affirmations  
+      const { data: affirmationsData, error: affirmationsError } = await supabase
+        .from('user_affirmations')
+        .select('id, text, created_at')
+        .in('id', favoriteQuoteIds);
+
+      if (affirmationsError) {
+        console.error('Error fetching favorite user affirmations:', affirmationsError);
+      }
+
+      // Combine results  
+      const mappedAffirmations = (affirmationsData || []).map(item => ({
+        id: item.id,
+        text: item.text,
+        category: 'My Affirmations',
+        created_at: item.created_at
+      }));
+      
+      const allFavorites = (quotesData || []).concat(mappedAffirmations);
+
+      // Sort to maintain consistent order (most recently added first)
+      const sortedFavorites = allFavorites.sort((a, b) => {
+        const aIndex = favoriteQuoteIds.indexOf(a.id);
+        const bIndex = favoriteQuoteIds.indexOf(b.id);
+        return aIndex - bIndex;
+      });
+
+      setFavoriteQuotes(sortedFavorites);
     } catch (error) {
       console.error('Failed to fetch favorite quotes:', error);
       setFavoriteQuotes([]);
