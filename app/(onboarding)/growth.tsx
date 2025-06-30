@@ -1,12 +1,12 @@
 // app/(onboarding)/growth.tsx
 
 import React, { useState } from 'react';
-import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
+import { StyleSheet, SafeAreaView, View, Text, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
-import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
+import { getResponsiveDimensions } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 // --- NEW, DATA-DRIVEN CHOICES from our analysis ---
@@ -22,6 +22,7 @@ const growthOptions = [
 export default function GrowthPage() {
   const [selectedGrowth, setSelectedGrowth] = useState<string | null>(null);
   const { setGrowthFocus } = useUserStore();
+  const { isSmallIPhone } = getResponsiveDimensions();
 
   const handleGrowthPress = (growth: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -49,66 +50,93 @@ export default function GrowthPage() {
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Header Text */}
-          <View style={styles.headerSection}>
-            {/* --- NEW, MORE EMPATHETIC COPY --- */}
-            <Text style={styles.title}>What feels heaviest right now?</Text>
-            <Text style={styles.subtitle}>
-              Choose your main focus. We'll tailor your first affirmations to what you need most.
-            </Text>
-          </View>
+          {/* Scrollable Content for ALL devices */}
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={isSmallIPhone ? styles.scrollContentSmall : styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header Text */}
+            <View style={styles.headerSection}>
+              <Text style={styles.title}>What feels heaviest right now?</Text>
+              <Text style={styles.subtitle}>
+                Choose your main focus. We'll tailor your first affirmations to what you need most.
+              </Text>
+            </View>
 
-          {/* Growth options list */}
-          <View style={styles.optionsContainer}>
-            {growthOptions.map((growth, index) => (
+            {/* Growth options list */}
+            <View style={styles.optionsContainer}>
+              {growthOptions.map((growth, index) => (
+                <Pressable
+                  key={growth}
+                  style={({ pressed }) => [
+                    styles.growthButton,
+                    selectedGrowth === growth && styles.selectedGrowth,
+                    { 
+                      opacity: pressed ? 0.8 : 1,
+                      transform: [{ scale: pressed ? 0.98 : 1 }]
+                    }
+                  ]}
+                  onPress={() => handleGrowthPress(growth)}
+                >
+                  <Text style={[
+                    styles.growthText,
+                    selectedGrowth === growth && styles.selectedGrowthText
+                  ]}>
+                    {growth}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {/* Spacer only for normal devices */}
+            {!isSmallIPhone && <View style={styles.spacer} />}
+
+            {/* Continue Button for normal devices */}
+            {!isSmallIPhone && (
+              <View style={styles.bottomSection}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.continueButton,
+                    { 
+                      opacity: selectedGrowth ? (pressed ? 0.9 : 1) : 0.5,
+                      transform: [{ scale: pressed && selectedGrowth ? 0.98 : 1 }]
+                    }
+                  ]}
+                  onPress={handleContinue}
+                  disabled={!selectedGrowth}
+                >
+                  <Text style={styles.continueButtonText}>Continue</Text>
+                </Pressable>
+              </View>
+            )}
+          </ScrollView>
+
+          {/* Fixed Continue Button for iPhone SE only */}
+          {isSmallIPhone && (
+            <View style={styles.fixedBottomButton}>
               <Pressable
-                key={growth}
                 style={({ pressed }) => [
-                  styles.growthButton,
-                  selectedGrowth === growth && styles.selectedGrowth,
+                  styles.continueButton,
                   { 
-                    opacity: pressed ? 0.8 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }]
+                    opacity: selectedGrowth ? (pressed ? 0.9 : 1) : 0.5,
+                    transform: [{ scale: pressed && selectedGrowth ? 0.98 : 1 }]
                   }
                 ]}
-                onPress={() => handleGrowthPress(growth)}
+                onPress={handleContinue}
+                disabled={!selectedGrowth}
               >
-                <Text style={[
-                  styles.growthText,
-                  selectedGrowth === growth && styles.selectedGrowthText
-                ]}>
-                  {growth}
-                </Text>
+                <Text style={styles.continueButtonText}>Continue</Text>
               </Pressable>
-            ))}
-          </View>
-
-          {/* Spacer */}
-          <View style={styles.spacer} />
-
-          {/* Continue Button */}
-          <View style={styles.bottomSection}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.continueButton,
-                { 
-                  opacity: selectedGrowth ? (pressed ? 0.9 : 1) : 0.5,
-                  transform: [{ scale: pressed && selectedGrowth ? 0.98 : 1 }]
-                }
-              ]}
-              onPress={handleContinue}
-              disabled={!selectedGrowth}
-            >
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </Pressable>
-          </View>
+            </View>
+          )}
         </View>
       </SafeAreaView>
     </LinearGradient>
   );
 }
 
-// --- UPDATED STYLESHEET WITH RESPONSIVE STYLING ---
+// --- NORMAL SIZES WITH MINIMAL SE ADJUSTMENTS ---
 const styles = StyleSheet.create({
   backgroundGradient: { 
     flex: 1 
@@ -120,34 +148,47 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: theme.spacing.l,
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  scrollContentSmall: {
+    paddingBottom: theme.spacing.m,
+  },
+  fixedBottomButton: {
+    paddingBottom: theme.spacing.xl + -5,
+    paddingTop: theme.spacing.m,
+  },
   headerSection: {
     alignItems: 'center',
-    marginBottom: getResponsiveSpacing(theme.spacing.xl),
-    paddingTop: getResponsiveSpacing(theme.spacing.xl),
+    marginBottom: theme.spacing.xl,
+    paddingTop: theme.spacing.xl,
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: getResponsiveFontSize(32),
+    fontSize: 32,
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: getResponsiveSpacing(theme.spacing.m),
-    lineHeight: getResponsiveFontSize(38),
+    marginBottom: theme.spacing.m,
+    lineHeight: 38,
   },
   subtitle: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: getResponsiveFontSize(16),
+    fontSize: 16,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: getResponsiveFontSize(22),
+    lineHeight: 22,
   },
   optionsContainer: {
-    gap: getResponsiveSpacing(theme.spacing.m),
-    marginBottom: getResponsiveSpacing(theme.spacing.xl),
+    gap: theme.spacing.m,
+    marginBottom: theme.spacing.xl,
   },
   growthButton: {
     backgroundColor: theme.colors.white,
-    paddingVertical: getResponsiveSpacing(theme.spacing.m + 4),
-    paddingHorizontal: getResponsiveSpacing(theme.spacing.l),
+    paddingVertical: theme.spacing.m + 4,
+    paddingHorizontal: theme.spacing.l,
     borderRadius: theme.radii.l,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -177,12 +218,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomSection: {
-    paddingBottom: getResponsiveSpacing(theme.spacing.xl),
+    paddingBottom: theme.spacing.xl,
   },
   continueButton: {
     backgroundColor: theme.colors.primary,
-    paddingVertical: getResponsiveSpacing(theme.spacing.m),
-    paddingHorizontal: getResponsiveSpacing(theme.spacing.xl),
+    paddingVertical: theme.spacing.m,
+    paddingHorizontal: theme.spacing.xl,
     borderRadius: theme.radii.l,
     alignItems: 'center',
     justifyContent: 'center',
