@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
+import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 // --- NEW, DATA-DRIVEN CHOICES from our analysis ---
@@ -53,7 +54,7 @@ export default function GrowthPage() {
             {/* --- NEW, MORE EMPATHETIC COPY --- */}
             <Text style={styles.title}>What feels heaviest right now?</Text>
             <Text style={styles.subtitle}>
-              Choose your main focus. We’ll tailor your first affirmations to what you need most.
+              Choose your main focus. We'll tailor your first affirmations to what you need most.
             </Text>
           </View>
 
@@ -107,7 +108,7 @@ export default function GrowthPage() {
   );
 }
 
-// --- ORIGINAL STYLESHEET (NO CHANGES) ---
+// --- UPDATED STYLESHEET WITH RESPONSIVE STYLING ---
 const styles = StyleSheet.create({
   backgroundGradient: { 
     flex: 1 
@@ -121,32 +122,32 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-    paddingTop: theme.spacing.xl,
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
+    paddingTop: getResponsiveSpacing(theme.spacing.xl),
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 32,
+    fontSize: getResponsiveFontSize(32),
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: theme.spacing.m,
-    lineHeight: 38,
+    marginBottom: getResponsiveSpacing(theme.spacing.m),
+    lineHeight: getResponsiveFontSize(38),
   },
   subtitle: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 16,
+    fontSize: getResponsiveFontSize(16),
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: getResponsiveFontSize(22),
   },
   optionsContainer: {
-    gap: theme.spacing.m,
-    marginBottom: theme.spacing.xl,
+    gap: getResponsiveSpacing(theme.spacing.m),
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   growthButton: {
     backgroundColor: theme.colors.white,
-    paddingVertical: theme.spacing.m + 4,
-    paddingHorizontal: theme.spacing.l,
+    paddingVertical: getResponsiveSpacing(theme.spacing.m + 4),
+    paddingHorizontal: getResponsiveSpacing(theme.spacing.l),
     borderRadius: theme.radii.l,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -176,12 +177,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomSection: {
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   continueButton: {
     backgroundColor: theme.colors.primary,
-    paddingVertical: theme.spacing.m,
-    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: getResponsiveSpacing(theme.spacing.m),
+    paddingHorizontal: getResponsiveSpacing(theme.spacing.xl),
     borderRadius: theme.radii.l,
     alignItems: 'center',
     justifyContent: 'center',

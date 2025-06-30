@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
+import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 const spiritualOptions = [
@@ -83,32 +84,33 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingTop: theme.spacing.xl,
+    paddingTop: getResponsiveSpacing(theme.spacing.xl),
     paddingHorizontal: theme.spacing.l,
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 32,
+    fontSize: getResponsiveFontSize(32),
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: theme.spacing.m,
+    marginBottom: getResponsiveSpacing(theme.spacing.m),
+    lineHeight: getResponsiveFontSize(38),
   },
   subtitle: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 16,
+    fontSize: getResponsiveFontSize(16),
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    marginBottom: theme.spacing.xl,
-    lineHeight: 22,
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
+    lineHeight: getResponsiveFontSize(22),
   },
   optionsContainer: {
     width: '100%',
-    gap: theme.spacing.m,
+    gap: getResponsiveSpacing(theme.spacing.m),
   },
   optionButton: {
     backgroundColor: theme.colors.white,
-    paddingVertical: theme.spacing.m + 4,
-    paddingHorizontal: theme.spacing.l,
+    paddingVertical: getResponsiveSpacing(theme.spacing.m + 4),
+    paddingHorizontal: getResponsiveSpacing(theme.spacing.l),
     borderRadius: theme.radii.l,
     borderWidth: 2,
     borderColor: 'transparent',

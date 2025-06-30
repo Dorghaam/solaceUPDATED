@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
 import { scheduleDailyAffirmationReminders, cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync } from '../../services/notificationService';
+import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 export default function RemindersPage() {
@@ -178,115 +179,112 @@ const styles = StyleSheet.create({
   },
   headerTextSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing.l, // Reduced margin
-    paddingTop: 60,
+    marginBottom: getResponsiveSpacing(theme.spacing.l), // Reduced margin
+    paddingTop: getResponsiveSpacing(60),
   },
   mainTitle: {
-    fontSize: 30, // Slightly smaller for better fit
+    fontSize: getResponsiveFontSize(30), // Slightly smaller for better fit
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: theme.spacing.m, // Increased margin
-    lineHeight: 36,
+    marginBottom: getResponsiveSpacing(theme.spacing.m), // Increased margin
+    lineHeight: getResponsiveFontSize(36),
   },
   subtitle: {
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 24, // Increased line height
+    lineHeight: getResponsiveFontSize(24), // Increased line height
     maxWidth: '95%',
   },
   quoteCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: theme.radii.l,
-    padding: theme.spacing.l,
-    marginBottom: theme.spacing.xl,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    padding: getResponsiveSpacing(theme.spacing.l),
+    marginVertical: getResponsiveSpacing(theme.spacing.l),
+    shadowColor: theme.colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   quoteCardTitle: {
-    fontSize: theme.typography.fontSizes.m,
+    fontSize: getResponsiveFontSize(16),
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
-    marginBottom: theme.spacing.s,
+    marginBottom: getResponsiveSpacing(theme.spacing.s),
   },
   quoteText: {
-    fontSize: theme.typography.fontSizes.m,
+    fontSize: getResponsiveFontSize(16),
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: getResponsiveFontSize(22),
   },
   sectionContainer: {
-    marginBottom: theme.spacing.l,
+    marginBottom: getResponsiveSpacing(theme.spacing.l),
   },
   sectionLabel: {
-    fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.semiBold, // Bolder label
+    fontSize: getResponsiveFontSize(18),
+    fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
-    marginBottom: theme.spacing.m, // More space
+    marginBottom: getResponsiveSpacing(theme.spacing.m),
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: theme.radii.m,
+    padding: getResponsiveSpacing(theme.spacing.m),
+  },
+  toggleLabel: {
+    fontSize: getResponsiveFontSize(16),
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.text,
   },
   frequencyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: theme.radii.m,
-    padding: theme.spacing.s, // Tighter padding
     justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: theme.radii.m,
+    padding: getResponsiveSpacing(theme.spacing.m),
+    marginBottom: getResponsiveSpacing(theme.spacing.s),
   },
   frequencyButton: {
-    width: 48, // Slightly larger button
-    height: 48,
-    borderRadius: 24,
     backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: theme.radii.s,
+    padding: getResponsiveSpacing(theme.spacing.s),
   },
   frequencyText: {
-    fontSize: 18,
+    fontSize: getResponsiveFontSize(16),
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
-    marginHorizontal: theme.spacing.m,
   },
-  spacer: { flex: 1 },
+  settingsNote: {
+    fontSize: getResponsiveFontSize(14),
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: getResponsiveFontSize(18),
+  },
+  spacer: {
+    flex: 1,
+  },
   bottomSection: {
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   allowButton: {
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radii.l,
-    paddingVertical: theme.spacing.m,
+    paddingVertical: getResponsiveSpacing(theme.spacing.m),
     alignItems: 'center',
     justifyContent: 'center',
   },
   allowButtonText: {
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.semiBold,
-    color: 'white',
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: theme.radii.m,
-    paddingVertical: theme.spacing.m / 2, // Less vertical padding
-    paddingHorizontal: theme.spacing.m,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
-  },
-  toggleLabel: {
-    fontSize: 16,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
-  },
-  settingsNote: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    marginTop: theme.spacing.s,
+    color: theme.colors.white,
   },
 });

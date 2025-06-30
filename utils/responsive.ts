@@ -17,6 +17,17 @@ export const isTablet = () => {
   return width >= 600;
 };
 
+// Small iPhone detection (iPhone SE and similar small screens)
+export const isSmallIPhone = () => {
+  const { width, height } = Dimensions.get('window');
+  
+  if (Platform.OS !== 'ios') return false;
+  
+  // iPhone SE dimensions: 375x667 logical pixels
+  // Also include iPhone 5/5s/5c: 320x568 logical pixels
+  return (width <= 375 && height <= 667) || (width <= 320 && height <= 568);
+};
+
 export const isLandscape = () => {
   const { width, height } = Dimensions.get('window');
   return width > height;
@@ -26,19 +37,21 @@ export const isLandscape = () => {
 export const getResponsiveDimensions = () => {
   const { width, height } = Dimensions.get('window');
   const tablet = isTablet();
+  const smallIPhone = isSmallIPhone();
   const landscape = isLandscape();
   
   return {
     width,
     height,
     isTablet: tablet,
+    isSmallIPhone: smallIPhone,
     isLandscape: landscape,
     // Content width - constrain content on larger screens
     contentWidth: tablet ? Math.min(width * 0.7, 600) : width,
     // Padding adjustments
-    horizontalPadding: tablet ? 40 : 24,
-    // Font scale for larger screens
-    fontScale: tablet ? 1.1 : 1,
+    horizontalPadding: tablet ? 40 : (smallIPhone ? 20 : 24),
+    // Font scale for different screen sizes
+    fontScale: tablet ? 1.1 : (smallIPhone ? 0.85 : 1),
   };
 };
 
@@ -48,10 +61,17 @@ export const getResponsiveFontSize = (baseSize: number) => {
   return Math.round(baseSize * fontScale);
 };
 
-// Responsive spacing
+// Responsive spacing - reduce spacing on small iPhones
 export const getResponsiveSpacing = (baseSpacing: number) => {
-  const { isTablet } = getResponsiveDimensions();
-  return isTablet ? Math.round(baseSpacing * 1.2) : baseSpacing;
+  const { isTablet, isSmallIPhone } = getResponsiveDimensions();
+  
+  if (isTablet) {
+    return Math.round(baseSpacing * 1.2);
+  } else if (isSmallIPhone) {
+    return Math.round(baseSpacing * 0.8);
+  }
+  
+  return baseSpacing;
 };
 
 // Widget preview dimensions for iPad

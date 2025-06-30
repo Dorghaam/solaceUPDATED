@@ -5,6 +5,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 export const WelcomeScreen = () => {
@@ -82,28 +83,29 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: theme.typography.fontFamily.semiBold,
-    fontSize: 42,
+    fontSize: getResponsiveFontSize(42),
     color: theme.colors.text,
     textAlign: 'center',
+    lineHeight: getResponsiveFontSize(50),
   },
   subtitle: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 18,
+    fontSize: getResponsiveFontSize(18),
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 26,
-    marginTop: theme.spacing.m,
+    lineHeight: getResponsiveFontSize(26),
+    marginTop: getResponsiveSpacing(theme.spacing.m),
     maxWidth: '90%', // Keep the one-liner from getting too wide
   },
   proofContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: theme.spacing.xl, // Space it out from the subtitle
+    marginTop: getResponsiveSpacing(theme.spacing.xl), // Space it out from the subtitle
   },
   proofText: {
     fontFamily: theme.typography.fontFamily.semiBold,
-    fontSize: 16,
+    fontSize: getResponsiveFontSize(16),
     color: theme.colors.text,
     letterSpacing: 1,
     textTransform: 'uppercase',
@@ -112,12 +114,12 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     paddingHorizontal: theme.spacing.l,
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: getResponsiveSpacing(theme.spacing.xl),
     alignItems: 'center',
   },
   getStartedButton: {
     backgroundColor: theme.colors.primary,
-    paddingVertical: theme.spacing.m,
+    paddingVertical: getResponsiveSpacing(theme.spacing.m),
     borderRadius: theme.radii.l,
     alignItems: 'center',
     justifyContent: 'center',
@@ -129,9 +131,9 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
   },
   loginText: {
-      marginTop: theme.spacing.l,
+      marginTop: getResponsiveSpacing(theme.spacing.l),
       fontFamily: theme.typography.fontFamily.regular,
-      fontSize: 16,
+      fontSize: getResponsiveFontSize(16),
       color: theme.colors.textSecondary,
       textDecorationLine: 'underline',
   },

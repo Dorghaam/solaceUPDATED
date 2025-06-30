@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
-import { getResponsiveDimensions, getWidgetPreviewSize, getResponsiveFontSize } from '../../utils/responsive';
+import { getResponsiveDimensions, getWidgetPreviewSize, getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
@@ -19,8 +19,6 @@ export default function LockscreenWidgetPage() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/(onboarding)/growth');
   };
-
-
 
   return (
     <LinearGradient
@@ -119,15 +117,15 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: theme.spacing.m,
-    paddingBottom: theme.spacing.s,
+    paddingTop: getResponsiveSpacing(theme.spacing.m),
+    paddingBottom: getResponsiveSpacing(theme.spacing.s),
   },
   spacerFlex: {
     flex: 1,
   },
   skipButton: {
-    paddingVertical: theme.spacing.s,
-    paddingHorizontal: theme.spacing.m,
+    paddingVertical: getResponsiveSpacing(theme.spacing.s),
+    paddingHorizontal: getResponsiveSpacing(theme.spacing.m),
   },
   skipText: {
     fontSize: theme.typography.fontSizes.m,
@@ -137,19 +135,19 @@ const styles = StyleSheet.create({
 
   headerSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing.l,
-    paddingTop: theme.spacing.m,
+    marginBottom: getResponsiveSpacing(theme.spacing.l),
+    paddingTop: getResponsiveSpacing(theme.spacing.m),
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 32,
+    fontSize: getResponsiveFontSize(32),
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: 38,
+    lineHeight: getResponsiveFontSize(38),
   },
   widgetPreviewContainer: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   widgetPreview: {
     width: width * 0.85,
@@ -175,60 +173,62 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   widgetText: {
-    fontSize: 18,
+    fontSize: getResponsiveFontSize(18),
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: getResponsiveFontSize(24),
   },
   instructionsContainer: {
-    marginBottom: theme.spacing.l,
+    marginBottom: getResponsiveSpacing(theme.spacing.l),
   },
   instructionsTitle: {
-    fontSize: 20,
+    fontSize: getResponsiveFontSize(20),
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: theme.spacing.l,
-    lineHeight: 26,
+    marginBottom: getResponsiveSpacing(theme.spacing.l),
+    lineHeight: getResponsiveFontSize(26),
   },
   instructionsList: {
-    gap: theme.spacing.m,
+    gap: getResponsiveSpacing(theme.spacing.m),
   },
   instructionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
   instructionNumber: {
-    fontSize: theme.typography.fontSizes.m,
+    fontSize: getResponsiveFontSize(16),
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
-    marginRight: theme.spacing.s,
-    width: 20,
+    marginRight: getResponsiveSpacing(theme.spacing.s),
+    minWidth: 20,
   },
   instructionText: {
-    flex: 1,
-    fontSize: theme.typography.fontSizes.m,
+    fontSize: getResponsiveFontSize(16),
     fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
-    lineHeight: 22,
+    color: theme.colors.textSecondary,
+    flex: 1,
+    lineHeight: getResponsiveFontSize(22),
   },
   spacer: {
     flex: 1,
   },
   bottomSection: {
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   doneButton: {
-    backgroundColor: theme.colors.black,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: getResponsiveSpacing(theme.spacing.m),
+    paddingHorizontal: getResponsiveSpacing(theme.spacing.xl),
     borderRadius: theme.radii.l,
-    paddingVertical: theme.spacing.m + 2,
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
   },
   doneButtonText: {
-    fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.semiBold,
-    color: 'white',
+    fontSize: theme.typography.fontSizes.m,
+    color: theme.colors.white,
   },
 }); 

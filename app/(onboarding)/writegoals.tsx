@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
+import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 export default function WriteGoalsPage() {
@@ -87,7 +88,7 @@ export default function WriteGoalsPage() {
   );
 }
 
-// --- ORIGINAL STYLESHEET (NO CHANGES) ---
+// --- UPDATED STYLESHEET WITH RESPONSIVE STYLING ---
 const styles = StyleSheet.create({
   backgroundGradient: { 
     flex: 1 
@@ -104,32 +105,32 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-    paddingTop: theme.spacing.xl,
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
+    paddingTop: getResponsiveSpacing(theme.spacing.xl),
   },
   title: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 32,
+    fontSize: getResponsiveFontSize(32),
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: theme.spacing.m,
-    lineHeight: 38,
+    marginBottom: getResponsiveSpacing(theme.spacing.m),
+    lineHeight: getResponsiveFontSize(38),
   },
   subtitle: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 16,
+    fontSize: getResponsiveFontSize(16),
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: getResponsiveFontSize(22),
   },
   inputContainer: {
-    marginBottom: theme.spacing.xl,
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   textInput: {
     backgroundColor: theme.colors.white,
     borderRadius: theme.radii.l,
-    paddingHorizontal: theme.spacing.l,
-    paddingVertical: theme.spacing.l,
+    paddingHorizontal: getResponsiveSpacing(theme.spacing.l),
+    paddingVertical: getResponsiveSpacing(theme.spacing.l),
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.text,
@@ -147,12 +148,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomSection: {
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   saveButton: {
     backgroundColor: theme.colors.primary,
-    paddingVertical: theme.spacing.m,
-    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: getResponsiveSpacing(theme.spacing.m),
+    paddingHorizontal: getResponsiveSpacing(theme.spacing.xl),
     borderRadius: theme.radii.l,
     alignItems: 'center',
     justifyContent: 'center',
