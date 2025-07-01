@@ -475,6 +475,9 @@ const styles = StyleSheet.create({
   quoteContainer: {
     flex: 1,
     position: 'relative',
+    overflow: 'hidden',
+    marginTop: 20, // Create invisible wall below premium button
+    marginBottom: 20, // Create invisible wall above bottom nav buttons
   },
   quoteSection: {
     flex: 1,
