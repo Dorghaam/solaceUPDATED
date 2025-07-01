@@ -411,15 +411,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     />
                   </Pressable>
                 ))}
+                
+                {/* Restore Purchases Button */}
+                <Pressable 
+                  style={({ pressed }) => [
+                    styles.menuItem,
+                    { opacity: pressed ? 0.8 : 1 },
+                    { transform: [{ scale: pressed ? 0.98 : 1 }] }
+                  ]} 
+                  onPress={handleRestorePurchases}
+                >
+                  <View style={styles.menuItemLeft}>
+                    <View style={styles.iconContainer}>
+                      <Ionicons name="refresh" size={20} color={theme.colors.text} />
+                    </View>
+                    <Text style={styles.menuItemText}>Restore Purchases</Text>
+                  </View>
+                  <Ionicons 
+                    name="chevron-forward" 
+                    size={20} 
+                    color={theme.colors.textSecondary} 
+                  />
+                </Pressable>
               </View>
-              
-              {/* Restore Purchases Button */}
-              <Pressable 
-                style={styles.restoreButton} 
-                onPress={handleRestorePurchases}
-              >
-                <Text style={styles.restoreButtonText}>Restore Purchases</Text>
-              </Pressable>
             </ScrollView>
           </LinearGradient>
         </Animated.View>
@@ -691,16 +705,5 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  restoreButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.m,
-    marginTop: theme.spacing.l,
-  },
-  restoreButtonText: {
-    fontSize: theme.typography.fontSizes.s,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.textSecondary,
-    textDecorationLine: 'underline',
-  },
+
 }); 
