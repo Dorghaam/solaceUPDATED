@@ -10,7 +10,7 @@ let appStateListener: { remove: () => void } | null = null;
 let configurePromise: Promise<void> | null = null;
 
 // ✅ FIX: Add debouncing for tier downgrades to prevent flickering
-let lastPremiumTimestamp = Date.now();
+let lastPremiumTimestamp = 0; // Initialize to 0 - only track time AFTER we've seen premium
 const DOWNGRADE_GRACE_PERIOD_MS = 20_000; // 20 seconds grace period
 
 // Quality gate - exit early if SDK not configured
@@ -43,20 +43,28 @@ export async function safeGetCustomerInfo(): Promise<CustomerInfo> {
 /**
  * ✅ FIX: Smart tier detection with downgrade debouncing
  * Prevents flicker by holding premium state for grace period during network uncertainty
+ * CRITICAL: lastPremiumTimestamp must start at 0 to prevent phantom premium for new users
  */
 function tierFromInfo(info: CustomerInfo): SubscriptionTier {
   const isPremium = info.entitlements.active['premium']?.isActive ?? false;
   
+  if (__DEV__) {
+    console.log(`[RevenueCat] tierFromInfo: isPremium=${isPremium}, lastPremiumTimestamp=${lastPremiumTimestamp}`);
+  }
+  
   if (isPremium) {
-    lastPremiumTimestamp = Date.now();
+    lastPremiumTimestamp = Date.now(); // Record only when actually premium
     return 'premium';
   }
 
-  // Hold premium for grace period after last known good state to prevent flicker
-  const timeSinceLastPremium = Date.now() - lastPremiumTimestamp;
-  if (!isPremium && timeSinceLastPremium < DOWNGRADE_GRACE_PERIOD_MS) {
-    console.log(`[RevenueCat] Holding premium during grace period (${Math.round(timeSinceLastPremium/1000)}s)`);
-    return 'premium'; // Keep premium during grace period
+  // Only apply grace period if we've ever seen premium (lastPremiumTimestamp > 0)
+  // This prevents brand-new users from being marked as premium due to module load timing
+  if (lastPremiumTimestamp > 0) {
+    const timeSinceLastPremium = Date.now() - lastPremiumTimestamp;
+    if (timeSinceLastPremium < DOWNGRADE_GRACE_PERIOD_MS) {
+      console.log(`[RevenueCat] Holding premium during grace period (${Math.round(timeSinceLastPremium/1000)}s)`);
+      return 'premium'; // Keep premium during grace period
+    }
   }
 
   return 'free';
