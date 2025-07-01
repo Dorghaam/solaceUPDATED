@@ -21,6 +21,8 @@ import { useUserStore } from '../store/userStore';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+const SWIPE_THRESHOLD = 120; // Minimum swipe distance to trigger quote change
+
 // Define the shape of a single quote
 interface Quote {
   id: string;
@@ -92,14 +94,23 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
     return quotes[currentQuoteIndex] || quotes[0];
   }, [quotes, currentQuoteIndex]);
 
+
+
   // Helper function to check if a quote is a placeholder
   const isPlaceholderQuote = useCallback((quoteId: string) => {
     return ['no-favorites', 'no-quotes', 'error'].includes(quoteId);
   }, []);
 
+  // Enhanced gesture handler for peek behavior
   const handleGestureEvent = Animated.event(
     [{ nativeEvent: { translationY: translateY } }],
-    { useNativeDriver: true }
+    { 
+      useNativeDriver: true,
+      listener: (event: any) => {
+        // Optional: Add haptic feedback during swipe
+        // hapticService.light();
+      }
+    }
   );
 
   const handleGestureStateChange = (event: any) => {
@@ -108,9 +119,8 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
       
       if (isAnimating.current) return;
       
-      // Determine if swipe is significant enough
-      const threshold = 100;
-      const shouldChangeQuote = Math.abs(translationY) > threshold || Math.abs(velocityY) > 800;
+      // Determine if swipe is significant enough to change quotes
+      const shouldChangeQuote = Math.abs(translationY) > SWIPE_THRESHOLD || Math.abs(velocityY) > 800;
       
       if (shouldChangeQuote) {
         if (translationY < 0) {
@@ -121,9 +131,11 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
           handlePreviousQuote();
         }
       } else {
-        // Return to original position
+        // Return to original position with smooth animation
         Animated.spring(translateY, {
           toValue: 0,
+          tension: 300,
+          friction: 30,
           useNativeDriver: true,
         }).start();
       }
@@ -134,19 +146,20 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
     if (isAnimating.current) return;
     isAnimating.current = true;
     
-    // Animate current quote up and out
+    // Smooth transition to next quote
     Animated.timing(translateY, {
-      toValue: -screenHeight,
-      duration: 150,
+      toValue: -screenHeight * 0.6, // Don't go all the way off screen
+      duration: 200,
       useNativeDriver: true,
     }).start(() => {
       onNextQuote();
       
-      // Reset position to bottom and animate in
-      translateY.setValue(screenHeight);
-      Animated.timing(translateY, {
+      // Bring new quote from bottom with smooth animation
+      translateY.setValue(screenHeight * 0.6);
+      Animated.spring(translateY, {
         toValue: 0,
-        duration: 150,
+        tension: 300,
+        friction: 30,
         useNativeDriver: true,
       }).start(() => {
         isAnimating.current = false;
@@ -158,25 +171,28 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
     if (isAnimating.current) return;
     isAnimating.current = true;
     
-    // Animate current quote down and out
+    // Smooth transition to previous quote
     Animated.timing(translateY, {
-      toValue: screenHeight,
-      duration: 150,
+      toValue: screenHeight * 0.6, // Don't go all the way off screen
+      duration: 200,
       useNativeDriver: true,
     }).start(() => {
       onPreviousQuote();
       
-      // Reset position to top and animate in
-      translateY.setValue(-screenHeight);
-      Animated.timing(translateY, {
+      // Bring new quote from top with smooth animation
+      translateY.setValue(-screenHeight * 0.6);
+      Animated.spring(translateY, {
         toValue: 0,
-        duration: 150,
+        tension: 300,
+        friction: 30,
         useNativeDriver: true,
       }).start(() => {
         isAnimating.current = false;
       });
     });
   };
+
+
 
   // ✅ HANDLE THREE SUBSCRIPTION STATES PROPERLY
   if (subscriptionTier === 'unknown') {
@@ -277,7 +293,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
           </View>
         </View>
 
-        {/* Swipeable Quote Section */}
+        {/* Enhanced Swipeable Quote Section */}
         <View style={styles.quoteContainer}>
           <PanGestureHandler 
             onGestureEvent={handleGestureEvent}
@@ -468,6 +484,7 @@ const styles = StyleSheet.create({
     maxWidth: 800, // Constrain width on larger screens
     alignSelf: 'center',
   },
+
   quoteText: {
     fontSize: getResponsiveFontSize(32),
     fontWeight: '400',
