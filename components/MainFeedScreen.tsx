@@ -265,10 +265,13 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
               ]} 
               onPress={onPremiumPress}
             >
+              {subscriptionTier === 'premium' && (
+                <Text style={styles.premiumButtonText}>Premium</Text>
+              )}
               <Ionicons 
                 name={subscriptionTier === 'premium' ? "diamond" : "diamond-outline"} 
                 size={20} 
-                color={subscriptionTier === 'premium' ? "#FFD700" : theme.colors.text} 
+                color={subscriptionTier === 'premium' ? theme.colors.white : theme.colors.text} 
               />
             </Pressable>
           </View>
@@ -446,9 +449,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   premiumButton: {
-    backgroundColor: 'rgba(255, 215, 0, 0.2)', // Light gold background for premium users
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.5)',
+    backgroundColor: theme.colors.primary,
+    borderWidth: 0,
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    width: 'auto',
+    minWidth: 100,
   },
   quoteContainer: {
     flex: 1,
@@ -513,5 +519,11 @@ const styles = StyleSheet.create({
     fontSize: getResponsiveFontSize(16),
     color: theme.colors.text,
     textAlign: 'center',
+  },
+  premiumButtonText: {
+    fontSize: getResponsiveFontSize(14),
+    fontWeight: '500',
+    color: theme.colors.white,
+    marginRight: 8,
   },
 }); 
