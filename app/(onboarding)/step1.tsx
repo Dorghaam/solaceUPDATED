@@ -64,7 +64,7 @@ export default function Step1Screen() {
 
   const handleContinue = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(onboarding)/reminders');
+    router.push('/(onboarding)/step2');
   };
 
   return (
