@@ -41,7 +41,10 @@ export default function Step4Screen() {
     if (selectedFocus.length > 0) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       // TODO: Save selected focus areas to storage/state
-      router.push('/(onboarding)/reminders');
+      router.push({
+        pathname: '/(onboarding)/step5',
+        params: { name: displayName }
+      });
     }
   };
 
