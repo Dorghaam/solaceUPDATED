@@ -58,7 +58,7 @@ export default function Step5Screen() {
         </View>
         
         {/* Continue Button */}
-        <View style={styles.buttonContainer}>
+        <View style={styles.floatingButtonContainer}>
           <Pressable 
             style={({ pressed }) => [
               styles.continueButton,
@@ -117,8 +117,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     maxWidth: '90%',
   },
-  buttonContainer: {
-    width: '100%',
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: theme.spacing.l,
     paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },

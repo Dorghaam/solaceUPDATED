@@ -144,25 +144,25 @@ export default function RemindersPage() {
           </View>
 
           <View style={styles.spacer} />
+        </View>
 
-          {/* Button */}
-          <View style={styles.bottomSection}>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.allowButton,
-                { 
-                  opacity: isSchedulingNotifications ? 0.7 : (pressed ? 0.9 : 1),
-                  transform: [{ scale: pressed ? 0.98 : 1 }]
-                }
-              ]} 
-              onPress={handleAllowAndSave}
-              disabled={isSchedulingNotifications}
-            >
-              <Text style={styles.allowButtonText}>
-                {isSchedulingNotifications ? 'Saving...' : 'Continue'}
-              </Text>
-            </Pressable>
-          </View>
+        {/* Floating Continue Button */}
+        <View style={styles.floatingButtonContainer}>
+          <Pressable 
+            style={({ pressed }) => [
+              styles.allowButton,
+              { 
+                opacity: isSchedulingNotifications ? 0.7 : (pressed ? 0.9 : 1),
+                transform: [{ scale: pressed ? 0.98 : 1 }]
+              }
+            ]} 
+            onPress={handleAllowAndSave}
+            disabled={isSchedulingNotifications}
+          >
+            <Text style={styles.allowButtonText}>
+              {isSchedulingNotifications ? 'Saving...' : 'Continue'}
+            </Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -179,16 +179,17 @@ const styles = StyleSheet.create({
   },
   headerTextSection: {
     alignItems: 'center',
-    marginBottom: getResponsiveSpacing(theme.spacing.l), // Reduced margin
-    paddingTop: getResponsiveSpacing(60),
+    marginBottom: getResponsiveSpacing(theme.spacing.l),
+    paddingTop: getResponsiveSpacing(theme.spacing.xl),
   },
   mainTitle: {
-    fontSize: getResponsiveFontSize(30), // Slightly smaller for better fit
-    fontFamily: theme.typography.fontFamily.regular,
+    fontSize: getResponsiveFontSize(28),
+    fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: getResponsiveSpacing(theme.spacing.m), // Increased margin
+    marginBottom: getResponsiveSpacing(theme.spacing.m),
     lineHeight: getResponsiveFontSize(36),
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: theme.typography.fontSizes.m,
@@ -272,7 +273,12 @@ const styles = StyleSheet.create({
   spacer: {
     flex: 1,
   },
-  bottomSection: {
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: theme.spacing.l,
     paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   allowButton: {
@@ -281,6 +287,15 @@ const styles = StyleSheet.create({
     paddingVertical: getResponsiveSpacing(theme.spacing.m),
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    shadowColor: theme.colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   allowButtonText: {
     fontSize: theme.typography.fontSizes.m,
