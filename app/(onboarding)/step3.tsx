@@ -130,17 +130,17 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: getResponsiveSpacing(theme.spacing.l),
-    paddingTop: getResponsiveSpacing(theme.spacing.xl * 2),
+    paddingTop: getResponsiveSpacing(theme.spacing.xl),
     paddingBottom: getResponsiveSpacing(theme.spacing.xl * 2),
   },
   headline: {
     fontFamily: theme.typography.fontFamily.semiBold,
-    fontSize: getResponsiveFontSize(32),
+    fontSize: getResponsiveFontSize(28),
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: getResponsiveFontSize(40),
+    lineHeight: getResponsiveFontSize(36),
     marginBottom: getResponsiveSpacing(theme.spacing.m),
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
   },
   instruction: {
     fontFamily: theme.typography.fontFamily.regular,

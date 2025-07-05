@@ -20,13 +20,7 @@ export default function Step2Screen() {
     }
   };
 
-  const handleSkip = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({
-      pathname: '/(onboarding)/step3',
-      params: { name: '' }
-    });
-  };
+
 
   return (
     <LinearGradient
@@ -36,12 +30,7 @@ export default function Step2Screen() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
-        {/* Skip Button */}
-        <View style={styles.skipContainer}>
-          <Pressable onPress={handleSkip}>
-            <Text style={styles.skipText}>Skip</Text>
-          </Pressable>
-        </View>
+
 
         <KeyboardAvoidingView 
           style={styles.keyboardAvoidingView}
@@ -104,16 +93,6 @@ const styles = StyleSheet.create({
   safeArea: { 
     flex: 1,
   },
-  skipContainer: {
-    alignItems: 'flex-end',
-    paddingHorizontal: getResponsiveSpacing(theme.spacing.l),
-    paddingTop: getResponsiveSpacing(theme.spacing.s),
-  },
-  skipText: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: getResponsiveFontSize(16),
-    color: theme.colors.textSecondary,
-  },
   keyboardAvoidingView: {
     flex: 1,
   },
@@ -122,16 +101,16 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: getResponsiveSpacing(theme.spacing.l),
-    paddingTop: getResponsiveSpacing(theme.spacing.xl * 2),
+    paddingTop: getResponsiveSpacing(theme.spacing.xl),
   },
   headline: {
     fontFamily: theme.typography.fontFamily.semiBold,
-    fontSize: getResponsiveFontSize(36),
+    fontSize: getResponsiveFontSize(28),
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: getResponsiveFontSize(44),
+    lineHeight: getResponsiveFontSize(36),
     marginBottom: getResponsiveSpacing(theme.spacing.m),
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontFamily: theme.typography.fontFamily.regular,
@@ -139,7 +118,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: getResponsiveFontSize(24),
-    marginBottom: getResponsiveSpacing(theme.spacing.xl * 2),
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
     letterSpacing: 0.2,
   },
   inputContainer: {
