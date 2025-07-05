@@ -6,31 +6,42 @@ import { theme } from '../../constants/theme';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
-const struggleOptions = [
-  "The constant thoughts about them.",
-  "The feeling that I'm not good enough.",
-  "The fear of being on my own.",
-  "Hoping they'll change their mind.",
-  "Just the overwhelming sadness."
+const focusOptions = [
+  { id: 'confidence', text: 'Rebuilding my confidence & self-worth' },
+  { id: 'self-love', text: 'Learning to love being by myself' },
+  { id: 'inner-peace', text: 'Finding my inner peace & letting go' },
+  { id: 'glow-up', text: 'Focusing on my future & my glow up' },
+  { id: 'boundaries', text: 'Setting boundaries & protecting my energy' },
+  { id: 'stop-thoughts', text: 'Stopping the constant thoughts about them' },
+  { id: 'acceptance', text: 'Accepting that it\'s truly over and moving forward' },
+  { id: 'self-forgiveness', text: 'Forgiving myself for what happened' },
+  { id: 'manage-emotions', text: 'Managing the waves of sadness and anxiety' },
+  { id: 'rediscover-self', text: 'Rediscovering who I am without them' },
+  { id: 'break-attachment', text: 'Breaking my attachment to their approval' },
+  { id: 'trust-reason', text: 'Trusting that this happened for a reason' },
 ];
 
-export default function Step3Screen() {
+export default function Step4Screen() {
   const { name } = useLocalSearchParams();
-  const [selectedStruggle, setSelectedStruggle] = useState<string>('');
+  const [selectedFocus, setSelectedFocus] = useState<string[]>([]);
 
-  const handleSelectStruggle = (struggle: string) => {
+  const handleToggleFocus = (focusId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedStruggle(struggle);
+    
+    setSelectedFocus(prev => {
+      if (prev.includes(focusId)) {
+        return prev.filter(id => id !== focusId);
+      } else {
+        return [...prev, focusId];
+      }
+    });
   };
 
   const handleContinue = () => {
-    if (selectedStruggle) {
+    if (selectedFocus.length > 0) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      // TODO: Save selected struggle to storage/state
-      router.push({
-        pathname: '/(onboarding)/step4',
-        params: { name: displayName }
-      });
+      // TODO: Save selected focus areas to storage/state
+      router.push('/(onboarding)/reminders');
     }
   };
 
@@ -51,47 +62,53 @@ export default function Step3Screen() {
         >
           {/* Main Headline */}
           <Text style={styles.headline}>
-            Which one hits you the deepest{displayName ? `, ${displayName}` : ''}?
+            Now, let's set our intention. What are we calling back to you?
           </Text>
 
           {/* Instruction */}
           <Text style={styles.instruction}>
-            Choose one to start.
+            Select your core focus areas.
           </Text>
 
-          {/* Struggle Options */}
+          {/* Focus Options */}
           <View style={styles.optionsContainer}>
-            {struggleOptions.map((option, index) => (
-              <Pressable
-                key={index}
-                style={({ pressed }) => [
-                  styles.optionCard,
-                  selectedStruggle === option && styles.selectedOptionCard,
-                  { 
-                    opacity: pressed ? 0.8 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }] 
-                  }
-                ]}
-                onPress={() => handleSelectStruggle(option)}
-              >
-                <Text style={[
-                  styles.optionText,
-                  selectedStruggle === option && styles.selectedOptionText
-                ]}>
-                  {option}
-                </Text>
-                
-                {/* Selection Indicator */}
-                <View style={[
-                  styles.selectionIndicator,
-                  selectedStruggle === option && styles.selectedIndicator
-                ]}>
-                  {selectedStruggle === option && (
-                    <Text style={styles.checkmark}>✓</Text>
-                  )}
-                </View>
-              </Pressable>
-            ))}
+            {focusOptions.map((option) => {
+              const isSelected = selectedFocus.includes(option.id);
+              
+              return (
+                <Pressable
+                  key={option.id}
+                  style={({ pressed }) => [
+                    styles.optionCard,
+                    isSelected && styles.selectedOptionCard,
+                    { 
+                      opacity: pressed ? 0.8 : 1,
+                      transform: [{ scale: pressed ? 0.98 : 1 }] 
+                    }
+                  ]}
+                  onPress={() => handleToggleFocus(option.id)}
+                >
+                  <View style={styles.optionContent}>
+                    <Text style={[
+                      styles.optionText,
+                      isSelected && styles.selectedOptionText
+                    ]}>
+                      {option.text}
+                    </Text>
+                  </View>
+                  
+                  {/* Checkbox Indicator */}
+                  <View style={[
+                    styles.checkboxIndicator,
+                    isSelected && styles.selectedCheckbox
+                  ]}>
+                    {isSelected && (
+                      <Text style={styles.checkmark}>✓</Text>
+                    )}
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         </ScrollView>
         
@@ -101,12 +118,12 @@ export default function Step3Screen() {
               style={({ pressed }) => [
                 styles.continueButton,
                 { 
-                  opacity: selectedStruggle ? (pressed ? 0.8 : 1) : 0.5,
-                  transform: [{ scale: pressed && selectedStruggle ? 0.98 : 1 }] 
+                  opacity: selectedFocus.length > 0 ? (pressed ? 0.8 : 1) : 0.5,
+                  transform: [{ scale: pressed && selectedFocus.length > 0 ? 0.98 : 1 }] 
                 }
               ]} 
-              onPress={selectedStruggle ? handleContinue : undefined}
-              disabled={!selectedStruggle}
+              onPress={selectedFocus.length > 0 ? handleContinue : undefined}
+              disabled={selectedFocus.length === 0}
             >
                           <Text style={styles.buttonText}>
                 Continue
@@ -179,19 +196,24 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
     shadowOpacity: 0.2,
   },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+
   optionText: {
     fontFamily: theme.typography.fontFamily.regular,
     fontSize: getResponsiveFontSize(16),
     color: theme.colors.text,
     lineHeight: getResponsiveFontSize(22),
     flex: 1,
-    paddingRight: getResponsiveSpacing(theme.spacing.s),
   },
   selectedOptionText: {
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.primary,
   },
-  selectionIndicator: {
+  checkboxIndicator: {
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -201,7 +223,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  selectedIndicator: {
+  selectedCheckbox: {
     backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
