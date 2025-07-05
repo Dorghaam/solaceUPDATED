@@ -11,7 +11,8 @@ const struggleOptions = [
   "The feeling that I'm not good enough.",
   "The fear of being on my own.",
   "Hoping they'll change their mind.",
-  "Just the overwhelming sadness."
+  "Just the overwhelming sadness.",
+  "The pain of seeing (or imagining) them with someone else."
 ];
 
 export default function Step3Screen() {
