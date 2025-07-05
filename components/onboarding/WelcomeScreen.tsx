@@ -4,6 +4,7 @@ import React from 'react';
 import { StyleSheet, SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import LottieView from 'lottie-react-native';
 import { theme } from '../../constants/theme';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
@@ -11,7 +12,7 @@ import * as Haptics from 'expo-haptics';
 export const WelcomeScreen = () => {
   const handleGetStarted = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(onboarding)/reminders');
+    router.push('/(onboarding)/step1');
   };
   
   // This is a new function for the "Login" link
@@ -30,20 +31,24 @@ export const WelcomeScreen = () => {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.contentContainer}>
           
-          <Text style={styles.title}>Welcome to Solace</Text>
-
-          <Text style={styles.subtitle}>
-            Daily affirmations to help you heal, let go, and love yourself again.
-          </Text>
-
-          {/* This view is for the social proof vectors you will add */}
-          <View style={styles.proofContainer}>
-            {/* You will add a vector on the left */}
-            <Text style={styles.proofText}>
-              
-            </Text>
-            {/* You will add a vector on the right */}
+          {/* Lottie Animation */}
+          <View style={styles.animationContainer}>
+            <LottieView
+              source={require('../../assets/welcome-animation.json')}
+              style={styles.animation}
+              autoPlay
+              loop
+              speed={0.8}
+            />
           </View>
+
+          {/* Main Headline */}
+          <Text style={styles.headline}>It hurts right now.</Text>
+
+          {/* Sub-headline */}
+          <Text style={styles.subheadline}>
+            And that's okay. We're here to help you.
+          </Text>
           
         </View>
         <View style={styles.buttonContainer}>
@@ -78,38 +83,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.l,
+    paddingHorizontal: getResponsiveSpacing(theme.spacing.xl),
     width: '100%',
   },
-  title: {
+  animationContainer: {
+    width: '100%',
+    height: 220,
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  animation: {
+    width: '85%',
+    height: '100%',
+  },
+  headline: {
     fontFamily: theme.typography.fontFamily.semiBold,
-    fontSize: getResponsiveFontSize(42),
+    fontSize: getResponsiveFontSize(36),
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: getResponsiveFontSize(50),
+    lineHeight: getResponsiveFontSize(44),
+    marginBottom: getResponsiveSpacing(theme.spacing.m),
+    letterSpacing: -0.5,
   },
-  subtitle: {
+  subheadline: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: getResponsiveFontSize(18),
+    fontSize: getResponsiveFontSize(20),
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: getResponsiveFontSize(26),
-    marginTop: getResponsiveSpacing(theme.spacing.m),
-    maxWidth: '90%', // Keep the one-liner from getting too wide
-  },
-  proofContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: getResponsiveSpacing(theme.spacing.xl), // Space it out from the subtitle
-  },
-  proofText: {
-    fontFamily: theme.typography.fontFamily.semiBold,
-    fontSize: getResponsiveFontSize(16),
-    color: theme.colors.text,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginHorizontal: 12, // Space for the vectors
+    lineHeight: getResponsiveFontSize(28),
+    marginBottom: getResponsiveSpacing(theme.spacing.xl),
+    maxWidth: '85%',
+    letterSpacing: 0.2,
   },
   buttonContainer: {
     width: '100%',
@@ -131,10 +136,10 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
   },
   loginText: {
-      marginTop: getResponsiveSpacing(theme.spacing.l),
-      fontFamily: theme.typography.fontFamily.regular,
-      fontSize: getResponsiveFontSize(16),
-      color: theme.colors.textSecondary,
-      textDecorationLine: 'underline',
+    marginTop: getResponsiveSpacing(theme.spacing.l),
+    fontFamily: theme.typography.fontFamily.regular,
+    fontSize: getResponsiveFontSize(16),
+    color: theme.colors.textSecondary,
+    textDecorationLine: 'underline',
   },
 });

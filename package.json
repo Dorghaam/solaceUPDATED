@@ -34,6 +34,7 @@
     "expo-router": "~5.1.0",
     "expo-splash-screen": "^0.30.9",
     "expo-status-bar": "~2.2.3",
+    "lottie-react-native": "^7.2.3",
     "react": "19.0.0",
     "react-native": "0.79.4",
     "react-native-gesture-handler": "~2.24.0",
