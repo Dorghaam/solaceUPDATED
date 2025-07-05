@@ -65,7 +65,7 @@ export default function WidgetConfigScreen() {
             .from('quotes')
             .select('text')
             .in('id', favoriteQuoteIds)
-            .limit(20);
+            .limit(150);
           
           if (error) throw error;
           if (data && data.length > 0) {
@@ -84,7 +84,7 @@ export default function WidgetConfigScreen() {
           .from('quotes')
           .select('text')
           .in('category', categoriesToFetch)
-          .limit(50);
+          .limit(150);
         
         if (error) throw error;
         if (data && data.length > 0) {

@@ -35,7 +35,7 @@ export default function WidgetSetupPage() {
         .from('quotes')
         .select('text')
         .eq('category', 'general_healing')
-        .limit(50);
+        .limit(150);
       
       if (error) throw error;
       

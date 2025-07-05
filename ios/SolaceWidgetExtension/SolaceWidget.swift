@@ -38,9 +38,9 @@ struct Provider: TimelineProvider {
             return
         }
 
-        // Create a timeline entry for each quote, updating every 15 minutes
+        // Create a timeline entry for each quote, updating every hour
         for (index, quote) in quotes.enumerated() {
-            let entryDate = Calendar.current.date(byAdding: .minute, value: index * 15, to: currentDate)!
+            let entryDate = Calendar.current.date(byAdding: .hour, value: index, to: currentDate)!
             let entry = SimpleEntry(date: entryDate, quote: quote, userName: userName)
             entries.append(entry)
         }
