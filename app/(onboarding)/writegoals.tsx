@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: theme.spacing.l,
+    paddingBottom: 100, // Space for floating button
   },
   headerSection: {
     alignItems: 'center',
@@ -109,12 +110,13 @@ const styles = StyleSheet.create({
     paddingTop: getResponsiveSpacing(theme.spacing.xl),
   },
   title: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: getResponsiveFontSize(32),
+    fontFamily: theme.typography.fontFamily.semiBold,
+    fontSize: 28,
     color: theme.colors.text,
     textAlign: 'center',
     marginBottom: getResponsiveSpacing(theme.spacing.m),
-    lineHeight: getResponsiveFontSize(38),
+    lineHeight: 36,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontFamily: theme.typography.fontFamily.regular,
@@ -148,16 +150,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomSection: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: theme.spacing.l,
     paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   saveButton: {
     backgroundColor: theme.colors.primary,
     paddingVertical: getResponsiveSpacing(theme.spacing.m),
-    paddingHorizontal: getResponsiveSpacing(theme.spacing.xl),
     borderRadius: theme.radii.l,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    shadowColor: theme.colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   saveButtonText: {
     fontFamily: theme.typography.fontFamily.semiBold,

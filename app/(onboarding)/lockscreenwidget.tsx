@@ -15,11 +15,6 @@ export default function LockscreenWidgetPage() {
     router.push('/(onboarding)/widgetsetup');
   };
 
-  const handleSkip = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/(onboarding)/growth');
-  };
-
   return (
     <LinearGradient
       colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light, theme.colors.lightPink.medium]}
@@ -29,14 +24,6 @@ export default function LockscreenWidgetPage() {
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Skip Button */}
-          <View style={styles.topRow}>
-            <View style={styles.spacerFlex} />
-            <Pressable style={styles.skipButton} onPress={handleSkip}>
-              <Text style={styles.skipText}>Skip</Text>
-            </Pressable>
-          </View>
-
           {/* Header Text */}
           <View style={styles.headerSection}>
             <Text style={styles.title}>Lockscreen{'\n'}Widgets</Text>
@@ -81,22 +68,22 @@ export default function LockscreenWidgetPage() {
 
           {/* Spacer */}
           <View style={styles.spacer} />
+        </View>
 
-          {/* Done Button */}
-          <View style={styles.bottomSection}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.doneButton,
-                { 
-                  opacity: pressed ? 0.9 : 1,
-                  transform: [{ scale: pressed ? 0.98 : 1 }]
-                }
-              ]}
-              onPress={handleDone}
-            >
-              <Text style={styles.doneButtonText}>Done</Text>
-            </Pressable>
-          </View>
+        {/* Floating Continue Button */}
+        <View style={styles.floatingButtonContainer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.doneButton,
+              { 
+                opacity: pressed ? 0.9 : 1,
+                transform: [{ scale: pressed ? 0.98 : 1 }]
+              }
+            ]}
+            onPress={handleDone}
+          >
+            <Text style={styles.doneButtonText}>Done</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -114,36 +101,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: theme.spacing.l,
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: getResponsiveSpacing(theme.spacing.m),
-    paddingBottom: getResponsiveSpacing(theme.spacing.s),
-  },
-  spacerFlex: {
-    flex: 1,
-  },
-  skipButton: {
-    paddingVertical: getResponsiveSpacing(theme.spacing.s),
-    paddingHorizontal: getResponsiveSpacing(theme.spacing.m),
-  },
-  skipText: {
-    fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
-  },
+
 
   headerSection: {
     alignItems: 'center',
     marginBottom: getResponsiveSpacing(theme.spacing.l),
-    paddingTop: getResponsiveSpacing(theme.spacing.m),
+    paddingTop: getResponsiveSpacing(theme.spacing.xl),
   },
   title: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: getResponsiveFontSize(32),
+    fontFamily: theme.typography.fontFamily.semiBold,
+    fontSize: getResponsiveFontSize(28),
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: getResponsiveFontSize(38),
+    lineHeight: getResponsiveFontSize(36),
+    letterSpacing: -0.3,
   },
   widgetPreviewContainer: {
     alignItems: 'center',
@@ -214,17 +185,29 @@ const styles = StyleSheet.create({
   spacer: {
     flex: 1,
   },
-  bottomSection: {
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: theme.spacing.l,
     paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   doneButton: {
     backgroundColor: theme.colors.primary,
     paddingVertical: getResponsiveSpacing(theme.spacing.m),
-    paddingHorizontal: getResponsiveSpacing(theme.spacing.xl),
     borderRadius: theme.radii.l,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    shadowColor: theme.colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   doneButtonText: {
     fontFamily: theme.typography.fontFamily.semiBold,

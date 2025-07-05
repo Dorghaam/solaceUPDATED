@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
 import { supabase } from '../../services/supabaseClient';
-import { getResponsiveDimensions, getWidgetPreviewSize, getResponsiveFontSize } from '../../utils/responsive';
+import { getResponsiveDimensions, getWidgetPreviewSize, getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
@@ -95,13 +95,10 @@ export default function WidgetSetupPage() {
 
   const handleContinue = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/(onboarding)/growth');
+    router.push('/(onboarding)/writegoals');
   };
 
-  const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
-  };
+
 
   return (
     <LinearGradient
@@ -112,12 +109,6 @@ export default function WidgetSetupPage() {
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Back Button */}
-          <Pressable style={styles.backButton} onPress={handleBack}>
-            <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
-            <Text style={styles.backText}>Back</Text>
-          </Pressable>
-
           {/* Header Text */}
           <View style={styles.headerSection}>
             <Text style={styles.title}>Setting Up Your{'\n'}Widget</Text>
@@ -219,30 +210,21 @@ const createStyles = () => {
       paddingHorizontal: responsiveDimensions.horizontalPadding,
       maxWidth: responsiveDimensions.contentWidth,
       alignSelf: 'center',
+      paddingBottom: 100, // Space for floating button
     },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: theme.spacing.m,
-    paddingBottom: theme.spacing.m,
-  },
-  backText: {
-    fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
-    marginLeft: theme.spacing.xs,
-  },
+
   headerSection: {
     alignItems: 'center',
     marginBottom: theme.spacing.xl,
-    paddingTop: theme.spacing.m,
+    paddingTop: theme.spacing.xl,
   },
   title: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: getResponsiveFontSize(32),
+    fontFamily: theme.typography.fontFamily.semiBold,
+    fontSize: 28,
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: getResponsiveFontSize(38),
+    lineHeight: 36,
+    letterSpacing: -0.3,
     marginBottom: theme.spacing.s,
   },
   subtitle: {
@@ -341,14 +323,28 @@ const createStyles = () => {
     flex: 1,
   },
   bottomSection: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: responsiveDimensions.horizontalPadding,
     paddingBottom: theme.spacing.xl,
   },
   continueButton: {
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radii.l,
-    paddingVertical: theme.spacing.m + 2,
+    paddingVertical: getResponsiveSpacing(theme.spacing.m),
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    shadowColor: theme.colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   continueButtonText: {
     fontSize: theme.typography.fontSizes.m,
