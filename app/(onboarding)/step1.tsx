@@ -11,11 +11,13 @@ export default function Step1Screen() {
   const card1Opacity = useSharedValue(0);
   const card2Opacity = useSharedValue(0);
   const card3Opacity = useSharedValue(0);
+  const card4Opacity = useSharedValue(0);
   const buttonOpacity = useSharedValue(0);
 
   const card1TranslateY = useSharedValue(30);
   const card2TranslateY = useSharedValue(30);
   const card3TranslateY = useSharedValue(30);
+  const card4TranslateY = useSharedValue(30);
   const buttonTranslateY = useSharedValue(30);
 
   useEffect(() => {
@@ -29,9 +31,12 @@ export default function Step1Screen() {
     card3Opacity.value = withDelay(1000, withTiming(1, { duration: 600 }));
     card3TranslateY.value = withDelay(1000, withTiming(0, { duration: 600 }));
 
+    card4Opacity.value = withDelay(1400, withTiming(1, { duration: 600 }));
+    card4TranslateY.value = withDelay(1400, withTiming(0, { duration: 600 }));
+
     // Animate button after cards are done
-    buttonOpacity.value = withDelay(1400, withTiming(1, { duration: 600 }));
-    buttonTranslateY.value = withDelay(1400, withTiming(0, { duration: 600 }));
+    buttonOpacity.value = withDelay(1800, withTiming(1, { duration: 600 }));
+    buttonTranslateY.value = withDelay(1800, withTiming(0, { duration: 600 }));
   }, []);
 
   const card1AnimatedStyle = useAnimatedStyle(() => {
@@ -52,6 +57,13 @@ export default function Step1Screen() {
     return {
       opacity: card3Opacity.value,
       transform: [{ translateY: card3TranslateY.value }],
+    };
+  });
+
+  const card4AnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: card4Opacity.value,
+      transform: [{ translateY: card4TranslateY.value }],
     };
   });
 
@@ -94,7 +106,7 @@ export default function Step1Screen() {
             <Animated.View style={[styles.card, card1AnimatedStyle]}>
               <View style={styles.cardHeader}>
                 <View style={styles.iconPlaceholder}>
-                  <Text style={styles.iconText}>🧠</Text>
+                  <Text style={styles.iconText}>🦋</Text>
                 </View>
                 <Text style={styles.cardTitle}>Break the Cycle</Text>
               </View>
@@ -107,7 +119,7 @@ export default function Step1Screen() {
             <Animated.View style={[styles.card, card2AnimatedStyle]}>
               <View style={styles.cardHeader}>
                 <View style={styles.iconPlaceholder}>
-                  <Text style={styles.iconText}>🛡️</Text>
+                  <Text style={styles.iconText}>👑</Text>
                 </View>
                 <Text style={styles.cardTitle}>Rebuild Your Worth</Text>
               </View>
@@ -116,16 +128,29 @@ export default function Step1Screen() {
               </Text>
             </Animated.View>
 
-            {/* Card 3: See Real Change */}
+            {/* Card 3: Rediscover Yourself */}
             <Animated.View style={[styles.card, card3AnimatedStyle]}>
               <View style={styles.cardHeader}>
                 <View style={styles.iconPlaceholder}>
-                  <Text style={styles.iconText}>🌱</Text>
+                  <Text style={styles.iconText}>✨</Text>
                 </View>
-                <Text style={styles.cardTitle}>See Real Change</Text>
+                <Text style={styles.cardTitle}>Rediscover Yourself</Text>
               </View>
               <Text style={styles.cardText}>
-                It takes users just 7-14 days of consistent, 2-minute daily sessions to start feeling more like themselves again.
+                As you heal, you'll start feeling more like yourself. This is where you rediscover your energy, your peace, and your independence.
+              </Text>
+            </Animated.View>
+
+            {/* Card 4: Attract, Don't Chase */}
+            <Animated.View style={[styles.card, card4AnimatedStyle]}>
+              <View style={styles.cardHeader}>
+                <View style={styles.iconPlaceholder}>
+                  <Text style={styles.iconText}>🌟</Text>
+                </View>
+                <Text style={styles.cardTitle}>Attract, Don't Chase</Text>
+              </View>
+              <Text style={styles.cardText}>
+                Once you understand your worth, the real glow up begins. Solace becomes your daily tool to focus on your future and attract the love you truly deserve.
               </Text>
             </Animated.View>
           </View>
