@@ -13,13 +13,19 @@ export default function Step2Screen() {
     if (name.trim()) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       // TODO: Save name to storage/state
-      router.push('/(onboarding)/reminders');
+      router.push({
+        pathname: '/(onboarding)/step3',
+        params: { name: name.trim() }
+      });
     }
   };
 
   const handleSkip = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/(onboarding)/reminders');
+    router.push({
+      pathname: '/(onboarding)/step3',
+      params: { name: '' }
+    });
   };
 
   return (
