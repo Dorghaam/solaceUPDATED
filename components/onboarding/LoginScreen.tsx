@@ -120,13 +120,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.xl,
+    paddingTop: theme.spacing.xl,
   },
   title: { 
     textAlign: 'center', 
-    fontSize: 32, 
+    fontSize: 28, 
     fontFamily: theme.typography.fontFamily.semiBold, 
     color: theme.colors.text, 
-    marginBottom: theme.spacing.s 
+    marginBottom: theme.spacing.s,
+    lineHeight: 36,
+    letterSpacing: -0.3,
   },
   subtitle: { 
     textAlign: 'center', 
