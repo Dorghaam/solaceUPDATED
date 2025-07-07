@@ -52,10 +52,16 @@ export default function FeedPage() {
       return;
     }
 
+    // ⛔ CRITICAL: Prevent multiple fetches by setting flag BEFORE fetch
+    if (didInitialFetch.current) {
+      console.log('[FeedPage] Initial fetch already completed, skipping');
+      return;
+    }
+
     // ✅ FIX: Wait for subscription readiness AND authentication to prevent stale data flicker
     if (isSubscriptionReady && subscriptionTier !== 'unknown' && supabaseUser) {
       console.log('[FeedPage] Safe initial quote fetch with tier:', subscriptionTier);
-      didInitialFetch.current = true;
+      didInitialFetch.current = true; // Set BEFORE fetch to prevent race condition
       fetchQuotes();
       
       // Track that user opened the main app for streak (only once)
