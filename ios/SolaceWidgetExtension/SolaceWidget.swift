@@ -93,15 +93,16 @@ struct SolaceWidgetEntryView : View {
                 
                 VStack {
                     Text(entry.quote)
-                        .font(.system(size: 18, weight: .medium))
+                        .font(.system(size: 16, weight: .medium))
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
                         .multilineTextAlignment(.center)
                         .lineLimit(nil)
-                        .minimumScaleFactor(0.5)
+                        .lineSpacing(2)
+                        .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .widgetURL(URL(string: "solaceapp://"))
