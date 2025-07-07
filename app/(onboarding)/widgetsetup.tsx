@@ -169,25 +169,25 @@ export default function WidgetSetupPage() {
 
           {/* Spacer */}
           <View style={styles.spacer} />
+        </View>
 
-          {/* Continue Button */}
-          <View style={styles.bottomSection}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.continueButton,
-                { 
-                  opacity: isApplied ? (pressed ? 0.9 : 1) : 0.5,
-                  transform: [{ scale: pressed && isApplied ? 0.98 : 1 }]
-                }
-              ]}
-              onPress={handleContinue}
-              disabled={!isApplied}
-            >
-              <Text style={styles.continueButtonText}>
-                {isApplied ? 'Continue' : 'Setting up...'}
-              </Text>
-            </Pressable>
-          </View>
+        {/* Continue Button - Outside Container */}
+        <View style={styles.bottomSection}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.continueButton,
+              { 
+                opacity: isApplied ? (pressed ? 0.9 : 1) : 0.5,
+                transform: [{ scale: pressed && isApplied ? 0.98 : 1 }]
+              }
+            ]}
+            onPress={handleContinue}
+            disabled={!isApplied}
+          >
+            <Text style={styles.continueButtonText}>
+              {isApplied ? 'Continue' : 'Setting up...'}
+            </Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -327,8 +327,8 @@ const createStyles = () => {
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: responsiveDimensions.horizontalPadding,
-    paddingBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.l,
+    paddingBottom: getResponsiveSpacing(theme.spacing.xl),
   },
   continueButton: {
     backgroundColor: theme.colors.primary,
