@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable, ScrollView } from 'rea
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
@@ -106,7 +107,7 @@ export default function Step1Screen() {
             <Animated.View style={[styles.card, card1AnimatedStyle]}>
               <View style={styles.cardHeader}>
                 <View style={styles.iconPlaceholder}>
-                  <Text style={styles.iconText}>🦋</Text>
+                  <Ionicons name="heart-half" size={22} color={theme.colors.primary} />
                 </View>
                 <Text style={styles.cardTitle}>Break the Cycle</Text>
               </View>
@@ -119,7 +120,7 @@ export default function Step1Screen() {
             <Animated.View style={[styles.card, card2AnimatedStyle]}>
               <View style={styles.cardHeader}>
                 <View style={styles.iconPlaceholder}>
-                  <Text style={styles.iconText}>👑</Text>
+                  <Ionicons name="heart" size={22} color={theme.colors.primary} />
                 </View>
                 <Text style={styles.cardTitle}>Rebuild Your Worth</Text>
               </View>
@@ -132,7 +133,7 @@ export default function Step1Screen() {
             <Animated.View style={[styles.card, card3AnimatedStyle]}>
               <View style={styles.cardHeader}>
                 <View style={styles.iconPlaceholder}>
-                  <Text style={styles.iconText}>✨</Text>
+                  <Ionicons name="flower" size={22} color={theme.colors.primary} />
                 </View>
                 <Text style={styles.cardTitle}>Rediscover Yourself</Text>
               </View>
@@ -145,7 +146,7 @@ export default function Step1Screen() {
             <Animated.View style={[styles.card, card4AnimatedStyle]}>
               <View style={styles.cardHeader}>
                 <View style={styles.iconPlaceholder}>
-                  <Text style={styles.iconText}>🌟</Text>
+                  <Ionicons name="heart-circle" size={22} color={theme.colors.primary} />
                 </View>
                 <Text style={styles.cardTitle}>Attract, Don't Chase</Text>
               </View>
@@ -238,9 +239,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: getResponsiveSpacing(theme.spacing.s),
   },
-  iconText: {
-    fontSize: 20,
-  },
+  // Removed iconText style as we're now using Ionicons
   cardTitle: {
     fontFamily: theme.typography.fontFamily.semiBold,
     fontSize: getResponsiveFontSize(18),
