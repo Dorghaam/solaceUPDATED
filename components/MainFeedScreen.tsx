@@ -463,6 +463,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 8,
   },
   premiumButton: {
     backgroundColor: theme.colors.primary,
@@ -471,6 +481,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     width: 'auto',
     minWidth: 100,
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 8,
   },
   quoteContainer: {
     flex: 1,
@@ -520,6 +540,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 8,
   },
   topLeftSpacer: {
     width: 44,
