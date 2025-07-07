@@ -340,29 +340,89 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
 
   const categories = mapBreakupCategoriesToUI(breakupInterestCategories, subscriptionTier, activeQuoteCategory);
 
-  // Create data array for FlatList that includes both favorites and categories
-  // Add favorites as the first item, then pair up the regular categories
-  const allItems = [
-    { type: 'favorites', id: 'favorites', title: 'My Favourites' },
-    ...categories
-  ];
-  
-  const categoryPairs = [];
-  for (let i = 0; i < allItems.length; i += 2) {
-    categoryPairs.push({
-      type: 'category-pair',
-      id: `pair-${i}`,
-      categories: allItems.slice(i, i + 2),
-    });
-  }
+  // Organize categories into logical sections
+  const organizeCategoriesIntoSections = () => {
+    const sectionedData = [];
 
-  const flatListData = categoryPairs;
+    // Add favorites at the top
+    sectionedData.push({
+      type: 'category-pair',
+      id: 'favorites-pair',
+      categories: [{ type: 'favorites', id: 'favorites', title: 'My Favourites' }],
+    });
+
+    // Define category sections with their IDs
+    const sections = [
+      {
+        title: "General",
+        subtitle: "Free Categories",
+        categoryIds: ['general_healing', 'moving_on', 'moving_forward', 'self_love']
+      },
+      {
+        title: "Loneliness & Isolation",
+        categoryIds: ['coping_loneliness', 'overcoming_loneliness']
+      },
+      {
+        title: "Letting Go & Moving Forward", 
+        categoryIds: ['letting_go', 'letting_go_of_ex', 'letting_go_acceptance', 'finding_closure']
+      },
+      {
+        title: "Healing & Recovery",
+        categoryIds: ['healing_heartbreak', 'heartbreak_recovery', 'healing_from_betrayal', 'finding_peace']
+      },
+      {
+        title: "Self-Love & Growth",
+        categoryIds: ['self_love_discovery', 'rebuilding_confidence', 'embracing_single_life', 'gratitude_reflection']
+      },
+      {
+        title: "Relationships & Life Changes",
+        categoryIds: ['loss_of_partner_widow', 'navigating_divorce', 'overcoming_codependency', 'managing_anger_resentment']
+      },
+      {
+        title: "Hope & Future",
+        categoryIds: ['hope_future', 'hope_for_future']
+      }
+    ];
+
+    // Add each section
+    sections.forEach(section => {
+      // Filter categories that belong to this section
+      const sectionCategories = categories.filter(cat => section.categoryIds.includes(cat.id));
+      
+             if (sectionCategories.length > 0) {
+         // Add section header
+         sectionedData.push({
+           type: 'section',
+           id: `section-${section.title.toLowerCase().replace(/\s+/g, '-')}`,
+           title: section.title,
+           subtitle: section.subtitle,
+           isFirst: section.title === "General" // Mark first section for styling
+         });
+
+        // Add categories in pairs for this section
+        for (let i = 0; i < sectionCategories.length; i += 2) {
+          sectionedData.push({
+            type: 'category-pair',
+            id: `${section.title.toLowerCase().replace(/\s+/g, '-')}-pair-${i}`,
+            categories: sectionCategories.slice(i, i + 2),
+          });
+        }
+      }
+    });
+
+    return sectionedData;
+  };
+
+  const flatListData = organizeCategoriesIntoSections();
 
   const renderItem = useCallback(({ item }: { item: any }) => {
     if (item.type === 'section') {
       return (
-        <View style={styles.sectionHeader}>
+        <View style={[styles.sectionHeader, item.isFirst && styles.sectionHeaderFirst]}>
           <Text style={styles.sectionTitle}>{item.title}</Text>
+          {item.subtitle && (
+            <Text style={styles.sectionSubtitle}>{item.subtitle}</Text>
+          )}
         </View>
       );
     }
@@ -552,6 +612,12 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.m,
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: theme.typography.fontSizes.s,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textSecondary,
     marginBottom: theme.spacing.m,
   },
   categoryGrid: {
@@ -673,8 +739,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   sectionHeader: {
+    marginTop: theme.spacing.l,
     marginBottom: theme.spacing.m,
     paddingHorizontal: theme.spacing.m,
+  },
+  sectionHeaderFirst: {
+    marginTop: theme.spacing.m, // Less margin for first section after favorites
   },
   categoryRow: {
     justifyContent: 'space-between',
