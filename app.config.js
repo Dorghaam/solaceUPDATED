@@ -17,7 +17,7 @@ export default ({ config }) => ({
     splash: {
       image: "./icon.png", // Updated to use new app icon
       resizeMode: "contain",
-      backgroundColor: "#FFF5F7" // Updated to pink gradient lightest color
+      backgroundColor: "#fff7f5" // Updated to match design
     },
           ios: {
         ...config.expo?.ios,
@@ -43,7 +43,7 @@ export default ({ config }) => ({
       ...config.expo?.android,
       adaptiveIcon: {
         foregroundImage: "./icon.png",
-        backgroundColor: "#FFF5F7" // Updated to match pink theme
+        backgroundColor: "#fff7f5" // Updated to match design
       },
       package: "com.dorghaamhaidar.solace"
     },
