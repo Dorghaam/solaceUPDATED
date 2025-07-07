@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { getResponsiveDimensions, getResponsiveFontSize } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 export default function PersonalizePage() {
   const responsiveDimensions = getResponsiveDimensions();
@@ -22,6 +23,10 @@ export default function PersonalizePage() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={1} 
+          totalSteps={10} 
+        />
         <View style={styles.container}>
           {/* Top spacing */}
           <View style={styles.topSpacer} />

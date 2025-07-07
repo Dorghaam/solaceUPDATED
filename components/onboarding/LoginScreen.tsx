@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable, Platform, ActivityIndi
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { OnboardingProgressBar } from '../OnboardingProgressBar';
 
 interface LoginScreenProps {
   onGooglePress: () => void;
@@ -33,6 +34,10 @@ export const LoginScreen = ({
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={10} 
+          totalSteps={10} 
+        />
         <View style={styles.headerContainer}>
           <Text style={styles.title}>Create Your Account</Text>
           <Text style={styles.subtitle}>

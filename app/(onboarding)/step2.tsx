@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 export default function Step2Screen() {
   const [name, setName] = useState('');
@@ -30,8 +31,10 @@ export default function Step2Screen() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
-
-
+        <OnboardingProgressBar 
+          currentStep={2} 
+          totalSteps={10} 
+        />
         <KeyboardAvoidingView 
           style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

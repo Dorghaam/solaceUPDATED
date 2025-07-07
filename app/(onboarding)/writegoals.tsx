@@ -8,6 +8,7 @@ import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
 import { getResponsiveDimensions, getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 export default function WriteGoalsPage() {
   const [goals, setGoals] = useState<string>('');
@@ -34,6 +35,10 @@ export default function WriteGoalsPage() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={9} 
+          totalSteps={10} 
+        />
         <KeyboardAvoidingView 
           style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

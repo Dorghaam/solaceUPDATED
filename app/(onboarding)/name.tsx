@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 export default function NamePage() {
   const [name, setName] = useState('');
@@ -35,6 +36,10 @@ export default function NamePage() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={1} 
+          totalSteps={10} 
+        />
         {/* Header with Skip button */}
         <View style={styles.header}>
           <View style={styles.headerPlaceholder} />

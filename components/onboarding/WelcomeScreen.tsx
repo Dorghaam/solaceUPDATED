@@ -8,6 +8,7 @@ import LottieView from 'lottie-react-native';
 import { theme } from '../../constants/theme';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../OnboardingProgressBar';
 
 export const WelcomeScreen = () => {
   const handleGetStarted = () => {
@@ -29,6 +30,7 @@ export const WelcomeScreen = () => {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+
         <View style={styles.contentContainer}>
           
           {/* Lottie Animation */}

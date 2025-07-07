@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 const struggleOptions = [
   "The constant thoughts about them.",
@@ -45,6 +46,10 @@ export default function Step3Screen() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={3} 
+          totalSteps={10} 
+        />
         <ScrollView 
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}

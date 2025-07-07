@@ -6,6 +6,7 @@ import { theme } from '../../constants/theme';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 export default function Step5Screen() {
   const { name } = useLocalSearchParams();
@@ -33,6 +34,10 @@ export default function Step5Screen() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={5} 
+          totalSteps={10} 
+        />
         <View style={styles.contentContainer}>
           {/* Flower Animation */}
           <View style={styles.animationContainer}>

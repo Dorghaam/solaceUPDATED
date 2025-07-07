@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { getResponsiveDimensions, getWidgetPreviewSize, getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,10 @@ export default function LockscreenWidgetPage() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={7} 
+          totalSteps={10} 
+        />
         <View style={styles.container}>
           {/* Header Text */}
           <View style={styles.headerSection}>

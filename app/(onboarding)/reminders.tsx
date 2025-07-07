@@ -10,6 +10,7 @@ import { useUserStore } from '../../store/userStore';
 import { scheduleDailyAffirmationReminders, cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync } from '../../services/notificationService';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 export default function RemindersPage() {
   const { setNotificationSettings } = useUserStore();
@@ -85,6 +86,10 @@ export default function RemindersPage() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={6} 
+          totalSteps={10} 
+        />
         <View style={styles.container}>
           {/* Header Text */}
           <View style={styles.headerTextSection}>

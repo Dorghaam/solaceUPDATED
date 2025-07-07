@@ -6,6 +6,7 @@ import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 const spiritualOptions = [
   'Yes',
@@ -38,6 +39,10 @@ export default function SpiritualPage() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={3} 
+          totalSteps={10} 
+        />
         {/* Main content */}
         <View style={styles.contentContainer}>
           <Text style={styles.title}>Do You Identify as{'\n'}Religious or Spiritual?</Text>

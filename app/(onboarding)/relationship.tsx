@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
 import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 const relationshipOptions = [
   'Recently went through a breakup',
@@ -41,6 +42,10 @@ export default function RelationshipPage() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={2} 
+          totalSteps={10} 
+        />
         {/* Main content */}
         <View style={styles.contentContainer}>
           <Text style={styles.title}>Where Are You In{'\n'}Your Healing Journey?</Text>

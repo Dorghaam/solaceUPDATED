@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
+import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
 
 export default function Step1Screen() {
   const card1Opacity = useSharedValue(0);
@@ -88,6 +89,10 @@ export default function Step1Screen() {
       end={{ x: 0, y: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
+        <OnboardingProgressBar 
+          currentStep={1} 
+          totalSteps={10} 
+        />
         <ScrollView 
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
