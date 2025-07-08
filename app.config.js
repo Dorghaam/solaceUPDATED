@@ -52,6 +52,7 @@ export default ({ config }) => ({
       "expo-router",
       "expo-font",
       "expo-notifications",
+      "expo-localization",
       [
         "expo-build-properties",
         {

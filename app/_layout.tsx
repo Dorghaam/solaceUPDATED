@@ -4,12 +4,13 @@ import 'react-native-get-random-values';
 import 'react-native-reanimated';
 
 import { useFonts } from 'expo-font';
-import { Stack, router } from 'expo-router';
+import { Stack, router, usePathname, useGlobalSearchParams } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Linking from 'expo-linking';
 import React, { useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { PostHogProvider, usePostHog } from 'posthog-react-native';
 
 import { useUserStore } from '../store/userStore';
 import { supabase } from '../services/supabaseClient';
@@ -23,7 +24,27 @@ import { configureGoogleSignIn } from '../services/googleAuthService';
 import { setupNotificationResponseListener } from '../services/notificationService';
 
 // This is a placeholder ThemeProvider until we create our own
-const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>; 
+const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
+// Screen tracker component to manually track screen changes with PostHog
+function ScreenTracker() {
+  const pathname = usePathname();
+  const params = useGlobalSearchParams();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    // Only track if posthog is available and pathname exists
+    if (posthog && pathname) {
+      try {
+        posthog.screen(pathname, params);
+      } catch (error) {
+        console.log('PostHog screen tracking error:', error);
+      }
+    }
+  }, [pathname, posthog]); // Removed JSON.stringify(params) to prevent infinite loops
+
+  return null;
+} 
 
 SplashScreen.preventAutoHideAsync();
 
@@ -44,6 +65,8 @@ export default function RootLayout() {
   
   // Block React 18 Strict Mode double-mounting in dev
   const didInit = useRef(false);
+
+
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('../Inter/static/Inter_18pt-Regular.ttf'),
@@ -270,21 +293,52 @@ export default function RootLayout() {
   if (!isInitialized) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            {showMainApp ? (
-              <Stack.Screen name="(main)" />
-            ) : (
-              <Stack.Screen name="(onboarding)" />
-            )}
-            <Stack.Screen name="widget" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="notification" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
-          </Stack>
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <PostHogProvider 
+      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || "phc_sX9kqgzvbSvJRiYq5HdCmF11yIy4KTYJi6iGx1vEqQ0"} 
+      options={{
+        host: process.env.EXPO_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
+        enableSessionReplay: true,
+        sessionReplayConfig: {
+          // Whether text inputs are masked. Default is true.
+          // Password inputs are always masked regardless
+          maskAllTextInputs: true,
+          // Whether images are masked. Default is true.
+          maskAllImages: true,
+          // Capture logs automatically. Default is true.
+          // Android only (Native Logcat only)
+          captureLog: true,
+          // Whether network requests are captured in recordings. Default is true
+          // Only metric-like data like speed, size, and response code are captured.
+          // No data is captured from the request or response body.
+          // iOS only
+          captureNetworkTelemetry: true,
+          // Deboucer delay used to reduce the number of snapshots captured and reduce performance impact. Default is 500ms
+          androidDebouncerDelayMs: 500,
+          // Deboucer delay used to reduce the number of snapshots captured and reduce performance impact. Default is 1000ms
+          iOSdebouncerDelayMs: 1000,
+        },
+      }}
+      autocapture={{
+        captureScreens: false, // Disable automatic screen tracking to prevent getCurrentRoute errors
+      }}
+    >
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            {isInitialized && authChecked && <ScreenTracker />}
+            <Stack screenOptions={{ headerShown: false }}>
+              {showMainApp ? (
+                <Stack.Screen name="(main)" />
+              ) : (
+                <Stack.Screen name="(onboarding)" />
+              )}
+              <Stack.Screen name="widget" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="notification" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
+            </Stack>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </PostHogProvider>
   );
 } 

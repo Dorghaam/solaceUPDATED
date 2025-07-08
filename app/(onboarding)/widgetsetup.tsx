@@ -21,60 +21,100 @@ export default function WidgetSetupPage() {
   const styles = createStyles();
 
   useEffect(() => {
+    console.log('🚀 WIDGET DEBUG: useEffect triggered - auto-applying widget');
     // Auto-apply the widget with general healing category when screen loads
     handleApplyWidget();
   }, []);
 
   const updateWidgetData = async () => {
+    console.log('🚀 WIDGET DEBUG: updateWidgetData function called');
+    console.log('🚀 WIDGET DEBUG: Platform.OS =', Platform.OS);
+    
     if (Platform.OS !== 'ios') {
+      console.log('🚀 WIDGET DEBUG: Not iOS, returning early');
       return; // Only iOS supports widgets
     }
 
     try {
-      // Fetch general healing quotes from Supabase
+      console.log('🚀 WIDGET DEBUG: Starting Supabase query...');
+      // Fetch general healing quotes from Supabase with both id and text
       const { data, error } = await supabase
         .from('quotes')
-        .select('text')
+        .select('id, text')
         .eq('category', 'general_healing')
         .limit(150);
       
+      console.log('🚀 WIDGET DEBUG: Supabase query completed');
+      console.log('🚀 WIDGET DEBUG: Error:', error);
+      console.log('🚀 WIDGET DEBUG: Data length:', data?.length);
+      
       if (error) throw error;
       
-      let quotesToSend: string[] = [`Hello ${userName || 'User'}! Open Solace to get inspired.`];
+      // Default quote with proper format
+      let quotesToSend = [
+        {
+          id: 'welcome',
+          text: `Hello ${userName || 'User'}! Open Solace to get inspired.`
+        }
+      ];
       
       if (data && data.length > 0) {
-        // Shuffle the quotes for variety
+        // Shuffle the quotes for variety and format correctly
         const shuffledQuotes = [...data].sort(() => Math.random() - 0.5);
-        quotesToSend = shuffledQuotes.map(q => q.text);
+        quotesToSend = shuffledQuotes.map(q => ({
+          id: q.id.toString(), // Ensure id is string
+          text: q.text
+        }));
       }
 
       // Update widget with quotes and user name
       const { WidgetUpdateModule } = NativeModules;
+      console.log('🚀 JS: WidgetUpdateModule available:', !!WidgetUpdateModule);
+      console.log('🚀 JS: WidgetUpdateModule methods:', WidgetUpdateModule ? Object.keys(WidgetUpdateModule) : 'N/A');
+      
       if (WidgetUpdateModule) {
+        console.log('🚀 JS: About to send quotes to native module:', JSON.stringify(quotesToSend, null, 2));
+        console.log('🚀 JS: Number of quotes to send:', quotesToSend.length);
+        console.log('🚀 JS: First quote sample:', quotesToSend[0]);
+        
+        console.log('🚀 JS: Calling updateQuotes...');
         await WidgetUpdateModule.updateQuotes(quotesToSend);
+        console.log('🚀 JS: updateQuotes call completed');
+        
         if (userName) {
+          console.log('🚀 JS: Calling updateUserName...');
           await WidgetUpdateModule.updateUserName(userName);
+          console.log('🚀 JS: updateUserName call completed');
         }
         console.log('Widget updated successfully with general healing quotes');
+      } else {
+        console.error('🚨 JS: WidgetUpdateModule is not available!');
       }
     } catch (error) {
-      console.error('Failed to update widget:', error);
+      console.error('🚨 WIDGET ERROR: Failed to update widget:', error);
+      console.error('🚨 WIDGET ERROR: Error type:', typeof error);
+      console.error('🚨 WIDGET ERROR: Error message:', error instanceof Error ? error.message : String(error));
+      console.error('🚨 WIDGET ERROR: Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
     }
   };
 
   const handleApplyWidget = async () => {
+    console.log('🚀 WIDGET DEBUG: handleApplyWidget called');
     setIsApplying(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
+      console.log('🚀 WIDGET DEBUG: Setting widget settings...');
       // Set widget settings to general healing
       setWidgetSettings({ 
         category: 'general_healing',
         theme: 'light' 
       });
 
+      console.log('🚀 WIDGET DEBUG: About to call updateWidgetData...');
       // Update the widget data if on iOS
       await updateWidgetData();
+      console.log('🚀 WIDGET DEBUG: updateWidgetData completed');
 
       // Simulate applying process
       setTimeout(() => {
@@ -84,7 +124,9 @@ export default function WidgetSetupPage() {
       }, 2000);
 
     } catch (error) {
-      console.error('Failed to apply widget:', error);
+      console.error('🚨 APPLY WIDGET ERROR: Failed to apply widget:', error);
+      console.error('🚨 APPLY WIDGET ERROR: Error type:', typeof error);
+      console.error('🚨 APPLY WIDGET ERROR: Error message:', error instanceof Error ? error.message : String(error));
       setIsApplying(false);
       Alert.alert(
         'Widget Setup',

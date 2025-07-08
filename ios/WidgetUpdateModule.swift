@@ -6,6 +6,9 @@ import WidgetKit
 class WidgetUpdateModule: NSObject {
     @objc
     func updateQuotes(_ quotesData: [[String: Any]]) {
+        print("🔄 WIDGET BRIDGE: Received \(quotesData.count) quotes from JavaScript")
+        print("🔄 WIDGET BRIDGE: Raw data: \(quotesData)")
+        
         guard let dataManager = SharedDataManager.shared else {
             print("❌ WIDGET BRIDGE: Failed to initialize SharedDataManager.")
             return
@@ -13,11 +16,14 @@ class WidgetUpdateModule: NSObject {
 
         // Convert the array of dictionaries to WidgetQuote objects
         let quotes: [SharedDataManager.WidgetQuote] = quotesData.compactMap { dict in
+            print("🔄 WIDGET BRIDGE: Processing dict: \(dict)")
             guard let id = dict["id"] as? String,
                   let text = dict["text"] as? String else {
                 print("❌ WIDGET BRIDGE: Invalid quote data format: \(dict)")
+                print("❌ WIDGET BRIDGE: id type: \(type(of: dict["id"])), text type: \(type(of: dict["text"]))")
                 return nil
             }
+            print("✅ WIDGET BRIDGE: Successfully converted quote - id: \(id), text: \(text.prefix(50))...")
             return SharedDataManager.WidgetQuote(id: id, text: text)
         }
 
@@ -25,6 +31,10 @@ class WidgetUpdateModule: NSObject {
 
         // Save quotes to shared container
         dataManager.saveQuotes(quotes)
+
+        // Test: Load back the quotes to verify they were saved
+        let savedQuotes = dataManager.loadQuotes()
+        print("🔍 WIDGET BRIDGE: Verification - loaded \(savedQuotes.count) quotes after saving")
 
         // Reload widget timelines from the main app thread
         DispatchQueue.main.async {
