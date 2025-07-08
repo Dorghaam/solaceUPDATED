@@ -20,6 +20,7 @@ import { reviewService } from '../services/reviewService';
 import { networkService } from '../services/networkService';
 import { waitForStoreHydration } from '../utils';
 import { configureGoogleSignIn } from '../services/googleAuthService';
+import { setupNotificationResponseListener } from '../services/notificationService';
 
 // This is a placeholder ThemeProvider until we create our own
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>; 
@@ -201,6 +202,56 @@ export default function RootLayout() {
     }
   }, [pendingDeepLink, isInitialized, authChecked]);
 
+  // Handle notification responses
+  useEffect(() => {
+    if (!isInitialized || !authChecked) {
+      console.log('[Notification] Not setting up listener yet - initialized:', isInitialized, 'authChecked:', authChecked);
+      return;
+    }
+
+    console.log('[Notification] Setting up notification response listener');
+    const subscription = setupNotificationResponseListener((response) => {
+      console.log('[Notification] Response received:', JSON.stringify(response, null, 2));
+      
+      const { supabaseUser, hasCompletedOnboarding, setTargetQuote } = useUserStore.getState();
+      console.log('[Notification] User state - authenticated:', !!supabaseUser, 'onboarded:', hasCompletedOnboarding);
+      
+      if (!supabaseUser || !hasCompletedOnboarding) {
+        console.log('[Notification] User not authenticated/onboarded, ignoring notification response');
+        return;
+      }
+
+      // Extract quote data from notification
+      const notificationData = response.notification.request.content.data;
+      console.log('[Notification] Notification data:', notificationData);
+      
+      if (notificationData?.type === 'quote' && typeof notificationData?.quoteText === 'string') {
+        console.log('[Notification] Setting target quote from notification:', notificationData.quoteText);
+        
+        const targetQuoteData = {
+          id: typeof notificationData.quoteId === 'string' ? notificationData.quoteId : 'notification-quote',
+          text: notificationData.quoteText,
+          category: 'notification', // Force notification category for easier debugging
+        };
+        
+        console.log('[Notification] Target quote data:', targetQuoteData);
+        setTargetQuote(targetQuoteData);
+        
+        // Navigate to main feed which will show the modal
+        console.log('[Notification] Navigating to main feed');
+        router.push('/(main)');
+      } else {
+        console.log('[Notification] Invalid notification data - type:', notificationData?.type, 'quoteText type:', typeof notificationData?.quoteText);
+      }
+    });
+
+    console.log('[Notification] Notification listener set up successfully');
+    return () => {
+      console.log('[Notification] Cleaning up notification listener');
+      subscription?.remove();
+    };
+  }, [isInitialized, authChecked]);
+
   useEffect(() => {
     if (fontsLoaded || fontError) {
       if (isInitialized) {
@@ -225,6 +276,8 @@ export default function RootLayout() {
             ) : (
               <Stack.Screen name="(onboarding)" />
             )}
+            <Stack.Screen name="widget" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="notification" options={{ presentation: 'modal' }} />
             <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
           </Stack>
         </ThemeProvider>

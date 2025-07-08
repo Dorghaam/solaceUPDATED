@@ -55,6 +55,7 @@ interface MainFeedScreenProps {
   // Additional button handlers
   onPremiumPress: () => void;
   onBrushPress: () => void;
+  onSendTestNotification: () => void;
   // Subscription state
   subscriptionTier: SubscriptionTier;
 }
@@ -81,6 +82,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   onSettingSelect,
   onPremiumPress,
   onBrushPress,
+  onSendTestNotification,
   subscriptionTier,
 }) => {
   const translateY = useRef(new Animated.Value(0)).current;
@@ -273,6 +275,20 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
 
           
           <View style={styles.topRightButtons}>
+            {/* DEV: Test notification button - remove in production */}
+            {__DEV__ && (
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.topButton,
+                  styles.devButton,
+                  { opacity: pressed ? 0.7 : 1 }
+                ]} 
+                onPress={onSendTestNotification}
+              >
+                <Ionicons name="notifications-outline" size={20} color={theme.colors.text} />
+              </Pressable>
+            )}
+            
             <Pressable 
               style={({ pressed }) => [
                 styles.topButton,
@@ -491,6 +507,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     // Shadow for Android
     elevation: 8,
+  },
+  devButton: {
+    backgroundColor: 'rgba(255, 193, 7, 0.9)', // Yellow background for dev button
   },
   quoteContainer: {
     flex: 1,

@@ -78,11 +78,15 @@ export default function FeedPage() {
     setLikeCount(favoriteQuoteIds.length);
   }, [favoriteQuoteIds]);
 
-  // ✅ Handle target quote from widget deep links - show modal
+  // ✅ Handle target quote from widget/notification deep links - show modal
   useEffect(() => {
+    console.log('[FeedPage] targetQuote changed:', targetQuote);
     if (targetQuote) {
-      console.log('[FeedPage] Showing widget quote modal:', targetQuote.text);
+      console.log('[FeedPage] Showing modal for:', targetQuote.category, targetQuote.text);
       setShowWidgetModal(true);
+    } else {
+      console.log('[FeedPage] No targetQuote, hiding modal');
+      setShowWidgetModal(false);
     }
   }, [targetQuote]);
 
@@ -211,6 +215,42 @@ export default function FeedPage() {
     // Handle brush/theme functionality here
   }, []);
 
+  // DEV: Function to send a test notification
+  const sendTestNotification = useCallback(async () => {
+    console.log('[DEV] Sending test notification');
+    hapticService.light();
+    
+    try {
+      const { scheduleNotificationAsync } = await import('expo-notifications');
+      
+      const testQuote = "You are stronger than you think and braver than you feel. This is your moment to shine.";
+      const deepLinkUrl = `solaceapp://notification?quote=${encodeURIComponent(testQuote)}`;
+      
+      await scheduleNotificationAsync({
+        content: {
+          title: "Solace",
+          body: testQuote,
+          sound: 'default',
+          data: { 
+            type: 'quote',
+            quoteId: 'dev-test-quote',
+            quoteText: testQuote,
+            quoteCategory: 'general_healing',
+            url: deepLinkUrl
+          },
+        },
+        trigger: { 
+          type: 'timeInterval' as any,
+          seconds: 2 
+        }, // Trigger in 2 seconds
+      });
+      
+      console.log('[DEV] Test notification scheduled for 2 seconds from now');
+    } catch (error) {
+      console.error('[DEV] Failed to send test notification:', error);
+    }
+  }, []);
+
   // If user is not authenticated, don't render anything (useAuthGuard handles redirect)
   if (!shouldRender) {
     return null;
@@ -245,6 +285,7 @@ export default function FeedPage() {
         onSettingSelect={handleSettingSelect}
         onPremiumPress={handlePremiumPress}
         onBrushPress={handleBrushPress}
+        onSendTestNotification={sendTestNotification}
         subscriptionTier={subscriptionTier}
       />
       

@@ -36,6 +36,11 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
     removeFavorite
   } = useUserStore();
 
+  // DEBUG: Log modal state changes
+  useEffect(() => {
+    console.log('[WidgetQuoteModal] Modal state - visible:', visible, 'targetQuote:', targetQuote);
+  }, [visible, targetQuote]);
+
   useEffect(() => {
     if (visible) {
       Animated.parallel([
@@ -152,7 +157,9 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
           <View style={styles.header}>
             <View style={styles.titleContainer}>
               <Ionicons name="heart" size={20} color={theme.colors.primary} />
-              <Text style={styles.headerTitle}>From Your Widget</Text>
+              <Text style={styles.headerTitle}>
+                {targetQuote.category === 'notification' ? 'From Your Reminder' : 'From Your Widget'}
+              </Text>
             </View>
             <Pressable style={styles.closeButton} onPress={handleClose}>
               <Ionicons name="close" size={24} color={theme.colors.text} />
