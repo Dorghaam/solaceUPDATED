@@ -82,6 +82,22 @@ export const breakupInterestCategories: BreakupCategory[] = [
   { id: 'embracing_single_life', label: 'Embracing Single Life', premium: true },
   { id: 'overcoming_codependency', label: 'Overcoming Codependency', premium: true },
   { id: 'gratitude_reflection', label: 'Gratitude & Reflection', premium: true }, // matches DB
+  // For the Hardest Moments section
+  { id: 'first_steps_letting_go', label: 'First Steps to Letting Go', premium: true },
+  { id: 'when_you_want_to_text_them', label: 'When You Want to Text Them', premium: true },
+  { id: 'quieting_the_overthinking', label: 'Quieting the Overthinking', premium: true },
+  { id: 'when_it_hurts_to_see_them_move_on', label: 'When It Hurts to See Them Move On', premium: true },
+  { id: 'its_okay_to_feel_the_pain', label: 'It\'s Okay to Feel the Pain', premium: true },
+  // Returning to You section
+  { id: 'remembering_your_worth', label: 'Remembering Your Worth', premium: true },
+  { id: 'finding_your_spark_again', label: 'Finding Your Spark Again', premium: true },
+  { id: 'forgiving_for_your_freedom', label: 'Forgiving for Your Freedom', premium: true },
+  // Her Next Chapter section
+  { id: 'protecting_your_peace', label: 'Protecting Your Peace', premium: true },
+  { id: 'attract_dont_chase', label: 'Attract, Don\'t Chase', premium: true },
+  { id: 'becoming_that_girl', label: 'Becoming That Girl', premium: true },
+  { id: 'trusting_the_journey', label: 'Trusting the Journey', premium: true },
+  { id: 'ready_for_healthy_love', label: 'Ready for Healthy Love', premium: true },
 ];
 
 

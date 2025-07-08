@@ -47,7 +47,23 @@ const CATEGORY_IMAGES = {
   'letting_go_acceptance': require('../categoryImages/8593071.jpg'),
   'embracing_single_life': require('../categoryImages/4098100.jpg'),
   'overcoming_codependency': require('../categoryImages/image copy 2.png'),
-  'gratitude_reflection': require('../categoryImages/8620602.jpg')
+  'gratitude_reflection': require('../categoryImages/8620602.jpg'),
+  // For the Hardest Moments section images
+  'first_steps_letting_go': require('../categoryImages/8107017.jpg'),
+  'when_you_want_to_text_them': require('../categoryImages/4582464.jpg'),
+  'quieting_the_overthinking': require('../categoryImages/7853915.jpg'),
+  'when_it_hurts_to_see_them_move_on': require('../categoryImages/te07_qq4a_141122.jpg'),
+  'its_okay_to_feel_the_pain': require('../categoryImages/11646964.jpg'),
+  // Returning to You section images
+  'remembering_your_worth': require('../categoryImages/Happy smiling woman admiring beautiful reflection in mirror.jpg'),
+  'finding_your_spark_again': require('../categoryImages/4365672.jpg'),
+  'forgiving_for_your_freedom': require('../categoryImages/39093.jpg'),
+  // Her Next Chapter section images
+  'protecting_your_peace': require('../categoryImages/8620602.jpg'),
+  'attract_dont_chase': require('../categoryImages/image copy 4.png'),
+  'becoming_that_girl': require('../categoryImages/4038942.jpg'),
+  'trusting_the_journey': require('../categoryImages/image copy 7.png'),
+  'ready_for_healthy_love': require('../categoryImages/image copy.png'),
 };
 
 const CATEGORY_COLORS = {
@@ -65,7 +81,23 @@ const CATEGORY_COLORS = {
   'heartbreak_recovery': theme.colors.categoryColors.pink,
   'letting_go_of_ex': theme.colors.categoryColors.lavender,
   'embracing_single_life': theme.colors.categoryColors.green,
-  'overcoming_codependency': theme.colors.categoryColors.teal
+  'overcoming_codependency': theme.colors.categoryColors.teal,
+  // For the Hardest Moments section colors
+  'first_steps_letting_go': theme.colors.categoryColors.purple,
+  'when_you_want_to_text_them': theme.colors.categoryColors.pink,
+  'quieting_the_overthinking': theme.colors.categoryColors.teal,
+  'when_it_hurts_to_see_them_move_on': theme.colors.categoryColors.coral,
+  'its_okay_to_feel_the_pain': theme.colors.categoryColors.lavender,
+  // Returning to You section colors
+  'remembering_your_worth': theme.colors.categoryColors.orange,
+  'finding_your_spark_again': theme.colors.categoryColors.green,
+  'forgiving_for_your_freedom': theme.colors.categoryColors.blue,
+  // Her Next Chapter section colors
+  'protecting_your_peace': theme.colors.categoryColors.purple,
+  'attract_dont_chase': theme.colors.categoryColors.pink,
+  'becoming_that_girl': theme.colors.categoryColors.orange,
+  'trusting_the_journey': theme.colors.categoryColors.blue,
+  'ready_for_healthy_love': theme.colors.categoryColors.green,
 };
 
 interface Category {
@@ -357,6 +389,18 @@ export const CategoriesModal: React.FC<CategoriesModalProps> = ({
         title: "General",
         subtitle: "Free Categories",
         categoryIds: ['general_healing', 'moving_on', 'moving_forward', 'self_love']
+      },
+      {
+        title: "For the Hardest Moments",
+        categoryIds: ['first_steps_letting_go', 'when_you_want_to_text_them', 'quieting_the_overthinking', 'when_it_hurts_to_see_them_move_on', 'its_okay_to_feel_the_pain']
+      },
+      {
+        title: "Returning to You",
+        categoryIds: ['remembering_your_worth', 'finding_your_spark_again', 'forgiving_for_your_freedom']
+      },
+      {
+        title: "Her Next Chapter",
+        categoryIds: ['protecting_your_peace', 'attract_dont_chase', 'becoming_that_girl', 'trusting_the_journey', 'ready_for_healthy_love']
       },
       {
         title: "Loneliness & Isolation",
