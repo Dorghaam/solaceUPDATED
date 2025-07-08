@@ -1,3 +1,4 @@
+
 import WidgetKit
 import SwiftUI
 
@@ -77,7 +78,7 @@ struct SolaceWidgetEntryView : View {
                     .lineLimit(3)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .widgetURL(URL(string: "solaceapp://"))
+            .widgetURL(URL(string: "solaceapp://widget?quote=\(entry.quote.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
         case .systemSmall:
             // Small home screen widget
             ZStack {
@@ -105,7 +106,7 @@ struct SolaceWidgetEntryView : View {
                 .padding(.vertical, 14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .widgetURL(URL(string: "solaceapp://"))
+            .widgetURL(URL(string: "solaceapp://widget?quote=\(entry.quote.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
         case .systemMedium:
             // Medium home screen widget
             ZStack {
@@ -132,7 +133,7 @@ struct SolaceWidgetEntryView : View {
                 .padding(.vertical, 12)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .widgetURL(URL(string: "solaceapp://"))
+            .widgetURL(URL(string: "solaceapp://widget?quote=\(entry.quote.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
         default:
             // Fallback for other widget families
             VStack {
@@ -143,7 +144,7 @@ struct SolaceWidgetEntryView : View {
                     .multilineTextAlignment(.center)
             }
             .padding()
-            .widgetURL(URL(string: "solaceapp://"))
+            .widgetURL(URL(string: "solaceapp://widget?quote=\(entry.quote.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
         }
     }
 }

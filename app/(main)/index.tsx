@@ -6,6 +6,7 @@ import { hapticService } from '../../services/hapticService';
 import { reviewService } from '../../services/reviewService';
 import { MainFeedScreen } from '../../components/MainFeedScreen';
 import { useAuthGuard } from '../../utils';
+import { WidgetQuoteModal } from '../../components/WidgetQuoteModal';
 
 // This screen now acts as a simple wrapper that renders our main UI component.
 // All the UI logic is contained within MainFeedScreen.
@@ -28,6 +29,8 @@ export default function FeedPage() {
     supabaseUser,
     hasCompletedOnboarding,
     updateStreakData,
+    targetQuote,
+    clearTargetQuote,
   } = useUserStore();
 
   // ✅ Gate first-run side-effects to prevent React 18 Strict Mode double-mounting
@@ -43,6 +46,7 @@ export default function FeedPage() {
   const [likeCount, setLikeCount] = useState(favoriteQuoteIds.length);
   const [showCategories, setShowCategories] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showWidgetModal, setShowWidgetModal] = useState(false);
 
   // ✅ FIX: Enhanced consolidated effect with hydration guard to prevent flicker
   useEffect(() => {
@@ -73,6 +77,14 @@ export default function FeedPage() {
   useEffect(() => {
     setLikeCount(favoriteQuoteIds.length);
   }, [favoriteQuoteIds]);
+
+  // ✅ Handle target quote from widget deep links - show modal
+  useEffect(() => {
+    if (targetQuote) {
+      console.log('[FeedPage] Showing widget quote modal:', targetQuote.text);
+      setShowWidgetModal(true);
+    }
+  }, [targetQuote]);
 
   const isFavorite = useCallback((id: string) => favoriteQuoteIds.includes(id), [favoriteQuoteIds]);
 
@@ -210,29 +222,37 @@ export default function FeedPage() {
   }
 
   return (
-    <MainFeedScreen
-      quotes={quotes}
-      isLoading={isLoading}
-      isFavorite={isFavorite}
-      onToggleFavorite={handleToggleFavorite}
-      onShare={handleShare}
-      onNextQuote={handleNextQuote}
-      onPreviousQuote={handlePreviousQuote}
-      onGoToFavorites={handleGoToFavorites}
-      onGoToSettings={handleGoToSettings}
-      likeCount={likeCount}
-      currentQuoteIndex={currentQuoteIndex}
-      showCategories={showCategories}
-      showSettings={showSettings}
-      onShowCategories={handleShowCategories}
-      onShowSettings={handleShowSettings}
-      onCloseCategories={handleCloseCategories}
-      onCloseSettings={handleCloseSettings}
-      onCategorySelect={handleCategorySelect}
-      onSettingSelect={handleSettingSelect}
-      onPremiumPress={handlePremiumPress}
-      onBrushPress={handleBrushPress}
-      subscriptionTier={subscriptionTier}
-    />
+    <>
+      <MainFeedScreen
+        quotes={quotes}
+        isLoading={isLoading}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleToggleFavorite}
+        onShare={handleShare}
+        onNextQuote={handleNextQuote}
+        onPreviousQuote={handlePreviousQuote}
+        onGoToFavorites={handleGoToFavorites}
+        onGoToSettings={handleGoToSettings}
+        likeCount={likeCount}
+        currentQuoteIndex={currentQuoteIndex}
+        showCategories={showCategories}
+        showSettings={showSettings}
+        onShowCategories={handleShowCategories}
+        onShowSettings={handleShowSettings}
+        onCloseCategories={handleCloseCategories}
+        onCloseSettings={handleCloseSettings}
+        onCategorySelect={handleCategorySelect}
+        onSettingSelect={handleSettingSelect}
+        onPremiumPress={handlePremiumPress}
+        onBrushPress={handleBrushPress}
+        subscriptionTier={subscriptionTier}
+      />
+      
+      {/* Widget Quote Modal */}
+      <WidgetQuoteModal
+        visible={showWidgetModal}
+        onClose={() => setShowWidgetModal(false)}
+      />
+    </>
   );
 } 

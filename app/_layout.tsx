@@ -153,8 +153,10 @@ export default function RootLayout() {
 
         const { supabaseUser, hasCompletedOnboarding } = useUserStore.getState();
         if (supabaseUser && hasCompletedOnboarding) {
-          console.log('[DeepLink] Opening main app');
-          router.replace('/(main)');
+          // If it's a widget URL, let the router handle it normally
+          // This will navigate to /widget route which will handle the quote
+          console.log('[DeepLink] User authenticated, letting router handle URL');
+          // Don't manually navigate - let Expo Router handle the URL
         } else {
           console.log('[DeepLink] User not authenticated/onboarded, opening onboarding');
           router.replace('/(onboarding)');
@@ -186,8 +188,10 @@ export default function RootLayout() {
       if (pendingDeepLink.includes('solaceapp://')) {
         const { supabaseUser, hasCompletedOnboarding } = useUserStore.getState();
         if (supabaseUser && hasCompletedOnboarding) {
-          console.log('[DeepLink] Navigating to main app');
-          router.replace('/(main)');
+          // Extract the path from the deep link and navigate to it
+          const path = pendingDeepLink.replace('solaceapp://', '/');
+          console.log('[DeepLink] Processing pending link, navigating to:', path);
+          router.replace(path as any);
         } else {
           console.log('[DeepLink] Navigating to onboarding');
           router.replace('/(onboarding)');
