@@ -1,4 +1,3 @@
-
 import WidgetKit
 import SwiftUI
 
@@ -6,12 +5,12 @@ import SwiftUI
 struct Provider: TimelineProvider {
     // Provides a placeholder view for the widget gallery
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), quote: "Heal and grow with affirmations.", userName: "User")
+        SimpleEntry(date: Date(), quote: SharedDataManager.WidgetQuote(id: "placeholder", text: "Heal and grow with affirmations."), userName: "User")
     }
 
     // Provides the current state of the widget for transient views
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), quote: "Your daily moment of solace.", userName: "User")
+        let entry = SimpleEntry(date: Date(), quote: SharedDataManager.WidgetQuote(id: "snapshot", text: "Your daily moment of solace."), userName: "User")
         completion(entry)
     }
 
@@ -22,7 +21,7 @@ struct Provider: TimelineProvider {
         
         // Use our SharedDataManager to get the quotes
         guard let dataManager = SharedDataManager.shared else {
-            let entry = SimpleEntry(date: currentDate, quote: "Open app to configure widget.", userName: "User")
+            let entry = SimpleEntry(date: currentDate, quote: SharedDataManager.WidgetQuote(id: "error", text: "Open app to configure widget."), userName: "User")
             let timeline = Timeline(entries: [entry], policy: .atEnd)
             completion(timeline)
             return
@@ -33,7 +32,7 @@ struct Provider: TimelineProvider {
         
         // If no quotes, show a helpful message
         if quotes.isEmpty {
-            let entry = SimpleEntry(date: currentDate, quote: "Find your solace in the app.", userName: userName)
+            let entry = SimpleEntry(date: currentDate, quote: SharedDataManager.WidgetQuote(id: "empty", text: "Find your solace in the app."), userName: userName)
             let timeline = Timeline(entries: [entry], policy: .atEnd)
             completion(timeline)
             return
@@ -54,7 +53,7 @@ struct Provider: TimelineProvider {
 // 2. The Data Model (Entry)
 struct SimpleEntry: TimelineEntry {
     let date: Date
-    let quote: String
+    let quote: SharedDataManager.WidgetQuote
     let userName: String
 }
 
@@ -71,14 +70,15 @@ struct SolaceWidgetEntryView : View {
         case .accessoryRectangular:
             // A rectangular view for the lock screen, which can show text
             VStack(alignment: .leading, spacing: 1) {
-                Text(entry.quote)
+                Text(entry.quote.text)
                     .font(.body)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
                     .lineLimit(3)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .widgetURL(URL(string: "solaceapp://widget?quote=\(entry.quote.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
+            .widgetURL(URL(string: "solaceapp://widget?id=\(entry.quote.id)&quote=\(entry.quote.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
+        
         case .systemSmall:
             // Small home screen widget
             ZStack {
@@ -93,7 +93,7 @@ struct SolaceWidgetEntryView : View {
                 )
                 
                 VStack {
-                    Text(entry.quote)
+                    Text(entry.quote.text)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
                         .multilineTextAlignment(.center)
@@ -106,7 +106,8 @@ struct SolaceWidgetEntryView : View {
                 .padding(.vertical, 14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .widgetURL(URL(string: "solaceapp://widget?quote=\(entry.quote.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
+            .widgetURL(URL(string: "solaceapp://widget?id=\(entry.quote.id)&quote=\(entry.quote.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
+        
         case .systemMedium:
             // Medium home screen widget
             ZStack {
@@ -121,7 +122,7 @@ struct SolaceWidgetEntryView : View {
                 )
                 
                 VStack {
-                    Text(entry.quote)
+                    Text(entry.quote.text)
                         .font(.system(size: 20, weight: .medium))
                         .foregroundColor(Color(red: 0.29, green: 0.26, blue: 0.25)) // #4B423F
                         .multilineTextAlignment(.center)
@@ -133,18 +134,18 @@ struct SolaceWidgetEntryView : View {
                 .padding(.vertical, 12)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .widgetURL(URL(string: "solaceapp://widget?quote=\(entry.quote.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
+            .widgetURL(URL(string: "solaceapp://widget?id=\(entry.quote.id)&quote=\(entry.quote.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
         default:
             // Fallback for other widget families
             VStack {
                 Text("Solace")
                     .font(.headline)
-                Text(entry.quote)
+                Text(entry.quote.text)
                     .font(.body)
                     .multilineTextAlignment(.center)
             }
             .padding()
-            .widgetURL(URL(string: "solaceapp://widget?quote=\(entry.quote.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
+            .widgetURL(URL(string: "solaceapp://widget?id=\(entry.quote.id)&quote=\(entry.quote.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"))
         }
     }
 }

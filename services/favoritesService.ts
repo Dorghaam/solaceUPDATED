@@ -11,6 +11,37 @@ export interface UserFavorite {
 }
 
 /**
+ * Lookup a quote ID by its text (fallback for widget modal)
+ */
+export const lookupQuoteIdByText = async (quoteText: string): Promise<string | null> => {
+  try {
+    console.log(`[FavoritesService] Looking up quote ID for text: "${quoteText.substring(0, 50)}..."`);
+    
+    const { data, error } = await supabase
+      .from('quotes')
+      .select('id')
+      .eq('text', quoteText)
+      .limit(1);
+
+    if (error) {
+      console.error('[FavoritesService] Error looking up quote ID:', error);
+      return null;
+    }
+
+    if (data && data.length > 0) {
+      console.log(`[FavoritesService] Found quote ID: ${data[0].id}`);
+      return data[0].id;
+    }
+
+    console.log('[FavoritesService] No quote found with matching text');
+    return null;
+  } catch (error) {
+    console.error('[FavoritesService] Failed to lookup quote ID:', error);
+    return null;
+  }
+};
+
+/**
  * Save a favorite quote to the database for the current user
  */
 export const saveFavoriteToDatabase = async (userId: string, quoteId: string): Promise<void> => {

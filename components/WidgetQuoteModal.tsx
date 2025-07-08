@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../constants/theme';
 import { hapticService } from '../services/hapticService';
 import { useUserStore } from '../store/userStore';
+import { lookupQuoteIdByText } from '../services/favoritesService';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -27,6 +28,8 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
 }) => {
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const backgroundOpacity = useRef(new Animated.Value(0)).current;
+  const [isLookingUpId, setIsLookingUpId] = useState(false);
+  const [actualQuoteId, setActualQuoteId] = useState<string | null>(null);
 
   const { 
     targetQuote, 
@@ -40,6 +43,51 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
   useEffect(() => {
     console.log('[WidgetQuoteModal] Modal state - visible:', visible, 'targetQuote:', targetQuote);
   }, [visible, targetQuote]);
+
+  // Look up the actual quote ID if we have a generated one
+  useEffect(() => {
+    if (targetQuote && visible) {
+      const isGeneratedId = targetQuote.id.startsWith('widget-') || 
+                           targetQuote.id.startsWith('legacy-') || 
+                           targetQuote.id.startsWith('welcome-') || 
+                           targetQuote.id.startsWith('empty-') ||
+                           targetQuote.id.startsWith('notification-');
+      
+      if (isGeneratedId) {
+        console.log('[WidgetQuoteModal] Looking up actual ID for generated ID:', targetQuote.id);
+        setIsLookingUpId(true);
+        
+        lookupQuoteIdByText(targetQuote.text)
+          .then(id => {
+            if (id) {
+              console.log('[WidgetQuoteModal] Found actual quote ID:', id);
+              setActualQuoteId(id);
+            } else {
+              console.log('[WidgetQuoteModal] Could not find actual quote ID');
+              setActualQuoteId(null);
+            }
+          })
+          .catch(error => {
+            console.error('[WidgetQuoteModal] Error looking up quote ID:', error);
+            setActualQuoteId(null);
+          })
+          .finally(() => {
+            setIsLookingUpId(false);
+          });
+      } else {
+        // We already have the actual ID
+        setActualQuoteId(targetQuote.id);
+      }
+    }
+  }, [targetQuote, visible]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setActualQuoteId(null);
+      setIsLookingUpId(false);
+    }
+  }, [visible]);
 
   useEffect(() => {
     if (visible) {
@@ -106,16 +154,23 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
     }
   };
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = async () => {
     if (!targetQuote) return;
     
     hapticService.selection();
-    const isFavorite = favoriteQuoteIds.includes(targetQuote.id);
+    const quoteId = actualQuoteId || targetQuote.id;
+    
+    if (!actualQuoteId) {
+      console.log('[WidgetQuoteModal] No actual quote ID available, cannot favorite');
+      return;
+    }
+    
+    const isFavorite = favoriteQuoteIds.includes(quoteId);
     
     if (isFavorite) {
-      removeFavorite(targetQuote.id);
+      removeFavorite(quoteId);
     } else {
-      addFavorite(targetQuote.id);
+      addFavorite(quoteId);
     }
   };
 
@@ -127,8 +182,11 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
     return null;
   }
 
-  const isFavorite = favoriteQuoteIds.includes(targetQuote.id);
+  // Determine if the quote is favorited
+  const effectiveQuoteId = actualQuoteId || targetQuote.id;
+  const isFavorite = actualQuoteId ? favoriteQuoteIds.includes(effectiveQuoteId) : false;
   const isLoading = targetQuote.text === 'Loading your widget quote...';
+  const canFavorite = actualQuoteId !== null && !isLookingUpId;
 
   return (
     <View style={styles.overlay}>
@@ -183,9 +241,10 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
               <Pressable
                 style={({ pressed }) => [
                   styles.actionButton,
-                  { opacity: pressed ? 0.8 : 1 }
+                  { opacity: (pressed || !canFavorite) ? 0.8 : 1 }
                 ]}
                 onPress={handleToggleFavorite}
+                disabled={!canFavorite}
               >
                 <Ionicons 
                   name={isFavorite ? "heart" : "heart-outline"} 
@@ -196,7 +255,7 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
                   styles.buttonText,
                   { color: isFavorite ? theme.colors.primary : theme.colors.textSecondary }
                 ]}>
-                  {isFavorite ? 'Favorited' : 'Favorite'}
+                  {isLookingUpId ? 'Loading...' : (isFavorite ? 'Favorited' : 'Favorite')}
                 </Text>
               </Pressable>
 

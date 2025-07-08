@@ -155,7 +155,7 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
       const { message, quote } = getQuoteMessage(quotes || [], index);
 
       // Create deep link for notification
-      const deepLinkUrl = quote ? `solaceapp://notification?quote=${encodeURIComponent(quote.text)}` : 'solaceapp://';
+      const deepLinkUrl = quote ? `solaceapp://notification?id=${quote.id}&quote=${encodeURIComponent(quote.text)}` : 'solaceapp://';
 
       await Notifications.scheduleNotificationAsync({
         content: {

@@ -18,18 +18,59 @@ final class SharedDataManager {
         self.userDefaults = userDefaults
     }
 
-    // Saves an array of quote strings to the shared container
-    func saveQuotes(_ quotes: [String]) {
-        print("📝 SharedDataManager: Saving \(quotes.count) quotes.")
-        userDefaults.set(quotes, forKey: "widgetQuotesArray")
-        userDefaults.synchronize() // Force synchronization
+    // Quote structure for widget storage
+    struct WidgetQuote: Codable {
+        let id: String
+        let text: String
     }
 
-    // Loads the array of quote strings from the shared container
-    func loadQuotes() -> [String] {
-        let quotes = userDefaults.stringArray(forKey: "widgetQuotesArray") ?? []
-        print("📖 SharedDataManager: Loaded \(quotes.count) quotes.")
-        return quotes
+    // Saves an array of quote objects to the shared container
+    func saveQuotes(_ quotes: [WidgetQuote]) {
+        print("📝 SharedDataManager: Saving \(quotes.count) quote objects.")
+        
+        do {
+            let encodedData = try JSONEncoder().encode(quotes)
+            userDefaults.set(encodedData, forKey: "widgetQuotesData")
+            userDefaults.synchronize() // Force synchronization
+            print("✅ SharedDataManager: Successfully saved quote objects")
+        } catch {
+            print("❌ SharedDataManager: Failed to encode quote objects: \(error)")
+            // Fallback to old method for backward compatibility
+            let texts = quotes.map { $0.text }
+            userDefaults.set(texts, forKey: "widgetQuotesArray")
+            userDefaults.synchronize()
+        }
+    }
+
+    // Loads the array of quote objects from the shared container
+    func loadQuotes() -> [WidgetQuote] {
+        // Try to load new format first
+        if let encodedData = userDefaults.data(forKey: "widgetQuotesData") {
+            do {
+                let quotes = try JSONDecoder().decode([WidgetQuote].self, from: encodedData)
+                print("📖 SharedDataManager: Loaded \(quotes.count) quote objects.")
+                return quotes
+            } catch {
+                print("❌ SharedDataManager: Failed to decode quote objects: \(error)")
+            }
+        }
+        
+        // Fallback to old format for backward compatibility
+        if let texts = userDefaults.stringArray(forKey: "widgetQuotesArray") {
+            let quotes = texts.enumerated().map { index, text in
+                WidgetQuote(id: "legacy-\(index)", text: text)
+            }
+            print("📖 SharedDataManager: Loaded \(quotes.count) quotes from legacy format.")
+            return quotes
+        }
+        
+        print("📖 SharedDataManager: No quotes found.")
+        return []
+    }
+    
+    // Convenience method to get just the text (for backward compatibility with widget display)
+    func loadQuoteTexts() -> [String] {
+        return loadQuotes().map { $0.text }
     }
     
     // Save user name for personalized widget content

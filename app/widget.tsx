@@ -1,27 +1,43 @@
-import { useEffect } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useUserStore } from '../store/userStore';
-import { View } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useUserStore } from '@/store/userStore';
 
-export default function WidgetRoute() {
-  const { quote } = useLocalSearchParams<{ quote?: string }>();
+export default function WidgetScreen() {
   const { setTargetQuote } = useUserStore();
+  const { id, quote } = useLocalSearchParams<{ id: string; quote: string }>();
 
   useEffect(() => {
-    console.log('[WidgetRoute] Processing widget route with quote:', quote);
-    
-    if (quote) {
-      // Set the target quote from the widget
-      setTargetQuote({
-        id: `widget-${Date.now()}`,
-        text: decodeURIComponent(quote)
-      });
+    if (id && quote) {
+      // Use the actual quote ID from the widget URL
+      const targetQuote = {
+        id: id, // Use the actual database ID
+        text: decodeURIComponent(quote),
+      };
+      
+      setTargetQuote(targetQuote);
     }
-
-    // Always redirect to main - let main handle showing the modal
+    
+    // Navigate back to the main screen
     router.replace('/(main)');
-  }, []); // Empty dependency array - only run once when component mounts
+  }, [id, quote, setTargetQuote]);
 
-  // Return empty view since we're immediately redirecting
-  return <View />;
-} 
+  return (
+    <View style={styles.container}>
+      <Text style={styles.loadingText}>Loading...</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#666',
+  },
+}); 

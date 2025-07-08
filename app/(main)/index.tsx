@@ -223,8 +223,20 @@ export default function FeedPage() {
     try {
       const { scheduleNotificationAsync } = await import('expo-notifications');
       
-      const testQuote = "You are stronger than you think and braver than you feel. This is your moment to shine.";
-      const deepLinkUrl = `solaceapp://notification?quote=${encodeURIComponent(testQuote)}`;
+      // Use an actual quote from the current quotes array if available
+      let testQuote = "You are stronger than you think and braver than you feel. This is your moment to shine.";
+      let testQuoteId = 'dev-test-quote'; // fallback
+      
+      if (quotes.length > 0) {
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        testQuote = randomQuote.text;
+        testQuoteId = randomQuote.id;
+        console.log('[DEV] Using actual quote from database:', testQuoteId);
+      } else {
+        console.log('[DEV] No quotes available, using fallback quote');
+      }
+      
+      const deepLinkUrl = `solaceapp://notification?id=${testQuoteId}&quote=${encodeURIComponent(testQuote)}`;
       
       await scheduleNotificationAsync({
         content: {
@@ -233,7 +245,7 @@ export default function FeedPage() {
           sound: 'default',
           data: { 
             type: 'quote',
-            quoteId: 'dev-test-quote',
+            quoteId: testQuoteId,
             quoteText: testQuote,
             quoteCategory: 'general_healing',
             url: deepLinkUrl
@@ -245,11 +257,11 @@ export default function FeedPage() {
         }, // Trigger in 2 seconds
       });
       
-      console.log('[DEV] Test notification scheduled for 2 seconds from now');
+      console.log('[DEV] Test notification scheduled for 2 seconds from now with quote ID:', testQuoteId);
     } catch (error) {
       console.error('[DEV] Failed to send test notification:', error);
     }
-  }, []);
+  }, [quotes]);
 
   // If user is not authenticated, don't render anything (useAuthGuard handles redirect)
   if (!shouldRender) {

@@ -228,8 +228,11 @@ export default function RootLayout() {
       if (notificationData?.type === 'quote' && typeof notificationData?.quoteText === 'string') {
         console.log('[Notification] Setting target quote from notification:', notificationData.quoteText);
         
+        // Use the actual quote ID from notification data, with fallback
+        const quoteId = typeof notificationData.quoteId === 'string' ? notificationData.quoteId : `notification-${Date.now()}`;
+        
         const targetQuoteData = {
-          id: typeof notificationData.quoteId === 'string' ? notificationData.quoteId : 'notification-quote',
+          id: quoteId,
           text: notificationData.quoteText,
           category: 'notification', // Force notification category for easier debugging
         };

@@ -151,23 +151,29 @@ export const WidgetSettingsScreen: React.FC<WidgetSettingsScreenProps> = ({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
-      let quotesToSend: string[] = [`Hello ${userName || 'User'}! Open Solace to get inspired.`];
+      let quotesToSend: { id: string; text: string }[] = [{
+        id: `welcome-${Date.now()}`,
+        text: `Hello ${userName || 'User'}! Open Solace to get inspired.`
+      }];
       let queryCategory = widgetSettings.category;
 
       if (queryCategory === 'favorites') {
         // Handle favorites
         if (favoriteQuoteIds.length === 0) {
-          quotesToSend = [`Hi ${userName || 'User'}! Add some favorites first to see them in your widget.`];
+          quotesToSend = [{
+            id: `empty-favorites-${Date.now()}`,
+            text: `Hi ${userName || 'User'}! Add some favorites first to see them in your widget.`
+          }];
         } else {
           const { data, error } = await supabase
             .from('quotes')
-            .select('text')
+            .select('id, text')
             .in('id', favoriteQuoteIds)
             .limit(150);
           
           if (error) throw error;
           if (data && data.length > 0) {
-            quotesToSend = data.map(q => q.text);
+            quotesToSend = data.map(q => ({ id: q.id, text: q.text }));
           }
         }
       } else {
@@ -176,7 +182,7 @@ export const WidgetSettingsScreen: React.FC<WidgetSettingsScreenProps> = ({
 
         const { data, error } = await supabase
           .from('quotes')
-          .select('text')
+          .select('id, text')
           .in('category', categoriesToFetch)
           .limit(150);
         
@@ -184,7 +190,7 @@ export const WidgetSettingsScreen: React.FC<WidgetSettingsScreenProps> = ({
         if (data && data.length > 0) {
           // Shuffle the quotes
           const shuffledQuotes = [...data].sort(() => Math.random() - 0.5);
-          quotesToSend = shuffledQuotes.map(q => q.text);
+          quotesToSend = shuffledQuotes.map(q => ({ id: q.id, text: q.text }));
         }
       }
 
