@@ -292,14 +292,20 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
             <Pressable 
               style={({ pressed }) => [
                 styles.topButton,
-                subscriptionTier === 'premium' && styles.premiumButton,
+                subscriptionTier === 'premium' ? styles.premiumButton : styles.freeButton,
                 { opacity: pressed ? 0.7 : 1 }
               ]} 
               onPress={onPremiumPress}
             >
-              {subscriptionTier === 'premium' && (
-                <Text style={styles.premiumButtonText}>Premium</Text>
-              )}
+              {/* Always show Premium text, but with different colors */}
+              <Text style={[
+                styles.premiumButtonText,
+                subscriptionTier === 'premium' 
+                  ? { color: theme.colors.white } // White for premium users (original)
+                  : { color: theme.colors.text }   // Black for free users
+              ]}>
+                Premium
+              </Text>
               <Ionicons 
                 name={subscriptionTier === 'premium' ? "diamond" : "diamond-outline"} 
                 size={20} 
@@ -492,6 +498,24 @@ const styles = StyleSheet.create({
   },
   premiumButton: {
     backgroundColor: theme.colors.primary,
+    borderWidth: 0,
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    width: 'auto',
+    minWidth: 100,
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 8,
+  },
+  freeButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', // White background for black text
     borderWidth: 0,
     flexDirection: 'row',
     paddingHorizontal: 16,
