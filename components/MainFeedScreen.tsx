@@ -55,7 +55,7 @@ interface MainFeedScreenProps {
   // Additional button handlers
   onPremiumPress: () => void;
   onBrushPress: () => void;
-  onSendTestNotification: () => void;
+  // ✅ REMOVED: Dev function no longer needed
   // Subscription state
   subscriptionTier: SubscriptionTier;
 }
@@ -82,14 +82,13 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   onSettingSelect,
   onPremiumPress,
   onBrushPress,
-  onSendTestNotification,
+  // ✅ REMOVED: Dev function no longer needed
   subscriptionTier,
 }) => {
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
   const responsiveDimensions = getResponsiveDimensions();
-  const [refreshing, setRefreshing] = useState(false);
-  const { fetchQuotes } = useUserStore();
+  // ✅ REMOVED: Extra state tracking that wasn't in perfect version
 
   // ✅ Memoize current quote to prevent unnecessary re-renders
   const currentQuote = useMemo(() => {
@@ -208,16 +207,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
 
   const isPremium = subscriptionTier === 'premium';
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await fetchQuotes();
-    } catch (error) {
-      console.error('Error refreshing quotes:', error);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [fetchQuotes]);
+  // ✅ REMOVED: Refresh functionality that wasn't in perfect version
 
   // Loading state
   if (isLoading && quotes.length === 0) {
@@ -275,19 +265,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
 
           
           <View style={styles.topRightButtons}>
-            {/* DEV: Test notification button - remove in production */}
-            {__DEV__ && (
-              <Pressable 
-                style={({ pressed }) => [
-                  styles.topButton,
-                  styles.devButton,
-                  { opacity: pressed ? 0.7 : 1 }
-                ]} 
-                onPress={onSendTestNotification}
-              >
-                <Ionicons name="notifications-outline" size={20} color={theme.colors.text} />
-              </Pressable>
-            )}
+            {/* ✅ REMOVED: Dev button that causes extra rendering during animations */}
             
             <Pressable 
               style={({ pressed }) => [
@@ -485,16 +463,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    // Shadow for Android
-    elevation: 8,
+    // ✅ REMOVED: Heavy shadows that cause animation glitches
   },
   premiumButton: {
     backgroundColor: theme.colors.primary,
@@ -503,16 +472,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     width: 'auto',
     minWidth: 100,
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    // Shadow for Android
-    elevation: 8,
+    // ✅ REMOVED: Heavy shadows that cause animation glitches
   },
   freeButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)', // White background for black text
@@ -521,20 +481,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     width: 'auto',
     minWidth: 100,
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    // Shadow for Android
-    elevation: 8,
+    // ✅ REMOVED: Heavy shadows that cause animation glitches
   },
-  devButton: {
-    backgroundColor: 'rgba(255, 193, 7, 0.9)', // Yellow background for dev button
-  },
+  // ✅ REMOVED: Dev button style no longer needed
   quoteContainer: {
     flex: 1,
     position: 'relative',
@@ -583,16 +532,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    // Shadow for Android
-    elevation: 8,
+    // ✅ REMOVED: Heavy shadows that cause animation glitches
   },
   topLeftSpacer: {
     width: 44,

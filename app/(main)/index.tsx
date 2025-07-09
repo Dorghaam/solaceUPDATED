@@ -223,53 +223,7 @@ export default function FeedPage() {
     // Handle brush/theme functionality here
   }, []);
 
-  // DEV: Function to send a test notification
-  const sendTestNotification = useCallback(async () => {
-    console.log('[DEV] Sending test notification');
-    hapticService.light();
-    
-    try {
-      const { scheduleNotificationAsync } = await import('expo-notifications');
-      
-      // Use an actual quote from the current quotes array if available
-      let testQuote = "You are stronger than you think and braver than you feel. This is your moment to shine.";
-      let testQuoteId = 'dev-test-quote'; // fallback
-      
-      if (quotes.length > 0) {
-        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-        testQuote = randomQuote.text;
-        testQuoteId = randomQuote.id;
-        console.log('[DEV] Using actual quote from database:', testQuoteId);
-      } else {
-        console.log('[DEV] No quotes available, using fallback quote');
-      }
-      
-      const deepLinkUrl = `solaceapp://notification?id=${testQuoteId}&quote=${encodeURIComponent(testQuote)}`;
-      
-      await scheduleNotificationAsync({
-        content: {
-          title: "Solace",
-          body: testQuote,
-          sound: 'default',
-          data: { 
-            type: 'quote',
-            quoteId: testQuoteId,
-            quoteText: testQuote,
-            quoteCategory: 'general_healing',
-            url: deepLinkUrl
-          },
-        },
-        trigger: { 
-          type: 'timeInterval' as any,
-          seconds: 2 
-        }, // Trigger in 2 seconds
-      });
-      
-      console.log('[DEV] Test notification scheduled for 2 seconds from now with quote ID:', testQuoteId);
-    } catch (error) {
-      console.error('[DEV] Failed to send test notification:', error);
-    }
-  }, [quotes]);
+  // ✅ REMOVED: Dev notification function no longer needed for smooth performance
 
   // If user is not authenticated, don't render anything (useAuthGuard handles redirect)
   if (!shouldRender) {
@@ -305,7 +259,6 @@ export default function FeedPage() {
         onSettingSelect={handleSettingSelect}
         onPremiumPress={handlePremiumPress}
         onBrushPress={handleBrushPress}
-        onSendTestNotification={sendTestNotification}
         subscriptionTier={subscriptionTier}
       />
       
