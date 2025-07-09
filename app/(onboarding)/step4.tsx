@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable, ScrollView } from 'rea
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
@@ -25,6 +26,7 @@ const focusOptions = [
 export default function Step4Screen() {
   const { name } = useLocalSearchParams();
   const [selectedFocus, setSelectedFocus] = useState<string[]>([]);
+  const { setFocusAreas } = useUserStore();
 
   const handleToggleFocus = (focusId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -41,7 +43,10 @@ export default function Step4Screen() {
   const handleContinue = () => {
     if (selectedFocus.length > 0) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      // TODO: Save selected focus areas to storage/state
+      
+      // Save selected focus areas to store (will sync to database after authentication)
+      setFocusAreas(selectedFocus);
+      
       router.push({
         pathname: '/(onboarding)/step5',
         params: { name: displayName }

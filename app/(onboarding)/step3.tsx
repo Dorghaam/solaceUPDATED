@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, View, Text, Pressable, ScrollView } from 'rea
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../constants/theme';
+import { useUserStore } from '../../store/userStore';
 import { getResponsiveFontSize, getResponsiveSpacing } from '../../utils/responsive';
 import * as Haptics from 'expo-haptics';
 import { OnboardingProgressBar } from '../../components/OnboardingProgressBar';
@@ -19,6 +20,7 @@ const struggleOptions = [
 export default function Step3Screen() {
   const { name } = useLocalSearchParams();
   const [selectedStruggle, setSelectedStruggle] = useState<string>('');
+  const { setSelectedStruggle: saveSelectedStruggle } = useUserStore();
 
   const handleSelectStruggle = (struggle: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -28,7 +30,10 @@ export default function Step3Screen() {
   const handleContinue = () => {
     if (selectedStruggle) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      // TODO: Save selected struggle to storage/state
+      
+      // Save selected struggle to store (will sync to database after authentication)
+      saveSelectedStruggle(selectedStruggle);
+      
       router.push({
         pathname: '/(onboarding)/step4',
         params: { name: displayName }

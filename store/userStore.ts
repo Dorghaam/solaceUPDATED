@@ -130,6 +130,8 @@ interface UserState {
   growthFocus: string | null;
   discoverySource: string | null;
   healingGoals: string | null;
+  selectedStruggle: string | null; // NEW: Step 3 data
+  focusAreas: string[] | null; // NEW: Step 4 data
 
   // Authentication
   supabaseUser: any | null; // Consider using Supabase User type if available
@@ -171,6 +173,8 @@ interface UserState {
   setGrowthFocus: (focus: string) => void;
   setDiscoverySource: (source: string) => void;
   setHealingGoals: (goals: string) => void;
+  setSelectedStruggle: (struggle: string) => void; // NEW: Step 3 setter
+  setFocusAreas: (areas: string[]) => void; // NEW: Step 4 setter
   syncOnboardingToDatabase: () => Promise<void>;
 
   setSupabaseUser: (user: any | null) => void;
@@ -231,6 +235,8 @@ const initialState = {
   growthFocus: null,
   discoverySource: null,
   healingGoals: null,
+  selectedStruggle: null, // NEW: Step 3 data
+  focusAreas: null, // NEW: Step 4 data
 
   // Auth
   supabaseUser: null,
@@ -293,6 +299,8 @@ export const useUserStore = create<UserState>()(
       setGrowthFocus: (focus) => set({ growthFocus: focus }),
       setDiscoverySource: (source) => set({ discoverySource: source }),
       setHealingGoals: (goals) => set({ healingGoals: goals }),
+      setSelectedStruggle: (struggle) => set({ selectedStruggle: struggle }), // NEW: Step 3 setter
+      setFocusAreas: (areas) => set({ focusAreas: areas }), // NEW: Step 4 setter
       
       syncOnboardingToDatabase: async () => {
         const state = get();
@@ -304,7 +312,8 @@ export const useUserStore = create<UserState>()(
         // Check if we have any onboarding data to sync
         const hasOnboardingData = state.age || state.gender || state.relationshipStatus || 
           state.spiritualPreference || state.growthFocus || state.discoverySource || 
-          state.healingGoals || state.affirmationFamiliarity;
+          state.healingGoals || state.affirmationFamiliarity || state.selectedStruggle || 
+          state.focusAreas;
 
         if (!hasOnboardingData) {
           console.log('[UserStore] No onboarding data to sync');
@@ -323,6 +332,8 @@ export const useUserStore = create<UserState>()(
             discovery_source: state.discoverySource,
             healing_goals: state.healingGoals,
             affirmation_familiarity: state.affirmationFamiliarity,
+            selected_struggle: state.selectedStruggle, // NEW: Step 3 data
+            focus_areas: state.focusAreas, // NEW: Step 4 data
           });
           console.log('[UserStore] Successfully synced onboarding data to database');
         } catch (error) {
@@ -338,7 +349,28 @@ export const useUserStore = create<UserState>()(
         }
       },
 
-      setSupabaseUser: (user) => set({ supabaseUser: user }),
+      setSupabaseUser: (user) => {
+        set({ supabaseUser: user });
+        
+        // Automatically sync onboarding data when user is authenticated
+        if (user?.id) {
+          const currentState = get();
+          // Only sync if we have some onboarding data
+          const hasOnboardingData = currentState.age || currentState.gender || 
+            currentState.relationshipStatus || currentState.spiritualPreference || 
+            currentState.growthFocus || currentState.discoverySource || 
+            currentState.healingGoals || currentState.affirmationFamiliarity || 
+            currentState.selectedStruggle || currentState.focusAreas;
+          
+          if (hasOnboardingData) {
+            console.log('[UserStore] User authenticated, syncing onboarding data...');
+            // Use setTimeout to avoid blocking the UI
+            setTimeout(() => {
+              currentState.syncOnboardingToDatabase();
+            }, 100);
+          }
+        }
+      },
 
       fetchQuotes: async () => {
         const { supabase } = await import('../services/supabaseClient');
@@ -754,6 +786,8 @@ export const useUserStore = create<UserState>()(
         growthFocus: state.growthFocus,
         discoverySource: state.discoverySource,
         healingGoals: state.healingGoals,
+        selectedStruggle: state.selectedStruggle, // NEW: Step 3 data
+        focusAreas: state.focusAreas, // NEW: Step 4 data
         // supabaseUser is handled by Supabase client persistence
         favoriteQuoteIds: state.favoriteQuoteIds,
         notificationSettings: state.notificationSettings,
