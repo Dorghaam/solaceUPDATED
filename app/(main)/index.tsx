@@ -84,11 +84,19 @@ export default function FeedPage() {
     if (targetQuote) {
       console.log('[FeedPage] Showing modal for:', targetQuote.category, targetQuote.text);
       setShowWidgetModal(true);
+      
+      // ✅ FIX: Clear targetQuote after showing modal to prevent flash on next quote swipe
+      const clearTarget = setTimeout(() => {
+        console.log('[FeedPage] Auto-clearing targetQuote after modal display');
+        clearTargetQuote();
+      }, 1000); // Clear after 1 second to ensure modal is fully displayed
+      
+      return () => clearTimeout(clearTarget);
     } else {
       console.log('[FeedPage] No targetQuote, hiding modal');
       setShowWidgetModal(false);
     }
-  }, [targetQuote]);
+  }, [targetQuote, clearTargetQuote]);
 
   const isFavorite = useCallback((id: string) => favoriteQuoteIds.includes(id), [favoriteQuoteIds]);
 
