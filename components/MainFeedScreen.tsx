@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CategoriesModal } from './CategoriesModal';
 import { SettingsModal } from './SettingsModal';
+import { LikeAnimation } from './LikeAnimation';
 import { theme } from '../constants/theme';
 import { SubscriptionTier } from '../store/userStore';
 import { getResponsiveDimensions, getResponsiveFontSize } from '../utils/responsive';
@@ -90,6 +91,9 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   const responsiveDimensions = getResponsiveDimensions();
   // ✅ REMOVED: Extra state tracking that wasn't in perfect version
 
+  // State for like animation
+  const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+
   // ✅ Memoize current quote to prevent unnecessary re-renders
   const currentQuote = useMemo(() => {
     return quotes[currentQuoteIndex] || quotes[0];
@@ -100,6 +104,24 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   // Helper function to check if a quote is a placeholder
   const isPlaceholderQuote = useCallback((quoteId: string) => {
     return ['no-favorites', 'no-quotes', 'error'].includes(quoteId);
+  }, []);
+
+  // Enhanced toggle favorite function that shows animation for likes
+  const handleToggleFavorite = useCallback((quote: Quote) => {
+    const isCurrentlyFavorite = isFavorite(quote.id);
+    
+    // If not currently favorite, show animation for liking
+    if (!isCurrentlyFavorite) {
+      setShowLikeAnimation(true);
+    }
+    
+    // Call the original toggle function
+    onToggleFavorite(quote);
+  }, [isFavorite, onToggleFavorite]);
+
+  // Handle animation completion
+  const handleAnimationComplete = useCallback(() => {
+    setShowLikeAnimation(false);
   }, []);
 
   // Enhanced gesture handler for peek behavior
@@ -327,7 +349,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
                   }}
                   disabled={isPlaceholderQuote(currentQuote.id)}
                 >
-                  <Ionicons name="share-outline" size={32} color="#333" />
+                  <Ionicons name="share-outline" size={32} color="#000000" />
                 </Pressable>
                 <Pressable 
                   style={({ pressed }) => {
@@ -342,7 +364,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
                   }}
                   onPress={() => {
                     if (!isPlaceholderQuote(currentQuote.id)) {
-                      onToggleFavorite(currentQuote);
+                      handleToggleFavorite(currentQuote);
                     }
                   }}
                   disabled={isPlaceholderQuote(currentQuote.id)}
@@ -350,7 +372,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
                   <Ionicons 
                     name={isFavorite(currentQuote.id) ? "heart" : "heart-outline"} 
                     size={32} 
-                    color="#333" 
+                    color="#000000" 
                   />
                 </Pressable>
               </View>
@@ -399,6 +421,12 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
         visible={showSettings}
         onClose={onCloseSettings}
         onSettingSelect={onSettingSelect}
+      />
+
+      {/* Like Animation */}
+      <LikeAnimation
+        visible={showLikeAnimation}
+        onAnimationComplete={handleAnimationComplete}
       />
     </GestureHandlerRootView>
   );

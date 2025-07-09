@@ -205,7 +205,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
           ]}
           onPress={() => handleRemoveFavorite(item.id)}
         >
-          <Ionicons name="heart" size={24} color="#333" />
+          <Ionicons name="heart" size={24} color="#000000" />
         </Pressable>
       </View>
     </View>
@@ -220,7 +220,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
             <View style={styles.frameLine} />
             <View style={styles.frameLine} />
           </View>
-          <Ionicons name="heart" size={40} color="#333" />
+          <Ionicons name="heart" size={40} color="#000000" />
         </View>
       </View>
       

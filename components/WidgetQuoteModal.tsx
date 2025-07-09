@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { LikeAnimation } from './LikeAnimation';
 import { theme } from '../constants/theme';
 import { hapticService } from '../services/hapticService';
 import { useUserStore } from '../store/userStore';
@@ -30,6 +31,7 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
   const backgroundOpacity = useRef(new Animated.Value(0)).current;
   const [isLookingUpId, setIsLookingUpId] = useState(false);
   const [actualQuoteId, setActualQuoteId] = useState<string | null>(null);
+  const [showLikeAnimation, setShowLikeAnimation] = useState(false);
 
   const { 
     targetQuote, 
@@ -170,8 +172,15 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
     if (isFavorite) {
       removeFavorite(quoteId);
     } else {
+      // Show animation when liking
+      setShowLikeAnimation(true);
       addFavorite(quoteId);
     }
+  };
+
+  // Handle animation completion
+  const handleAnimationComplete = () => {
+    setShowLikeAnimation(false);
   };
 
   if (!visible) {
@@ -249,7 +258,7 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
                 <Ionicons 
                   name={isFavorite ? "heart" : "heart-outline"} 
                   size={24} 
-                  color={isFavorite ? theme.colors.primary : theme.colors.textSecondary} 
+                  color="#000000" 
                 />
                 <Text style={[
                   styles.buttonText,
@@ -266,7 +275,7 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
                 ]}
                 onPress={handleShare}
               >
-                <Ionicons name="share-outline" size={24} color={theme.colors.textSecondary} />
+                <Ionicons name="share-outline" size={24} color="#000000" />
                 <Text style={styles.buttonText}>Share</Text>
               </Pressable>
             </View>
@@ -284,6 +293,12 @@ export const WidgetQuoteModal: React.FC<WidgetQuoteModalProps> = ({
           </Pressable>
         </LinearGradient>
       </Animated.View>
+
+      {/* Like Animation */}
+      <LikeAnimation
+        visible={showLikeAnimation}
+        onAnimationComplete={handleAnimationComplete}
+      />
     </View>
   );
 };
