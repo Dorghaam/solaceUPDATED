@@ -84,19 +84,12 @@ export default function FeedPage() {
     if (targetQuote) {
       console.log('[FeedPage] Showing modal for:', targetQuote.category, targetQuote.text);
       setShowWidgetModal(true);
-      
-      // ✅ FIX: Clear targetQuote after showing modal to prevent flash on next quote swipe
-      const clearTarget = setTimeout(() => {
-        console.log('[FeedPage] Auto-clearing targetQuote after modal display');
-        clearTargetQuote();
-      }, 1000); // Clear after 1 second to ensure modal is fully displayed
-      
-      return () => clearTimeout(clearTarget);
+      // ✅ FIX: Don't auto-clear targetQuote - let user manually close modal
     } else {
       console.log('[FeedPage] No targetQuote, hiding modal');
       setShowWidgetModal(false);
     }
-  }, [targetQuote, clearTargetQuote]);
+  }, [targetQuote]);
 
   const isFavorite = useCallback((id: string) => favoriteQuoteIds.includes(id), [favoriteQuoteIds]);
 
@@ -223,6 +216,12 @@ export default function FeedPage() {
     // Handle brush/theme functionality here
   }, []);
 
+  const handleCloseWidgetModal = useCallback(() => {
+    console.log('[FeedPage] Closing widget modal and clearing targetQuote');
+    clearTargetQuote();
+    setShowWidgetModal(false);
+  }, [clearTargetQuote]);
+
   // ✅ REMOVED: Dev notification function no longer needed for smooth performance
 
   // If user is not authenticated, don't render anything (useAuthGuard handles redirect)
@@ -265,7 +264,7 @@ export default function FeedPage() {
       {/* Widget Quote Modal */}
       <WidgetQuoteModal
         visible={showWidgetModal}
-        onClose={() => setShowWidgetModal(false)}
+        onClose={handleCloseWidgetModal}
       />
     </>
   );
