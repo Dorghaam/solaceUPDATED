@@ -22,6 +22,7 @@ import { networkService } from '../services/networkService';
 import { waitForStoreHydration } from '../utils';
 import { configureGoogleSignIn } from '../services/googleAuthService';
 import { setupNotificationResponseListener } from '../services/notificationService';
+import { SplashScreenFade } from '../components/SplashScreenFade';
 
 // This is a placeholder ThemeProvider until we create our own
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -62,6 +63,7 @@ export default function RootLayout() {
   } = useUserStore();
   const [pendingDeepLink, setPendingDeepLink] = React.useState<string | null>(null);
   const [isInitialized, setIsInitialized] = React.useState(false);
+  const [showFadeSplash, setShowFadeSplash] = React.useState(true);
   
   // Block React 18 Strict Mode double-mounting in dev
   const didInit = useRef(false);
@@ -72,6 +74,11 @@ export default function RootLayout() {
     'Inter-Regular': require('../Inter/static/Inter_18pt-Regular.ttf'),
     'Inter-SemiBold': require('../Inter/static/Inter_18pt-SemiBold.ttf'),
   });
+
+  // Hide native splash screen immediately and let fade component handle the timing
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(console.error);
+  }, []);
 
   // Initialize app with splash screen logic - prevent double mounting
   useEffect(() => {
@@ -146,11 +153,7 @@ export default function RootLayout() {
       } finally {
         if (!cancelled) {
           setIsInitialized(true);
-          if (fontsLoaded || fontError) {
-            setTimeout(() => {
-              SplashScreen.hideAsync().catch(console.error);
-            }, 1000);
-          }
+          // Fade component will handle the timing
         }
       }
     };
@@ -278,13 +281,7 @@ export default function RootLayout() {
     };
   }, [isInitialized, authChecked]);
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      if (isInitialized) {
-        SplashScreen.hideAsync().catch(console.error);
-      }
-    }
-  }, [fontsLoaded, fontError, isInitialized]);
+  // Native splash screen is hidden immediately, fade component handles the timing
 
   const showMainApp = supabaseUser && hasCompletedOnboarding;
 
@@ -336,6 +333,14 @@ export default function RootLayout() {
               <Stack.Screen name="notification" options={{ presentation: 'modal' }} />
               <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
             </Stack>
+            
+            {/* Fade splash screen */}
+            {showFadeSplash && (
+              <SplashScreenFade
+                onFadeComplete={() => setShowFadeSplash(false)}
+              />
+            )}
+
           </ThemeProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
