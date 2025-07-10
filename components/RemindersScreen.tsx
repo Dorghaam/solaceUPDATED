@@ -17,6 +17,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { theme } from '../constants/theme';
 import { useUserStore, breakupInterestCategories, BreakupCategory } from '../store/userStore';
 import { scheduleDailyAffirmationReminders, cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync } from '../services/notificationService';
+import { TimeRangeScreen } from './TimeRangeScreen';
 import * as Haptics from 'expo-haptics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -56,6 +57,7 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
   });
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showCategoriesList, setShowCategoriesList] = useState(false);
+  const [showTimeRangeModal, setShowTimeRangeModal] = useState(false);
   const [isSchedulingNotifications, setIsSchedulingNotifications] = useState(false);
   
   // Animation refs for categories list
@@ -221,16 +223,19 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
   const generateCustomNotificationTimes = (frequency: number) => {
     const times: { hour: number; minute: number }[] = [];
     
-    // Fixed time range: 9 AM to 10 PM (13 hours)
-    const startHour = 9;
-    const startMinute = 0;
-    const endHour = 22;
-    const endMinute = 0;
+    // Use custom time range if available and user is premium, otherwise use defaults
+    const customTimeRange = notificationSettings?.customTimeRange;
+    const useCustomRange = subscriptionTier === 'premium' && customTimeRange;
     
-    // Calculate the time range in minutes (13 hours = 780 minutes)
-    const startTimeInMinutes = startHour * 60 + startMinute; // 540 minutes (9:00 AM)
-    const endTimeInMinutes = endHour * 60 + endMinute; // 1320 minutes (10:00 PM)
-    const totalMinutes = endTimeInMinutes - startTimeInMinutes; // 780 minutes
+    const startHour = useCustomRange ? customTimeRange.startHour : 9;
+    const startMinute = useCustomRange ? customTimeRange.startMinute : 0;
+    const endHour = useCustomRange ? customTimeRange.endHour : 22;
+    const endMinute = useCustomRange ? customTimeRange.endMinute : 0;
+    
+    // Calculate the time range in minutes
+    const startTimeInMinutes = startHour * 60 + startMinute;
+    const endTimeInMinutes = endHour * 60 + endMinute;
+    const totalMinutes = endTimeInMinutes - startTimeInMinutes;
     
     // Calculate interval between notifications
     const interval = Math.floor(totalMinutes / frequency);
@@ -244,6 +249,47 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
     }
     
     return times;
+  };
+
+  const handleTimeRangeSave = (timeRange: { startHour: number; startMinute: number; endHour: number; endMinute: number }) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Update notification settings with custom time range
+    setNotificationSettings({
+      ...notificationSettings,
+      customTimeRange: timeRange,
+    });
+    
+    Alert.alert(
+      'Time Range Updated',
+      `Your reminders will now be sent between ${String(timeRange.startHour).padStart(2, '0')}:${String(timeRange.startMinute).padStart(2, '0')}` +
+      ` and ${String(timeRange.endHour).padStart(2, '0')}:${String(timeRange.endMinute).padStart(2, '0')}.`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleCustomTimeRangePress = () => {
+    if (subscriptionTier !== 'premium') {
+      Alert.alert(
+        'Premium Feature',
+        'Custom time ranges are available for premium subscribers. Upgrade to customize when you receive reminders!',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowTimeRangeModal(true);
+  };
+
+  const formatTimeRange = () => {
+    const customTimeRange = notificationSettings?.customTimeRange;
+    if (subscriptionTier === 'premium' && customTimeRange) {
+      const startTime = `${String(customTimeRange.startHour).padStart(2, '0')}:${String(customTimeRange.startMinute).padStart(2, '0')}`;
+      const endTime = `${String(customTimeRange.endHour).padStart(2, '0')}:${String(customTimeRange.endMinute).padStart(2, '0')}`;
+      return `${startTime} - ${endTime}`;
+    }
+    return '09:00 - 22:00'; // Default range
   };
 
   const handleToggleNotifications = async (enabled: boolean) => {
@@ -310,6 +356,18 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
     setIsSchedulingNotifications(true);
 
     try {
+      // Use custom time range if premium user has set one
+      const customTimeRange = subscriptionTier === 'premium' ? notificationSettings?.customTimeRange : undefined;
+      
+      if (customTimeRange) {
+        // Schedule with custom time range
+        await scheduleDailyAffirmationReminders(
+          `${selectedFrequency}x` as any,
+          undefined,
+          selectedCategories,
+          customTimeRange
+        );
+      } else {
       // Generate custom notification times based on frequency (9 AM to 10 PM)
       const customTimes = generateCustomNotificationTimes(selectedFrequency);
       
@@ -319,16 +377,22 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
         customTimes,
         selectedCategories
       );
+      }
 
       // Update user store with settings
       setNotificationSettings({
         enabled: notificationsEnabled,
         frequency: `${selectedFrequency}x` as any,
+        customTimeRange: notificationSettings?.customTimeRange,
       });
+
+      const timeRangeText = customTimeRange 
+        ? `${String(customTimeRange.startHour).padStart(2, '0')}:${String(customTimeRange.startMinute).padStart(2, '0')} to ${String(customTimeRange.endHour).padStart(2, '0')}:${String(customTimeRange.endMinute).padStart(2, '0')}`
+        : '9:00 AM to 10:00 PM';
 
       Alert.alert(
         'Reminders Set!',
-        `Your ${selectedFrequency}x daily reminders have been scheduled from 9:00 AM to 10:00 PM.`,
+        `Your ${selectedFrequency}x daily reminders have been scheduled from ${timeRangeText}.`,
         [{ text: 'OK', onPress: handleClose }]
       );
     } catch (error) {
@@ -539,6 +603,48 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
                 </View>
               </View>
 
+              {/* Time Range Section - Premium Feature */}
+              <View style={[styles.sectionContainer, { opacity: notificationsEnabled ? 1 : 0.5 }]}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionLabel}>Time Range</Text>
+                  {subscriptionTier !== 'premium' && (
+                    <View style={styles.premiumBadge}>
+                      <Ionicons name="diamond" size={14} color={theme.colors.primary} />
+                      <Text style={styles.premiumBadgeText}>Premium</Text>
+                    </View>
+                  )}
+                </View>
+                <Pressable
+                  style={[
+                    styles.timeRangeButton,
+                    { opacity: notificationsEnabled ? 1 : 0.5 },
+                    subscriptionTier !== 'premium' && styles.lockedButton
+                  ]}
+                  onPress={() => notificationsEnabled && handleCustomTimeRangePress()}
+                  disabled={!notificationsEnabled}
+                >
+                  <View style={styles.timeRangeContent}>
+                    <Text style={[
+                      styles.timeRangeText,
+                      subscriptionTier !== 'premium' && styles.lockedText
+                    ]}>
+                      {formatTimeRange()}
+                    </Text>
+                    <Text style={[
+                      styles.timeRangeSubtext,
+                      subscriptionTier !== 'premium' && styles.lockedSubtext
+                    ]}>
+                      {subscriptionTier === 'premium' ? 'Tap to customize' : 'Upgrade to customize'}
+                    </Text>
+                  </View>
+                  <Ionicons 
+                    name={subscriptionTier === 'premium' ? "chevron-forward" : "lock-closed"} 
+                    size={20} 
+                    color={subscriptionTier === 'premium' ? theme.colors.text : theme.colors.textSecondary} 
+                  />
+                </Pressable>
+              </View>
+
               {/* Categories Section */}
               <View style={[styles.sectionContainer, { opacity: notificationsEnabled ? 1 : 0.5 }]}>
                 <Text style={styles.sectionLabel}>Categories</Text>
@@ -575,6 +681,13 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
 
       {/* Categories List Modal */}
       {renderCategoriesList()}
+      
+      {/* Time Range Modal */}
+      <TimeRangeScreen
+        visible={showTimeRangeModal}
+        onClose={() => setShowTimeRangeModal(false)}
+        onSave={handleTimeRangeSave}
+      />
     </View>
   );
 };
@@ -908,6 +1021,63 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: theme.spacing.m,
     lineHeight: 20,
+  },
+  // Time Range Section Styles
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.s,
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.lightPink.lightest,
+    borderRadius: theme.radii.s,
+    paddingHorizontal: theme.spacing.s,
+    paddingVertical: theme.spacing.xs,
+    borderWidth: 1,
+    borderColor: theme.colors.lightPink.medium,
+  },
+  premiumBadgeText: {
+    fontSize: theme.typography.fontSizes.xs,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: theme.colors.primary,
+    marginLeft: theme.spacing.xs,
+  },
+  timeRangeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: theme.radii.m,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  timeRangeContent: {
+    flex: 1,
+  },
+  timeRangeText: {
+    fontSize: theme.typography.fontSizes.m,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: theme.colors.text,
+  },
+  timeRangeSubtext: {
+    fontSize: theme.typography.fontSizes.s,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
+  },
+  lockedButton: {
+    opacity: 0.6,
+  },
+  lockedText: {
+    color: theme.colors.textSecondary,
+  },
+  lockedSubtext: {
+    color: theme.colors.textSecondary,
   },
 
 }); 

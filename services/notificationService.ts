@@ -78,8 +78,6 @@ const getQuoteMessage = (quotes: any[], index: number) => {
   return { message, quote };
 };
 
-
-
 // Call this once, e.g., when app starts or when notifications are first enabled
 export const setupNotificationChannelsAsync = async () => {
   if (Platform.OS === 'android') {
@@ -93,44 +91,57 @@ export const setupNotificationChannelsAsync = async () => {
   }
 };
 
-// Default reminder times for different frequencies
-const defaultReminderTimes = {
-  '1x': [
-    { hour: 14, minute: 0 }, // 2:00 PM
-  ],
-  '3x': [
-    { hour: 9, minute: 0 },  // 9:00 AM
-    { hour: 14, minute: 0 }, // 2:00 PM
-    { hour: 19, minute: 0 }, // 7:00 PM
-  ],
-  '5x': [
-    { hour: 8, minute: 0 },  // 8:00 AM
-    { hour: 11, minute: 0 }, // 11:00 AM
-    { hour: 14, minute: 0 }, // 2:00 PM
-    { hour: 17, minute: 0 }, // 5:00 PM
-    { hour: 20, minute: 0 }, // 8:00 PM
-  ],
-  '10x': [
-    { hour: 7, minute: 0 },  // 7:00 AM
-    { hour: 9, minute: 0 },  // 9:00 AM
-    { hour: 11, minute: 0 }, // 11:00 AM
-    { hour: 13, minute: 0 }, // 1:00 PM
-    { hour: 15, minute: 0 }, // 3:00 PM
-    { hour: 17, minute: 0 }, // 5:00 PM
-    { hour: 19, minute: 0 }, // 7:00 PM
-    { hour: 20, minute: 30 }, // 8:30 PM
-    { hour: 21, minute: 30 }, // 9:30 PM
-    { hour: 22, minute: 30 }, // 10:30 PM
-  ],
-  'custom': [] as { hour: number; minute: number }[]
+// No need for hardcoded times anymore - we generate them dynamically for any frequency 1-10
+
+// Helper function to generate notification times from a custom time range
+const generateTimesFromRange = (
+  frequency: number, 
+  timeRange: { startHour: number; startMinute: number; endHour: number; endMinute: number }
+): { hour: number; minute: number }[] => {
+  const times: { hour: number; minute: number }[] = [];
+  
+  const startTimeInMinutes = timeRange.startHour * 60 + timeRange.startMinute;
+  const endTimeInMinutes = timeRange.endHour * 60 + timeRange.endMinute;
+  const totalMinutes = endTimeInMinutes - startTimeInMinutes;
+  
+  // Calculate interval between notifications
+  const interval = Math.floor(totalMinutes / frequency);
+  
+  for (let i = 0; i < frequency; i++) {
+    const timeInMinutes = startTimeInMinutes + (i * interval);
+    const hour = Math.floor(timeInMinutes / 60);
+    const minute = timeInMinutes % 60;
+    
+    times.push({ hour, minute });
+  }
+  
+  return times;
 };
 
-export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' | '5x' | '10x' | 'custom' = '3x', customTimes?: { hour: number; minute: number }[], categories?: string[]) => {
+export const scheduleDailyAffirmationReminders = async (
+  frequency: '1x' | '2x' | '3x' | '4x' | '5x' | '6x' | '7x' | '8x' | '9x' | '10x' | 'custom' = '3x', 
+  customTimes?: { hour: number; minute: number }[], 
+  categories?: string[],
+  customTimeRange?: { startHour: number; startMinute: number; endHour: number; endMinute: number }
+) => {
   await setupNotificationChannelsAsync(); // Ensure channel exists
   await Notifications.cancelAllScheduledNotificationsAsync(); // Clear existing Solace reminders first
   console.log(`Scheduling ${frequency} daily reminders...`);
 
-  const reminderTimes = frequency === 'custom' && customTimes ? customTimes : defaultReminderTimes[frequency];
+  let reminderTimes: { hour: number; minute: number }[];
+  
+  if (frequency === 'custom' && customTimes) {
+    reminderTimes = customTimes;
+  } else if (customTimeRange) {
+    // Generate times based on custom time range
+    const numFrequency = parseInt(frequency.replace('x', ''), 10);
+    reminderTimes = generateTimesFromRange(numFrequency, customTimeRange);
+  } else {
+    // For any frequency (1x-10x), generate times dynamically from 9 AM to 10 PM
+    const numFrequency = parseInt(frequency.replace('x', ''), 10);
+    const defaultTimeRange = { startHour: 9, startMinute: 0, endHour: 22, endMinute: 0 };
+    reminderTimes = generateTimesFromRange(numFrequency, defaultTimeRange);
+  }
 
   // Fetch quotes from Supabase for notifications
   console.log('Fetching quotes from Supabase for notifications...');
@@ -184,8 +195,15 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
 };
 
 // Helper function to get the reminder times for a given frequency
-export const getReminderTimesForFrequency = (frequency: '1x' | '3x' | '5x' | '10x' | 'custom') => {
-  return defaultReminderTimes[frequency];
+export const getReminderTimesForFrequency = (frequency: '1x' | '2x' | '3x' | '4x' | '5x' | '6x' | '7x' | '8x' | '9x' | '10x' | 'custom') => {
+  if (frequency === 'custom') {
+    return [];
+  }
+  
+  // Generate times dynamically for any frequency 1-10
+  const numFrequency = parseInt(frequency.replace('x', ''), 10);
+  const defaultTimeRange = { startHour: 9, startMinute: 0, endHour: 22, endMinute: 0 };
+  return generateTimesFromRange(numFrequency, defaultTimeRange);
 };
 
 export const cancelAllScheduledAffirmationReminders = async () => {

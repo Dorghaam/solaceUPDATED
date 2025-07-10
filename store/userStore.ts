@@ -16,13 +16,18 @@ const zustandStorage = createJSONStorage(() => ({
 
 // --- Types ---
 export type FamiliarityAffirmations = 'new' | 'occasional' | 'regular' | null;
-export type NotificationFrequency = '1x' | '3x' | '5x' | '10x' | null;
+export type NotificationFrequency = '1x' | '2x' | '3x' | '4x' | '5x' | '6x' | '7x' | '8x' | '9x' | '10x' | null;
 export type SubscriptionTier = 'unknown' | 'free' | 'premium'; // Added subscription tier with unknown state
 
 export interface NotificationSettings {
   enabled: boolean;
   frequency: NotificationFrequency;
-  // time?: string; // Consider if specific time selection is needed later
+  customTimeRange?: {
+    startHour: number;
+    startMinute: number;
+    endHour: number;
+    endMinute: number;
+  };
 }
 
 export interface DailyMood {
