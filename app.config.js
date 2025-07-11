@@ -14,11 +14,7 @@ export default ({ config }) => ({
     icon: "./Copy of Solace(4).png", // Updated to new app icon
     userInterfaceStyle: "light",
     newArchEnabled: true,
-    splash: {
-      image: "./Copy of Solace(4).png",
-      resizeMode: "contain",
-      backgroundColor: "#ffffff"
-    },
+    // Splash screen disabled - using custom fade component instead
           ios: {
         ...config.expo?.ios,
         supportsTablet: false,
