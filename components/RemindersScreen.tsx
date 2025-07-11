@@ -77,6 +77,11 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
           setSelectedFrequency(numericFreq);
         }
       }
+      
+      // Load selected categories from store
+      if (notificationSettings.selectedCategories) {
+        setSelectedCategories(notificationSettings.selectedCategories);
+      }
     }
   }, [notificationSettings]);
 
@@ -339,6 +344,7 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
       setNotificationSettings({
         enabled: false,
         frequency: `${selectedFrequency}x` as any,
+        selectedCategories: selectedCategories, // Save selected categories even when disabled
       });
       handleClose();
       return;
@@ -383,6 +389,7 @@ export const RemindersScreen: React.FC<RemindersScreenProps> = ({
       setNotificationSettings({
         enabled: notificationsEnabled,
         frequency: `${selectedFrequency}x` as any,
+        selectedCategories: selectedCategories, // Save selected categories
         customTimeRange: notificationSettings?.customTimeRange,
       });
 

@@ -22,6 +22,7 @@ export type SubscriptionTier = 'unknown' | 'free' | 'premium'; // Added subscrip
 export interface NotificationSettings {
   enabled: boolean;
   frequency: NotificationFrequency;
+  selectedCategories?: string[]; // Store selected category IDs for reminders
   customTimeRange?: {
     startHour: number;
     startMinute: number;
@@ -256,6 +257,7 @@ const initialState = {
   notificationSettings: {
     enabled: false,
     frequency: '3x' as NotificationFrequency,
+    selectedCategories: [], // Store selected category IDs for reminders persistence
   },
   pushToken: null,
   dailyMood: null,
@@ -643,7 +645,7 @@ export const useUserStore = create<UserState>()(
       setNotificationSettings: (settingsUpdate) =>
         set((state) => ({
           notificationSettings: {
-            ...(state.notificationSettings || { enabled: false, frequency: '3x' }), // Ensure defaults
+            ...(state.notificationSettings || { enabled: false, frequency: '3x', selectedCategories: [] }), // Ensure defaults
             ...settingsUpdate,
           } as NotificationSettings, // Type assertion
         })),
