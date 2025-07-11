@@ -8,7 +8,7 @@ export default ({ config }) => ({
     ...config.expo,
     name: "Solace",
     slug: "solace",
-    version: "2.0.1",
+    version: "2.0.2",
     scheme: "solaceapp",
     orientation: "default",
     icon: "./Copy of Solace(4).png", // Updated to new app icon
@@ -21,7 +21,7 @@ export default ({ config }) => ({
         isTabletOnly: false,
         requireFullScreen: true,
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
-        buildNumber: "18",
+        buildNumber: "19",
         googleServicesFile: "./ios/GoogleService-Info.plist", // Correct path
         storeKitConfigurationPath: "./Product_StoreKit_Config.storekit",
         entitlements: {
@@ -37,6 +37,7 @@ export default ({ config }) => ({
       },
     android: {
       ...config.expo?.android,
+      versionCode: 19,
       adaptiveIcon: {
         foregroundImage: "./Copy of Solace(4).png",
         backgroundColor: "#ffffff" // Updated to match design
