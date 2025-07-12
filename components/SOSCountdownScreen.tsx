@@ -106,16 +106,25 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
   const quoteOpacity = useRef(new Animated.Value(1)).current;
   const breathingScale = useRef(new Animated.Value(1)).current;
 
-  const [timeLeft, setTimeLeft] = useState(TIMER_DURATION);
-  const [isActive, setIsActive] = useState(false);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(true);
-  const [isCompleted, setIsCompleted] = useState(false);
   const [activeTask, setActiveTask] = useState<string | null>(null);
   const [taskTimeLeft, setTaskTimeLeft] = useState(30);
 
-  const { userName } = useUserStore();
+  const { 
+    userName, 
+    sosTimer, 
+    startSOSTimer, 
+    stopSOSTimer, 
+    updateSOSTimer, 
+    completeSOSTimer 
+  } = useUserStore();
+
+  // Use persistent timer state
+  const timeLeft = sosTimer.timeLeft;
+  const isActive = sosTimer.isActive;
+  const isCompleted = sosTimer.timeLeft === 0 && sosTimer.urgeType !== null;
 
   // Fetch quotes based on urge type
   const fetchQuotesForUrge = useCallback(async () => {
@@ -161,11 +170,12 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
   // Animate screen in/out
   useEffect(() => {
     if (visible) {
-      setIsActive(true);
-      setTimeLeft(TIMER_DURATION);
-      setIsCompleted(false);
-      setCurrentQuoteIndex(0);
+      // Start persistent timer if not already active
+      if (!sosTimer.isActive && sosTimer.timeLeft === 0) {
+        startSOSTimer(urgeType);
+      }
       
+      setCurrentQuoteIndex(0);
       fetchQuotesForUrge();
       
       Animated.parallel([
@@ -202,23 +212,23 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
     
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft(time => {
-          if (time <= 1) {
-            setIsActive(false);
-            setIsCompleted(true);
-            hapticService.success();
-            onComplete();
-            return 0;
-          }
-          return time - 1;
-        });
+        updateSOSTimer();
       }, 1000);
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, onComplete]);
+  }, [isActive, timeLeft > 0, updateSOSTimer]);
+
+  // Handle completion
+  useEffect(() => {
+    if (isActive && timeLeft === 0) {
+      hapticService.success();
+      completeSOSTimer();
+      onComplete();
+    }
+  }, [timeLeft, isActive, completeSOSTimer, onComplete]);
 
   // Task timer (30 seconds)
   useEffect(() => {
@@ -301,7 +311,7 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
 
   const handleClose = () => {
     hapticService.light();
-    setIsActive(false);
+    // Don't stop the timer - just close the UI
     onClose();
   };
 
@@ -355,7 +365,7 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
           { transform: [{ translateY: slideAnim }] }
         ]}
       >
-        {/* Header - Close Button Only */}
+        {/* Header - Close Button and Stop Timer Option */}
         <View style={styles.header}>
           <Pressable
             style={styles.closeButton}
@@ -363,6 +373,19 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
           >
             <Ionicons name="close" size={24} color="white" />
           </Pressable>
+          
+          {isActive && (
+            <Pressable
+              style={styles.stopTimerButton}
+              onPress={() => {
+                hapticService.light();
+                stopSOSTimer();
+                onClose();
+              }}
+            >
+              <Text style={styles.stopTimerText}>Stop Timer</Text>
+            </Pressable>
+          )}
         </View>
 
         {/* Scrollable Content */}
@@ -516,8 +539,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 20,
     paddingLeft: 20,
+    paddingRight: 20,
   },
   closeButton: {
     width: 40,
@@ -526,6 +551,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  stopTimerButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+  },
+  stopTimerText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   titleSection: {
     alignItems: 'center',
