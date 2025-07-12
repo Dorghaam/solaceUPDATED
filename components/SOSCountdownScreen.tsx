@@ -35,12 +35,12 @@ const URGE_CATEGORY_MAP: { [key: string]: string } = {
 
 // Map urge types to personalized titles
 const URGE_TITLE_MAP: { [key: string]: string } = {
-  'text_call': 'Don\'t Text Him',
-  'social_media': 'Stay Off His Socials',
-  'drive_by': 'Don\'t Drive By',
-  'contact_friends': 'Don\'t Contact His Friends',
-  'old_photos': 'Don\'t Look at Old Photos',
-  'send_message': 'Don\'t Send That Message',
+  'text_call': 'I know you miss him. doesn\'t mean you need to reach out',
+  'social_media': 'feel that itch to open his profile? it\'s okay, that\'s your heart talking',
+  'drive_by': 'stay safe today, no driving over there',
+  'contact_friends': 'think twice before reaching out to them',
+  'old_photos': 'hold space for your future glow, not the old pics',
+  'send_message': 'wait before you hit send, your voice deserves space',
 };
 
 // Distraction tasks for active coping
