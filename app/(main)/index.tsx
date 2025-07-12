@@ -216,6 +216,12 @@ export default function FeedPage() {
     // Handle brush/theme functionality here
   }, []);
 
+  const handleSOSPress = useCallback(() => {
+    hapticService.light();
+    console.log('SOS button pressed');
+    // TODO: Show SOS modal for urge selection
+  }, []);
+
   const handleCloseWidgetModal = useCallback(() => {
     console.log('[FeedPage] Closing widget modal and clearing targetQuote');
     clearTargetQuote();
@@ -258,6 +264,7 @@ export default function FeedPage() {
         onSettingSelect={handleSettingSelect}
         onPremiumPress={handlePremiumPress}
         onBrushPress={handleBrushPress}
+        onSOSPress={handleSOSPress}
         subscriptionTier={subscriptionTier}
       />
       

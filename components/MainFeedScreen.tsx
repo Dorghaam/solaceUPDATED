@@ -56,6 +56,7 @@ interface MainFeedScreenProps {
   // Additional button handlers
   onPremiumPress: () => void;
   onBrushPress: () => void;
+  onSOSPress: () => void;
   // ✅ REMOVED: Dev function no longer needed
   // Subscription state
   subscriptionTier: SubscriptionTier;
@@ -83,6 +84,7 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
   onSettingSelect,
   onPremiumPress,
   onBrushPress,
+  onSOSPress,
   // ✅ REMOVED: Dev function no longer needed
   subscriptionTier,
 }) => {
@@ -395,7 +397,16 @@ export const MainFeedScreen: React.FC<MainFeedScreenProps> = ({
           >
             <Ionicons name="grid-outline" size={24} color={theme.colors.text} />
           </Pressable>
-          <View style={styles.invisibleButton} />
+          <Pressable 
+            style={({ pressed }) => [
+              styles.sosButton,
+              { opacity: pressed ? 0.8 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] }
+            ]} 
+            onPress={onSOSPress}
+            disabled={showCategories || showSettings}
+          >
+            <Ionicons name="shield-checkmark" size={28} color={theme.colors.white} />
+          </Pressable>
           <Pressable 
             style={({ pressed }) => [
               styles.bottomButton,
@@ -561,6 +572,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     // ✅ REMOVED: Heavy shadows that cause animation glitches
+  },
+  sosButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   topLeftSpacer: {
     width: 44,
