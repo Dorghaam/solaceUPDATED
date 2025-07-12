@@ -517,6 +517,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    paddingLeft: 20,
   },
   closeButton: {
     width: 40,

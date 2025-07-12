@@ -33,6 +33,7 @@ export default function FeedPage() {
     updateStreakData,
     targetQuote,
     clearTargetQuote,
+    sosTimer,
   } = useUserStore();
 
   // ✅ Gate first-run side-effects to prevent React 18 Strict Mode double-mounting
@@ -224,8 +225,16 @@ export default function FeedPage() {
   const handleSOSPress = useCallback(() => {
     hapticService.light();
     console.log('SOS button pressed');
-    setShowSOSModal(true);
-  }, []);
+    
+    // If timer is already active, show the countdown screen directly
+    if (sosTimer.isActive && sosTimer.timeLeft > 0) {
+      setSelectedUrgeType(sosTimer.urgeType || '');
+      setShowSOSCountdown(true);
+    } else {
+      // Otherwise, show the urge selection modal
+      setShowSOSModal(true);
+    }
+  }, [sosTimer]);
 
   const handleSOSClose = useCallback(() => {
     hapticService.light();

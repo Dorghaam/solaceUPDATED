@@ -49,6 +49,15 @@ export interface TargetQuote {
   category?: string;
 }
 
+export interface SOSTimer {
+  isActive: boolean;
+  timeLeft: number;
+  urgeType: string | null;
+  startTime: number | null;
+  lastPauseTime: number | null;
+  totalUrgesSurfed: number;
+}
+
 // Define the shape of a quote
 export interface Quote {
   id: string;
@@ -163,6 +172,9 @@ interface UserState {
   subscriptionTier: SubscriptionTier; // Added subscriptionTier
   loggingOut: boolean; // Added loggingOut flag
 
+  // SOS Timer
+  sosTimer: SOSTimer;
+
   // Actions
   setUserName: (name: string) => void;
   setHasCompletedOnboarding: (status: boolean) => void;
@@ -210,6 +222,14 @@ interface UserState {
   // App State Control Actions
   setAuthChecked: (checked: boolean) => void;
   setSubscriptionInitialized: (initialized: boolean) => void; // ✅ FIX: New action for subscription initialization
+
+  // SOS Timer Actions
+  startSOSTimer: (urgeType: string) => void;
+  pauseSOSTimer: () => void;
+  resumeSOSTimer: () => void;
+  stopSOSTimer: () => void;
+  updateSOSTimer: () => void;
+  completeSOSTimer: () => void;
 
   resetState: () => void;
   
@@ -278,6 +298,16 @@ const initialState = {
   // Monetization - SAFE: Start as unknown, will be determined by RevenueCat
   subscriptionTier: 'unknown' as SubscriptionTier, // Safe default until RC confirms
   loggingOut: false, // Added loggingOut flag
+
+  // SOS Timer - Persistent across app
+  sosTimer: {
+    isActive: false,
+    timeLeft: 0,
+    urgeType: null,
+    startTime: null,
+    lastPauseTime: null,
+    totalUrgesSurfed: 0,
+  },
 };
 
 export const useUserStore = create<UserState>()(
@@ -723,6 +753,80 @@ export const useUserStore = create<UserState>()(
         set({ subscriptionInitialized: initialized });
       },
 
+      // SOS Timer Actions
+      startSOSTimer: (urgeType: string) => {
+        const now = Date.now();
+        set({
+          sosTimer: {
+            isActive: true,
+            timeLeft: 20 * 60, // 20 minutes in seconds
+            urgeType,
+            startTime: now,
+            lastPauseTime: null,
+            totalUrgesSurfed: get().sosTimer.totalUrgesSurfed,
+          }
+        });
+      },
+
+      pauseSOSTimer: () => {
+        set((state) => ({
+          sosTimer: {
+            ...state.sosTimer,
+            isActive: false,
+            lastPauseTime: Date.now(),
+          }
+        }));
+      },
+
+      resumeSOSTimer: () => {
+        set((state) => ({
+          sosTimer: {
+            ...state.sosTimer,
+            isActive: true,
+            lastPauseTime: null,
+          }
+        }));
+      },
+
+      stopSOSTimer: () => {
+        set((state) => ({
+          sosTimer: {
+            ...state.sosTimer,
+            isActive: false,
+            timeLeft: 0,
+            urgeType: null,
+            startTime: null,
+            lastPauseTime: null,
+          }
+        }));
+      },
+
+      updateSOSTimer: () => {
+        const state = get();
+        if (!state.sosTimer.isActive || state.sosTimer.timeLeft <= 0) return;
+        
+        set((state) => ({
+          sosTimer: {
+            ...state.sosTimer,
+            timeLeft: Math.max(0, state.sosTimer.timeLeft - 1),
+          }
+        }));
+      },
+
+      completeSOSTimer: () => {
+        set((state) => ({
+          sosTimer: {
+            ...state.sosTimer,
+            isActive: false,
+            timeLeft: 0,
+            urgeType: null,
+            startTime: null,
+            lastPauseTime: null,
+            totalUrgesSurfed: state.sosTimer.totalUrgesSurfed + 1,
+          }
+        }));
+      },
+
       resetState: () => {
         console.log('UserStore: Starting state reset...');
         
@@ -804,6 +908,7 @@ export const useUserStore = create<UserState>()(
         widgetSettings: state.widgetSettings,
         isWidgetCustomizing: state.isWidgetCustomizing,
         subscriptionTier: state.subscriptionTier, // ✅ NOW PERSISTED - RevenueCat will update this via listener
+        sosTimer: state.sosTimer, // ✅ PERSIST SOS TIMER - Keep active timers across app restarts
         // subscriptionInitialized is NOT persisted - should reset on each app launch for fresh RevenueCat data
         // activeQuoteCategory and targetQuote are typically transient
         // quotes and isLoading are also transient
