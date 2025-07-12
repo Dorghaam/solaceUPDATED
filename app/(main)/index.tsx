@@ -7,6 +7,7 @@ import { reviewService } from '../../services/reviewService';
 import { MainFeedScreen } from '../../components/MainFeedScreen';
 import { useAuthGuard } from '../../utils';
 import { WidgetQuoteModal } from '../../components/WidgetQuoteModal';
+import { SOSModal } from '../../components/SOSModal';
 
 // This screen now acts as a simple wrapper that renders our main UI component.
 // All the UI logic is contained within MainFeedScreen.
@@ -47,6 +48,7 @@ export default function FeedPage() {
   const [showCategories, setShowCategories] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showWidgetModal, setShowWidgetModal] = useState(false);
+  const [showSOSModal, setShowSOSModal] = useState(false);
 
   // ✅ FIX: Enhanced consolidated effect with hydration guard to prevent flicker
   useEffect(() => {
@@ -219,7 +221,18 @@ export default function FeedPage() {
   const handleSOSPress = useCallback(() => {
     hapticService.light();
     console.log('SOS button pressed');
-    // TODO: Show SOS modal for urge selection
+    setShowSOSModal(true);
+  }, []);
+
+  const handleSOSClose = useCallback(() => {
+    hapticService.light();
+    setShowSOSModal(false);
+  }, []);
+
+  const handleUrgeSelect = useCallback((urgeId: string) => {
+    console.log('Urge selected:', urgeId);
+    setShowSOSModal(false);
+    // TODO: Start the 20-minute timer with this urge type
   }, []);
 
   const handleCloseWidgetModal = useCallback(() => {
@@ -272,6 +285,13 @@ export default function FeedPage() {
       <WidgetQuoteModal
         visible={showWidgetModal}
         onClose={handleCloseWidgetModal}
+      />
+      
+      {/* SOS Modal */}
+      <SOSModal
+        visible={showSOSModal}
+        onClose={handleSOSClose}
+        onUrgeSelect={handleUrgeSelect}
       />
     </>
   );
