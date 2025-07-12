@@ -111,6 +111,7 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(true);
   const [activeTask, setActiveTask] = useState<string | null>(null);
   const [taskTimeLeft, setTaskTimeLeft] = useState(30);
+  const [isClosing, setIsClosing] = useState(false);
 
   const { 
     userName, 
@@ -170,6 +171,9 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
   // Animate screen in/out
   useEffect(() => {
     if (visible) {
+      // Reset closing state
+      setIsClosing(false);
+      
       // Start persistent timer if not already active
       if (!sosTimer.isActive && sosTimer.timeLeft === 0) {
         startSOSTimer(urgeType);
@@ -191,18 +195,9 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
         }),
       ]).start();
     } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: screenHeight,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(backgroundOpacity, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Reset animations when not visible
+      slideAnim.setValue(screenHeight);
+      backgroundOpacity.setValue(0);
     }
   }, [visible]);
 
@@ -309,10 +304,34 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleClose = () => {
+  // Animate out and close
+  const animateOut = (callback?: () => void) => {
+    if (isClosing) return; // Prevent multiple close animations
+    
+    setIsClosing(true);
     hapticService.light();
+    
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: screenHeight,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backgroundOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsClosing(false);
+      callback?.();
+      onClose();
+    });
+  };
+
+  const handleClose = () => {
     // Don't stop the timer - just close the UI
-    onClose();
+    animateOut();
   };
 
   // Get personalized title based on urge type and user name
@@ -368,20 +387,22 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
         {/* Header - Close Button and Stop Timer Option */}
         <View style={styles.header}>
           <Pressable
-            style={styles.closeButton}
+            style={[styles.closeButton, isClosing && styles.disabledButton]}
             onPress={handleClose}
+            disabled={isClosing}
           >
             <Ionicons name="close" size={24} color="white" />
           </Pressable>
           
           {isActive && (
             <Pressable
-              style={styles.stopTimerButton}
+              style={[styles.stopTimerButton, isClosing && styles.disabledButton]}
               onPress={() => {
-                hapticService.light();
-                stopSOSTimer();
-                onClose();
+                animateOut(() => {
+                  stopSOSTimer();
+                });
               }}
+              disabled={isClosing}
             >
               <Text style={styles.stopTimerText}>Stop Timer</Text>
             </Pressable>
@@ -493,8 +514,9 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
                 🌟 Urge Surfed! You chose healing over hurt.
               </Text>
               <Pressable
-                style={styles.completionButton}
+                style={[styles.completionButton, isClosing && styles.disabledButton]}
                 onPress={handleClose}
+                disabled={isClosing}
               >
                 <Text style={styles.completionButtonText}>Continue</Text>
               </Pressable>
@@ -720,5 +742,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 }); 
