@@ -17,12 +17,48 @@ import { hapticService } from '../services/hapticService';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const URGE_OPTIONS = [
-  { id: 'text_call', title: 'Text or call him' },
-  { id: 'social_media', title: 'Check his Instagram/social media' },
-  { id: 'drive_by', title: 'Drive by his place' },
-  { id: 'contact_friends', title: 'Contact his friends' },
-  { id: 'old_photos', title: 'Look through old photos' },
-  { id: 'send_message', title: 'Send him a message' },
+  { 
+    id: 'text_call', 
+    title: 'Text or call him',
+    icon: 'call',
+    color: '#F48FB1',
+    gradient: ['#F48FB1', '#F8BBD9']
+  },
+  { 
+    id: 'social_media', 
+    title: 'Check his Instagram/social media',
+    icon: 'logo-instagram',
+    color: '#F48FB1',
+    gradient: ['#F48FB1', '#F8BBD9']
+  },
+  { 
+    id: 'drive_by', 
+    title: 'Drive by his place',
+    icon: 'car',
+    color: '#F48FB1',
+    gradient: ['#F48FB1', '#F8BBD9']
+  },
+  { 
+    id: 'contact_friends', 
+    title: 'Contact his friends',
+    icon: 'people',
+    color: '#F48FB1',
+    gradient: ['#F48FB1', '#F8BBD9']
+  },
+  { 
+    id: 'old_photos', 
+    title: 'Look through old photos',
+    icon: 'images',
+    color: '#F48FB1',
+    gradient: ['#F48FB1', '#F8BBD9']
+  },
+  { 
+    id: 'send_message', 
+    title: 'Send him a message',
+    icon: 'chatbubble',
+    color: '#F48FB1',
+    gradient: ['#F48FB1', '#F8BBD9']
+  },
 ];
 
 interface SOSModalProps {
@@ -138,17 +174,44 @@ export const SOSModal: React.FC<SOSModalProps> = ({
     }
   };
 
-  const renderUrgeOption = ({ item }: { item: typeof URGE_OPTIONS[0] }) => (
-    <Pressable
-      style={({ pressed }) => [
-        styles.urgeOption,
-        { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }
-      ]}
-      onPress={() => handleUrgePress(item.id)}
-    >
-      <Text style={styles.urgeOptionText}>{item.title}</Text>
-      <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
-    </Pressable>
+  const renderUrgeOption = ({ item, index }: { item: typeof URGE_OPTIONS[0], index: number }) => (
+    <View style={styles.urgeOptionContainer}>
+      <Pressable
+        style={({ pressed }) => [
+          styles.urgeOption,
+          { 
+            opacity: pressed ? 0.8 : 1, 
+            transform: [{ scale: pressed ? 0.96 : 1 }] 
+          }
+        ]}
+        onPress={() => handleUrgePress(item.id)}
+      >
+        <LinearGradient
+          colors={item.gradient as [string, string]}
+          style={styles.urgeOptionGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.urgeOptionContent}>
+            <View style={styles.iconContainer}>
+              <Ionicons 
+                name={item.icon as any} 
+                size={28} 
+                color="white" 
+              />
+            </View>
+            <Text style={styles.urgeOptionText}>{item.title}</Text>
+            <View style={styles.chevronContainer}>
+              <Ionicons 
+                name="chevron-forward" 
+                size={20} 
+                color="rgba(255, 255, 255, 0.8)" 
+              />
+            </View>
+          </View>
+        </LinearGradient>
+      </Pressable>
+    </View>
   );
 
   if (!visible) {
@@ -184,8 +247,10 @@ export const SOSModal: React.FC<SOSModalProps> = ({
           ]}
         >
           <LinearGradient
-            colors={[theme.colors.lightPink.lightest, theme.colors.lightPink.light]}
+            colors={['#FFE4E6', '#FFF1F2', '#FFFFFF']}
             style={styles.modalContent}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
           >
             {/* Drag handle */}
             <View style={styles.dragHandle} />
@@ -193,10 +258,16 @@ export const SOSModal: React.FC<SOSModalProps> = ({
             {/* Header */}
             <View style={styles.header}>
               <Pressable style={styles.cancelButton} onPress={handleClose}>
-                <Text style={styles.cancelText}>Cancel</Text>
+                <View style={styles.cancelButtonBackground}>
+                  <Ionicons name="close" size={20} color="#666" />
+                </View>
               </Pressable>
               <View style={styles.titleContainer}>
+                <View style={styles.headerIconContainer}>
+                  <Ionicons name="shield-checkmark" size={32} color={theme.colors.primary} />
+                </View>
                 <Text style={styles.headerTitle}>No Contact Guardian</Text>
+                <Text style={styles.headerSubtitle}>We're here to help you stay strong</Text>
               </View>
             </View>
 
@@ -241,96 +312,139 @@ const styles = StyleSheet.create({
   },
   modal: {
     position: 'absolute',
-    top: 50,
+    top: 60,
     left: 0,
     right: 0,
     bottom: 0,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
   },
   modalContent: {
     flex: 1,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   dragHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: 2,
+    width: 50,
+    height: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    borderRadius: 3,
     alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: 16,
+    marginBottom: 12,
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.m,
-    paddingTop: 20,
-    paddingBottom: theme.spacing.m,
+    paddingTop: 24,
+    paddingBottom: theme.spacing.l,
     position: 'relative',
   },
   cancelButton: {
     position: 'absolute',
-    top: -10,
-    left: 0,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
+    top: 12,
+    right: 16,
     zIndex: 1,
   },
-  cancelText: {
-    fontSize: theme.typography.fontSizes.m,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
-  },
-  titleContainer: {
-    flex: 1,
+  cancelButtonBackground: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  titleContainer: {
+    alignItems: 'center',
+  },
+  headerIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(244, 143, 177, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   headerTitle: {
-    fontSize: theme.typography.fontSizes.l,
+    fontSize: 24,
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
   },
   content: {
     flex: 1,
     paddingHorizontal: theme.spacing.m,
   },
   questionText: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: theme.typography.fontFamily.semiBold,
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: 32,
-    marginTop: 16,
+    marginBottom: 24,
   },
   optionsList: {
     paddingBottom: 40,
   },
+  urgeOptionContainer: {
+    marginBottom: 16,
+  },
   urgeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  urgeOptionGradient: {
     paddingVertical: 20,
     paddingHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+  },
+  urgeOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   urgeOptionText: {
-    fontSize: 16,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.text,
+    fontSize: 17,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: 'white',
     flex: 1,
+    lineHeight: 22,
+  },
+  chevronContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }); 
