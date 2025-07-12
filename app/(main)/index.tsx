@@ -8,6 +8,7 @@ import { MainFeedScreen } from '../../components/MainFeedScreen';
 import { useAuthGuard } from '../../utils';
 import { WidgetQuoteModal } from '../../components/WidgetQuoteModal';
 import { SOSModal } from '../../components/SOSModal';
+import { SOSCountdownScreen } from '../../components/SOSCountdownScreen';
 
 // This screen now acts as a simple wrapper that renders our main UI component.
 // All the UI logic is contained within MainFeedScreen.
@@ -49,6 +50,8 @@ export default function FeedPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [showWidgetModal, setShowWidgetModal] = useState(false);
   const [showSOSModal, setShowSOSModal] = useState(false);
+  const [showSOSCountdown, setShowSOSCountdown] = useState(false);
+  const [selectedUrgeType, setSelectedUrgeType] = useState<string>('');
 
   // ✅ FIX: Enhanced consolidated effect with hydration guard to prevent flicker
   useEffect(() => {
@@ -231,8 +234,24 @@ export default function FeedPage() {
 
   const handleUrgeSelect = useCallback((urgeId: string) => {
     console.log('Urge selected:', urgeId);
+    setSelectedUrgeType(urgeId);
     setShowSOSModal(false);
-    // TODO: Start the 20-minute timer with this urge type
+    // Small delay to allow modal to close smoothly
+    setTimeout(() => {
+      setShowSOSCountdown(true);
+    }, 300);
+  }, []);
+
+  const handleSOSCountdownClose = useCallback(() => {
+    hapticService.light();
+    setShowSOSCountdown(false);
+    setSelectedUrgeType('');
+  }, []);
+
+  const handleSOSCountdownComplete = useCallback(() => {
+    console.log('SOS countdown completed successfully!');
+    hapticService.success();
+    // TODO: Update streak data, show completion modal, etc.
   }, []);
 
   const handleCloseWidgetModal = useCallback(() => {
@@ -292,6 +311,14 @@ export default function FeedPage() {
         visible={showSOSModal}
         onClose={handleSOSClose}
         onUrgeSelect={handleUrgeSelect}
+      />
+      
+      {/* SOS Countdown Screen */}
+      <SOSCountdownScreen
+        visible={showSOSCountdown}
+        onClose={handleSOSCountdownClose}
+        urgeType={selectedUrgeType}
+        onComplete={handleSOSCountdownComplete}
       />
     </>
   );
