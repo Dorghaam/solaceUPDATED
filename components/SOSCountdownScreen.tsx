@@ -386,8 +386,10 @@ export const SOSCountdownScreen: React.FC<SOSCountdownScreenProps> = ({
   // Get personalized title based on urge type and user name
   const getPersonalizedTitle = () => {
     const baseTitle = URGE_TITLE_MAP[urgeType] || 'Stay Strong';
-    const name = userName || 'Beautiful';
-    return `${name}, ${baseTitle}`;
+    // Extract first name only
+    const fullName = userName || 'Beautiful';
+    const firstName = fullName.split(' ')[0];
+    return `${firstName}, ${baseTitle}`;
   };
 
   // Handle starting a distraction task

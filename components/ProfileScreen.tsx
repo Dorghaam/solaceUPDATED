@@ -16,6 +16,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { theme } from '../constants/theme';
 import { signOut, deleteCurrentUserAccount } from '../services/authService';
 import { useUserStore } from '../store/userStore';
+import { supabase } from '../services/supabaseClient';
 import * as Haptics from 'expo-haptics';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -129,17 +130,40 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }
   };
 
-  const handleProfileSave = () => {
+  const handleProfileSave = async () => {
     // Save profile logic here
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
-    // Update the user store with the new name
-    const { setUserName } = useUserStore.getState();
-    if (profileName.trim() && profileName !== userName) {
-      setUserName(profileName.trim());
+    try {
+      // Update the user store with the new name
+      const { setUserName } = useUserStore.getState();
+      if (profileName.trim() && profileName !== userName) {
+        setUserName(profileName.trim());
+        
+        // Also save to database if user is authenticated
+        if (supabaseUser?.id) {
+          const { error } = await supabase
+            .from('profiles')
+            .update({ 
+              full_name: profileName.trim(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', supabaseUser.id);
+          
+          if (error) {
+            console.error('ProfileScreen: Error saving name to database:', error);
+            throw error;
+          }
+          
+          console.log('ProfileScreen: Successfully saved name to database');
+        }
+      }
+      
+      Alert.alert('Profile Saved', 'Your profile has been updated successfully.');
+    } catch (error) {
+      console.error('ProfileScreen: Error saving profile:', error);
+      Alert.alert('Error', 'Failed to save profile. Please try again.');
     }
-    
-    Alert.alert('Profile Saved', 'Your profile has been updated successfully.');
   };
 
   const handleProfileSignOut = async () => {
